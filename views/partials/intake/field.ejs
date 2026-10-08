@@ -1,0 +1,32 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/partials/intake/field.twig. Dispatches on `f.template`
+  (set by FieldViewModel.for()) and never on `f.type` — see that class's doc comment for why the
+  type-to-partial branching lives there and not here. `f` is one field view-model object; a page
+  passes each of its top-level fields through this partial in a loop.
+
+  `cols` is how many fields the author put on a row, not how many columns one field spans:
+  `cols: 2` is the half-width treatment that puts First Name beside Last Name, and `cols: 1` is a
+  field with the row to itself. The page grid (`pages/intake/form.ejs`) is `grid-cols-1
+  sm:grid-cols-2`, so a field needs no explicit mobile class at all — the single-column grid already
+  makes every field full width there — and only an `sm:col-span-*` class to say which desktop
+  treatment it gets.
+
+  The `data-intake-*` attributes are what `public/js/intake.js` (ported verbatim from
+  storefront-lamp's own `theme/js/intake.js`) reads to move between pages, evaluate conditions, and
+  compute the BMI composite — this wrapper and `pages/intake/form.ejs`/`partials/stepper.ejs`
+  together are the entire contract that script depends on.
+*/
+%>
+<div
+  class="<%= f.cols > 1 ? 'sm:col-span-1' : 'sm:col-span-2' %><% if (f.runtime_class) { %> <%= f.runtime_class %><% } %>"
+  <% if (f.runtime_id) { %>id="<%= f.runtime_id %>"<% } %>
+  data-intake-field="<%= f.name %>"
+  data-intake-type="<%= f.type %>"
+  data-intake-required="<%= f.required ? '1' : '0' %>"
+  data-intake-hidden="<%= f.hidden ? '1' : '0' %>"
+  <% if (f.conditions_json) { %>data-intake-conditions="<%= f.conditions_json %>"<% } %>
+  <% if (f.hidden) { %>hidden<% } %>
+>
+<%- include(f.template, { f }) %>
+</div>

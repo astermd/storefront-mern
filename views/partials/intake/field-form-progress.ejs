@@ -1,0 +1,6 @@
+<%
+/* A `form-progress` field only ever *carries* authored data (its `progressStepItems`
+   property) for ProgressSteps.authored() to read at build time — it has nothing of its own to
+   draw on screen. The actual stepper UI is `partials/stepper.ejs`, rendered once at the page
+   level from `stepper_steps`/`stepper_active`, not per-field here. */
+%>

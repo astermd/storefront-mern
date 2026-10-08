@@ -1,0 +1,198 @@
+<%
+/* Ported from storefront-lamp/theme/templates/pages/product.twig. Gallery always falls back to
+   gallery[0] when the array has fewer than 4 entries (this catalog's real data only ever ships
+   one image, so all 4 thumbnails show it — by design, matching the PHP original's own comment).
+   The cart-add form's two submit buttons both post to /cart/add/, differing only in `intent`,
+   which CartController.add() reads to decide whether to bypass funnel-optimal routing straight to
+   checkout. */
+const page_title = product.name;
+const page_description = product.description || null;
+const gallery = product.gallery && product.gallery.length ? product.gallery : [product.image];
+const variants = product.variants || [];
+const firstVariantId = variants.length ? variants[0].id : '';
+const startingPriceCents = variants.length ? variants[0].price_cents : product.price_cents;
+const scripts = '<script src="' + asset('script.js') + '" defer></script><script src="' + asset('cart.js') + '" defer></script>';
+%>
+<%- include('../partials/head', { page_title, page_description }) %>
+<%- include('../partials/header') %>
+<%- include('../partials/cart-notice') %>
+
+<main>
+
+  <!-- ==================== BREADCRUMB ==================== -->
+  <section class="mx-auto max-w-[1440px] px-6 pt-6 lg:px-[120px]">
+    <nav aria-label="Breadcrumb">
+      <ol class="flex items-center gap-2 text-sm text-body">
+        <li><a href="<%= url('/') %>" class="transition-colors hover:text-primary">Home</a></li>
+        <li aria-hidden="true">/</li>
+        <li><a href="<%= url('/treatments') %>" class="transition-colors hover:text-primary">Treatments</a></li>
+        <li aria-hidden="true">/</li>
+        <li class="text-heading" aria-current="page"><%= product.name %></li>
+      </ol>
+    </nav>
+  </section>
+
+  <!-- ==================== PRODUCT ==================== -->
+  <section class="mx-auto max-w-[1440px] px-6 pb-16 pt-6 lg:px-[120px] lg:pb-24">
+    <div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
+
+      <!-- Gallery -->
+      <div class="lg:sticky lg:top-6 lg:self-start">
+        <div class="relative overflow-hidden rounded-xl bg-surface">
+          <img id="product-main-image" src="<%= gallery[0] %>" alt="<%= product.name %>" class="aspect-[3/2] w-full object-cover sm:h-[420px] sm:aspect-auto lg:h-[480px]" width="600" height="480" />
+        </div>
+        <div class="mt-4 grid grid-cols-4 gap-4" data-select-group>
+          <% for (let i = 0; i < 4; i++) { %>
+          <button type="button" data-select-option data-full-src="<%= gallery[i] || gallery[0] %>" data-full-alt="<%= product.name %>" aria-pressed="<%= i === 0 ? 'true' : 'false' %>" class="overflow-hidden rounded-lg border-2 border-transparent transition-colors aria-pressed:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+            <img src="<%= gallery[i] || gallery[0] %>" alt="" class="aspect-square w-full object-cover" width="120" height="120" />
+          </button>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div>
+        <h1 class="font-heading text-[32px] font-bold text-heading sm:text-[40px]"><%= product.name %></h1>
+        <% if (product.subtitle) { %><p class="mt-2 text-base text-body"><%= product.subtitle %></p><% } %>
+
+        <% if (product.badges && product.badges.length) { %>
+        <div class="mt-4 flex flex-wrap items-center gap-2">
+          <% product.badges.forEach(function (badge) { %>
+            <% if (badge.variant === 'primary') { %>
+            <span class="rounded-full border border-primary bg-primary-light px-3 py-1 text-sm font-medium text-primary"><%= badge.label %></span>
+            <% } else { %>
+            <span class="rounded-full bg-secondary px-3 py-1 text-sm font-medium text-secondary-foreground"><%= badge.label %></span>
+            <% } %>
+          <% }) %>
+        </div>
+        <% } %>
+
+        <p class="mt-6 max-w-[480px] text-base leading-6 text-body"><%= product.description %></p>
+
+        <p class="mt-6 text-[24px] font-medium text-heading sm:text-[28px]">
+          <%= money(startingPriceCents) %>
+          <% if (product.price_unit) { %><span class="text-base font-normal text-body"><%= product.price_unit %></span><% } %>
+        </p>
+
+        <% if (variants.length > 1) { %>
+        <div class="mt-8">
+          <p class="text-sm font-medium text-heading">Treatment Plan</p>
+          <div class="mt-3 flex flex-wrap gap-3" id="plan-selector" data-select-group>
+            <% variants.forEach(function (variant, index) { %>
+            <button type="button" data-select-option data-variant-id="<%= variant.id %>" data-variant-price="<%= variant.price_cents %>" aria-pressed="<%= index === 0 ? 'true' : 'false' %>" class="rounded-sm border border-border bg-background px-4 py-2.5 text-sm font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:bg-primary-light aria-pressed:text-primary">
+              <%= variant.name %>
+            </button>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+
+        <form method="post" action="<%= url('/cart/add') %>" class="mt-8 flex flex-col gap-4" id="add-to-cart-form">
+          <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+          <input type="hidden" name="slug" value="<%= product.slug %>" />
+          <input type="hidden" name="variant_id" id="product-variant-id" value="<%= firstVariantId %>" />
+          <input type="hidden" name="return_to" value="<%= current_path %>" />
+          <% /* With a different prescription already in the cart, the assessments are completed
+                 after checkout rather than here, so checkout is the only way on. */ %>
+          <% if (assessment_available) { %>
+          <button type="submit" name="intent" value="assessment" class="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+            Start Assessment
+            <i data-lucide="arrow-right" class="size-[18px]"></i>
+          </button>
+          <% } else { %>
+          <%- include('../partials/post-checkout-steps') %>
+          <% } %>
+          <% /* Alone, checkout takes the primary style the assessment button had. */ %>
+          <% if (assessment_available) { %>
+          <button type="submit" name="intent" value="checkout" class="inline-flex w-full items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+          <% } else { %>
+          <button type="submit" name="intent" value="checkout" class="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+          <% } %>
+            Proceed to Checkout
+            <i data-lucide="shopping-cart" class="size-[17px]"></i>
+          </button>
+        </form>
+
+        <!-- ==================== PRODUCT FAQ ==================== -->
+        <div class="mt-8 divide-y divide-border rounded-lg border border-border bg-background" id="faq-accordion">
+          <div class="faq-item" data-open="true">
+            <button type="button" class="faq-trigger flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded="true">
+              <span class="faq-question text-base font-medium text-primary">Is this covered by insurance?</span>
+              <i data-lucide="chevron-down" class="faq-chevron size-5 shrink-0 rotate-180 text-primary transition-transform"></i>
+            </button>
+            <div class="faq-panel overflow-hidden px-6">
+              <p class="pb-5 text-base leading-6 text-heading">Most plans are cash-pay, but you may be able to use an HSA/FSA card at checkout.</p>
+            </div>
+          </div>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded="false">
+              <span class="faq-question text-base font-medium text-heading">How fast will I hear back from a physician?</span>
+              <i data-lucide="chevron-down" class="faq-chevron size-5 shrink-0 text-heading transition-transform"></i>
+            </button>
+            <div class="faq-panel overflow-hidden px-6" style="max-height:0">
+              <p class="pb-5 text-base leading-6 text-heading">Most assessments are reviewed within 24 hours of submission.</p>
+            </div>
+          </div>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded="false">
+              <span class="faq-question text-base font-medium text-heading">Can I cancel anytime?</span>
+              <i data-lucide="chevron-down" class="faq-chevron size-5 shrink-0 text-heading transition-transform"></i>
+            </button>
+            <div class="faq-panel overflow-hidden px-6" style="max-height:0">
+              <p class="pb-5 text-base leading-6 text-heading">Yes — subscriptions can be paused or cancelled at any time from the patient portal.</p>
+            </div>
+          </div>
+          <div class="faq-item" data-open="false">
+            <button type="button" class="faq-trigger flex w-full items-center justify-between gap-4 px-6 py-5 text-left" aria-expanded="false">
+              <span class="faq-question text-base font-medium text-heading">Is my information kept private?</span>
+              <i data-lucide="chevron-down" class="faq-chevron size-5 shrink-0 text-heading transition-transform"></i>
+            </button>
+            <div class="faq-panel overflow-hidden px-6" style="max-height:0">
+              <p class="pb-5 text-base leading-6 text-heading">All clinical information is handled under HIPAA-compliant safeguards.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== HOW YOUR TREATMENT WORKS ==================== -->
+  <section class="bg-surface-2 py-16 lg:py-24">
+    <div class="mx-auto max-w-[1440px] px-6 lg:px-[120px]">
+      <div class="mx-auto max-w-[616px] text-center">
+        <h2 class="font-heading text-[28px] font-bold leading-tight text-heading sm:text-[34px] lg:text-[40px] lg:leading-[50px]">How Your Treatment Works</h2>
+        <p class="mt-8 text-base leading-6 text-heading">Three simple steps to start your personalized healthcare journey today</p>
+      </div>
+
+      <div class="mt-10 grid gap-8 md:grid-cols-3">
+        <article class="rounded-lg border border-border bg-background p-8 text-center">
+          <span class="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-b from-primary to-primary-soft">
+            <i data-lucide="list-ordered" class="size-8 text-primary-foreground"></i>
+          </span>
+          <h3 class="font-heading mt-5 text-lg font-medium sm:text-xl text-heading"><span class="mr-1">1.</span>Online Assessment</h3>
+          <p class="mx-auto mt-3 max-w-[314px] text-base leading-6 text-body">Complete a brief, secure medical questionnaire about your health goals and history.</p>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8 text-center">
+          <span class="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-b from-primary to-primary-soft">
+            <i data-lucide="hospital" class="size-8 text-primary-foreground"></i>
+          </span>
+          <h3 class="font-heading mt-5 text-lg font-medium sm:text-xl text-heading"><span class="mr-1">2.</span>Provider Review</h3>
+          <p class="mx-auto mt-3 max-w-[314px] text-base leading-6 text-body">A licensed physician reviews your profile to determine the safest, most effective care plan.</p>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8 text-center">
+          <span class="mx-auto flex size-16 items-center justify-center rounded-full bg-gradient-to-b from-primary to-primary-soft">
+            <i data-lucide="pill-bottle" class="size-8 text-primary-foreground"></i>
+          </span>
+          <h3 class="font-heading mt-5 text-lg font-medium sm:text-xl text-heading"><span class="mr-1">3.</span>Ongoing Care</h3>
+          <p class="mx-auto mt-3 max-w-[314px] text-base leading-6 text-body">Receive your treatment directly to your door, with unlimited follow-ups via secure messaging.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<%- include('../partials/footer') %>
+<%- include('../partials/foot', { scripts }) %>

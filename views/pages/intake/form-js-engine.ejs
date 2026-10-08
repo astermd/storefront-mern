@@ -1,0 +1,47 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/intake/form-js-engine.twig — mode A: embed the
+  definition and let the EMR-vendor-hosted engine (config/intake.ts's `engine.css`/`engine.js`,
+  a declared exception to the local-asset rule — see that config file's doc comment) render it
+  entirely. Selected via INTAKE_RENDERER=js-engine; 'server' (form.ejs) is this port's default,
+  matching storefront-lamp's own.
+
+  The engine's actual JS API/mount contract is the vendor's, not something this port can port —
+  this page supplies exactly what storefront-lamp's own equivalent does (the definition, initial
+  values and disqualification rules as embedded JSON, plus the engine's own CSS/JS) and trusts the
+  loaded script to find and mount into `#intake-engine-root`.
+*/
+const injected = injected_css ? '<style>' + injected_css + '</style>' : '';
+%>
+<%- include('../../partials/head', { page_title: form_title, page_description: null, noindex }) %>
+<%- include('../../partials/header') %>
+<%- injected %>
+<% if (intake_engine.css) { %><link rel="stylesheet" href="<%= intake_engine.css %>" /><% } %>
+
+<main class="mx-auto max-w-[760px] px-6 py-10 lg:py-16">
+  <%- include('../../partials/stepper', { steps: stepper_steps, active: stepper_active }) %>
+
+  <% if (termination_message) { %>
+  <div class="mt-6 rounded-sm border border-danger bg-danger/5 p-4">
+    <p class="text-sm text-danger"><%= termination_message %></p>
+  </div>
+  <% } %>
+
+  <div
+    id="intake-engine-root"
+    data-form-step="<%= form_step %>"
+    data-csrf="<%= csrf_token %>"
+    data-submit-url="<%= url('/intake/submit') %>"
+    data-save-url="<%= url('/intake/save') %>"
+    data-capture-url="<%= url('/intake/capture') %>"
+    class="mt-8"
+  ></div>
+</main>
+
+<script type="application/json" id="intake-definition"><%- definition_json %></script>
+<script type="application/json" id="intake-initial-values"><%- initial_values_json %></script>
+<script type="application/json" id="intake-rules"><%- rules_json %></script>
+<% if (intake_engine.js) { %><script src="<%= intake_engine.js %>" defer></script><% } %>
+
+<%- include('../../partials/footer') %>
+<%- include('../../partials/foot') %>

@@ -1,0 +1,107 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/intake/form.twig — mode C (server-rendered)
+  of the two renderer modes IntakeController supports. Every page of the form is rendered here and
+  all but one is concealed, so navigation is a class toggle rather than a round trip (`[10.6]`) and
+  the whole questionnaire is present in the HTML even when scripts never run (`[10.6a]`). Every
+  field on every page is drawn through the field.ejs dispatcher, which reads FieldViewModel.for()'s
+  output and never branches on the field's own `type` (see field.ejs's doc comment).
+
+  The `<form>`'s own native `action` posts to `/intake/save` rather than `/intake/submit` —
+  matching the PHP original exactly, and deliberately: `[10.6b]` states plainly that this
+  questionnaire genuinely depends on scripting (conditional questions, the eligibility check and
+  step navigation all need it), and the <noscript> block below says so instead of pretending a
+  no-JS visitor gets a working multi-page form. `public/js/intake.js` intercepts every
+  `data-intake-action` click and drives the real save/submit/capture calls itself.
+*/
+const injected = injected_css ? '<style>' + injected_css + '</style>' : '';
+const scripts = '<script src="' + asset('script.js') + '" defer></script><script src="' + asset('datepicker.js') + '" defer></script><script src="' + asset('intake.js') + '" defer></script>';
+%>
+<%- include('../../partials/head', { page_title: form_title, page_description: null, noindex }) %>
+<%- include('../../partials/header') %>
+<%- injected %>
+
+<%- include('../../partials/stepper', { steps: stepper_steps, active: stepper_active }) %>
+
+<section class="mx-auto max-w-[660px] px-6 py-16">
+
+  <% if (unsupported_types && unsupported_types.length > 0) { %>
+  <!-- `[10.13]`: the form declares a question this renderer cannot draw. Saying so and refusing
+       the submit is the point — the alternative is an intake that quietly omits it. -->
+  <div role="alert" class="mb-10 rounded-sm border-2 border-danger bg-danger-light px-5 py-4">
+    <p class="text-sm font-semibold text-danger">This form cannot be completed here.</p>
+    <p class="mt-2 text-sm leading-relaxed text-heading">
+      It contains <%= unsupported_types.length > 1 ? 'question types' : 'a question type' %>
+      this storefront cannot display (<%= unsupported_types.join(', ') %>). Please contact us and we will
+      complete it with you.
+    </p>
+  </div>
+  <% } %>
+
+  <% if (form_errors && form_errors._form) { %>
+  <div role="alert" class="mb-10 rounded-sm border-2 border-danger bg-danger-light px-5 py-4">
+    <p class="text-sm font-medium leading-relaxed text-danger"><%= form_errors._form %></p>
+  </div>
+  <% } %>
+
+  <noscript>
+    <div role="alert" class="mb-10 rounded-sm border-2 border-warning bg-warning-light px-5 py-4">
+      <p class="text-sm font-semibold text-heading">This questionnaire needs JavaScript.</p>
+      <p class="mt-2 text-sm leading-relaxed text-heading">
+        Every question is shown below, but follow-up questions and the eligibility check cannot run without it.
+        Please enable JavaScript, or contact us and we will complete this with you.
+      </p>
+    </div>
+  </noscript>
+
+  <form method="post"
+        action="<%= url('/intake/save') %>"
+        data-intake-form
+        data-save-url="<%= url('/intake/save') %>"
+        data-submit-url="<%= url('/intake/submit') %>"
+        data-capture-url="<%= url('/intake/capture') %>"
+        data-upload-url="<%= url('/intake/upload') %>"
+        data-page-count="<%= definition.pageCount() %>"
+        <% if (typeof error_page !== 'undefined' && error_page !== null) { %>data-intake-error-page="<%= error_page %>"<% } %>
+        data-intake-rules="<%= rules_json %>"
+        <% if (unsupported_types && unsupported_types.length > 0) { %>data-intake-blocked="1"<% } %>>
+    <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+    <input type="hidden" name="page" value="0" data-intake-page-input />
+    <!-- Which questionnaire this is — the POST endpoints are shared by both steps, so without this
+         the server cannot tell an eligibility submission from a medical one. -->
+    <input type="hidden" name="step" value="<%= form_step %>" />
+
+    <% fields.forEach(function (pageFields, pageIndex) { %>
+    <div data-intake-page="<%= pageIndex %>"<% if (pageIndex !== 0) { %> hidden<% } %>>
+      <div class="grid grid-cols-1 items-start gap-x-5 gap-y-6 sm:grid-cols-2">
+        <% pageFields.forEach(function (f) { %>
+        <%- include('../../partials/intake/field', { f }) %>
+        <% }) %>
+      </div>
+    </div>
+    <% }) %>
+
+    <!-- The eligibility interstitial. Populated by intake.js when a hard rule matches
+         client-side, and rendered on load when the server has already judged the journey. -->
+    <div role="alert" data-intake-interstitial
+         class="mt-10 rounded-sm border-2 border-danger bg-danger-light px-5 py-4<% if (!termination_message) { %> hidden<% } %>">
+      <p class="text-sm font-medium leading-relaxed text-danger" data-intake-interstitial-text><%= termination_message || '' %></p>
+    </div>
+
+    <!-- Navigation the definition did not author. A form whose pages carry their own buttons
+         hides these, so the author's choice wins (`[10.10]`). -->
+    <div class="mt-10 grid grid-cols-2 gap-4" data-intake-nav<% if (definition_has_buttons) { %> hidden<% } %>>
+      <button type="button" data-intake-action="previous_page"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-sm border-2 border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        Back
+      </button>
+      <button type="submit" data-intake-action="next_page" name="intake_next" value="1"
+              class="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover disabled:cursor-not-allowed disabled:opacity-60">
+        Continue
+      </button>
+    </div>
+  </form>
+</section>
+
+<%- include('../../partials/footer') %>
+<%- include('../../partials/foot', { scripts }) %>

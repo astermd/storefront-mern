@@ -1,0 +1,10 @@
+<%- /* Ported from storefront-lamp/theme/templates/partials/cart-remove-form.twig. Expects `line`
+       (the line view-model) in scope, passed explicitly by the caller. */ '' %>
+<form method="post" action="<%= url('/cart/remove') %>" class="inline">
+  <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+  <input type="hidden" name="slug" value="<%= line.slug %>" />
+  <input type="hidden" name="return_to" value="<%= current_path %>" />
+  <button type="submit" class="text-body transition-colors hover:text-danger" aria-label="Remove <%= line.name %> from cart">
+    <i data-lucide="trash-2" class="size-4"></i>
+  </button>
+</form>

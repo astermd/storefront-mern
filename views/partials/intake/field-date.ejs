@@ -1,0 +1,21 @@
+<!-- The stored/typed shape is MM/DD/YYYY (month first — see DateAnswer's doc comment); this
+     control collects and re-displays exactly that, converting to the EMR's YYYY-MM-DD only at the
+     AnswerEncoder/RecordMapper boundary, never here. -->
+<label class="block text-sm font-medium text-heading" for="field-<%= f.name %>">
+  <%= f.label %><% if (f.required) { %> <span class="text-danger">*</span><% } %>
+</label>
+<% if (f.description) { %><p class="mt-1 text-sm text-muted"><%= f.description %></p><% } %>
+<input
+  type="text"
+  id="field-<%= f.name %>"
+  name="<%= f.name %>"
+  value="<%= f.value %>"
+  placeholder="MM / DD / YYYY"
+  inputmode="numeric"
+  <% if (f.required) { %>required<% } %>
+  <% if (f.readonly) { %>readonly<% } %>
+  <% if (f.disabled) { %>disabled<% } %>
+  <% if (f.error) { %>aria-invalid="true" aria-describedby="<%= f.error_id %>"<% } %>
+  class="mt-2 block w-full rounded-sm border <%= f.error ? 'border-danger' : 'border-border' %> px-3 py-2 text-base text-body focus:border-primary focus:outline-none"
+/>
+<%- include('field-error', { f }) %>

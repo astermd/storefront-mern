@@ -1,0 +1,20 @@
+<!-- Covers checkbox/toggle/terms/agreement — one control, differing only by wording (see
+     FieldViewModel's doc comment). f.value is a real boolean by the time it reaches here. -->
+<label class="flex items-start gap-2">
+  <input
+    type="checkbox"
+    id="field-<%= f.name %>"
+    name="<%= f.name %>"
+    value="true"
+    <% if (f.value) { %>checked<% } %>
+    <% if (f.required) { %>required<% } %>
+    <% if (f.disabled) { %>disabled<% } %>
+    <% if (f.error) { %>aria-invalid="true" aria-describedby="<%= f.error_id %>"<% } %>
+    class="mt-1 size-4 rounded border-border text-primary focus:ring-primary"
+  />
+  <span class="text-sm text-body">
+    <%= f.label %><% if (f.required) { %> <span class="text-danger">*</span><% } %>
+  </span>
+</label>
+<% if (f.description) { %><p class="mt-1 text-sm text-muted"><%= f.description %></p><% } %>
+<%- include('field-error', { f }) %>

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Intake — Eligibility | AsterMD</title>
+<meta name="description" content="AsterMD eligibility check: a few quick questions before your physician review." />
+
+<!-- Fonts: Figma design specifies "Helvetica Now Display/Text" (proprietary). Substituted with Inter, the closest free Google Font match. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,700&display=swap" rel="stylesheet" />
+
+<!-- Lucide icon library: every icon in this page is a real Lucide icon, rendered from
+     `<i data-lucide="...">` placeholders by lucide.createIcons() at the end of <body>. -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Tailwind CSS (CDN build) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Every colour/radius/shadow/font/transition here is a thin pass-through to the
+  // CSS variables defined in assets/css/styles.css. This file should never need a
+  // hex value added to it — new colours are added as tokens in styles.css and
+  // wired to a semantic key here once. Keep this block identical to index.html's.
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: 'var(--primary)',
+            hover: 'var(--primary-hover)',
+            light: 'var(--primary-light)',
+            soft: 'var(--primary-soft)',
+            deep: 'var(--primary-deep)',
+            foreground: 'var(--primary-foreground)',
+          },
+          secondary: {
+            DEFAULT: 'var(--secondary)',
+            hover: 'var(--secondary-hover)',
+            light: 'var(--secondary-light)',
+            foreground: 'var(--secondary-foreground)',
+            'foreground-muted': 'var(--secondary-foreground-muted)',
+          },
+          success: 'var(--success)',
+          warning: 'var(--warning)',
+          danger: 'var(--danger)',
+
+          background: {
+            DEFAULT: 'var(--background)',
+            2: 'var(--background-2)',
+          },
+          surface: 'var(--surface)',
+          'surface-2': 'var(--surface-2)',
+
+          // Text-role colours are named distinctly from "primary"/"secondary" so
+          // `text-primary` unambiguously means "brand-coloured text" everywhere.
+          heading: 'var(--text-primary)',
+          body: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          faint: 'var(--text-faint)',
+          'icon-muted': 'var(--icon-muted)',
+
+          border: {
+            DEFAULT: 'var(--border)',
+            soft: 'var(--border-soft)',
+            darker: 'var(--border-darker)',
+          },
+          divider: 'var(--divider)',
+          link: {
+            DEFAULT: 'var(--link)',
+            hover: 'var(--link-hover)',
+          },
+          overlay: {
+            DEFAULT: 'var(--overlay)',
+            strong: 'var(--overlay-strong)',
+          },
+        },
+        fontFamily: {
+          heading: ['var(--font-heading)', 'sans-serif'],
+          body: ['var(--font-body)', 'sans-serif'],
+        },
+        borderRadius: {
+          sm: 'var(--radius-sm)',
+          md: 'var(--radius-md)',
+          lg: 'var(--radius-lg)',
+          xl: 'var(--radius-xl)',
+        },
+        boxShadow: {
+          sm: 'var(--shadow-sm)',
+          md: 'var(--shadow-md)',
+        },
+        transitionDuration: {
+          DEFAULT: 'var(--transition-base)',
+        },
+        transitionTimingFunction: {
+          DEFAULT: 'var(--ease-standard)',
+        },
+        spacing: {
+          xs: 'var(--spacing-xs)',
+          sm: 'var(--spacing-sm)',
+          md: 'var(--spacing-md)',
+          lg: 'var(--spacing-lg)',
+          xl: 'var(--spacing-xl)',
+        },
+      },
+    },
+  };
+</script>
+
+<link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body class="bg-background font-body text-heading antialiased">
+
+<!-- ==================== HEADER ==================== -->
+<header class="border-b border-border bg-background">
+  <div class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 lg:px-[120px]">
+    <a href="../index.html" class="shrink-0" aria-label="AsterMD home">
+      <svg class="h-[26px] w-auto sm:h-[30px]" width="151" height="30" viewBox="0 0 423 84" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AsterMD">
+        <circle cx="44.24" cy="38.34" r="9.98" class="fill-primary"/>
+        <circle cx="44.22" cy="10.86" r="7.71" class="fill-heading"/>
+        <circle cx="70.40" cy="29.93" r="7.71" class="fill-heading"/>
+        <circle cx="60.29" cy="60.63" r="7.71" class="fill-heading"/>
+        <circle cx="28.01" cy="60.63" r="7.71" class="fill-heading"/>
+        <circle cx="18.12" cy="29.93" r="7.71" class="fill-heading"/>
+        <circle cx="67.51" cy="6.594" r="5.88" class="fill-heading"/>
+        <circle cx="81.64" cy="50.61" r="5.88" class="fill-heading"/>
+        <circle cx="44.25" cy="77.67" r="5.88" class="fill-heading"/>
+        <circle cx="6.85" cy="50.61" r="5.88" class="fill-heading"/>
+        <circle cx="21.28" cy="6.60" r="5.88" class="fill-heading"/>
+        <g transform="translate(101.35, 14.52)" class="fill-heading">
+          <path d="M28.7226 47.79H17.8226L16.3226 52.79C15.8926 54.24 14.5526 55.23 13.0426 55.23H2.2026C0.702595 55.23 -0.357401 53.77 0.112599 52.34L16.3326 3.13C16.9526 1.26 18.6926 0 20.6626 0H27.0026C32.5926 0 37.5926 3.49 39.5226 8.75L54.7026 50.21C55.5926 52.65 53.7926 55.23 51.1926 55.23H38.9926C37.5326 50.79 33.3826 47.8 28.7126 47.8L28.7226 47.79ZM33.6526 39.28L27.4726 18.07C27.1926 17.18 25.9226 17.2 25.6826 18.1L20.8126 36.03C20.3426 37.77 22.0626 39.27 23.8726 39.27H33.6626L33.6526 39.28Z"/>
+          <path d="M59.1226 50.41L58.3726 41.18C62.1626 43.33 68.2626 44.9 73.9026 44.9C77.2426 44.9 78.7326 44.16 78.7326 42.3C78.7326 40.96 77.9926 40.29 72.7826 39.03L71.0726 38.58C62.9726 36.57 59.4726 33.23 59.4726 26.54C59.4726 17.77 65.2726 13.31 77.1626 13.31C80.4526 13.31 83.9326 13.73 86.8126 14.56C88.6926 15.1 90.0226 16.77 90.1626 18.72L90.8326 27.73C87.0426 25.95 80.8726 24.61 76.9326 24.61C73.8126 24.61 72.6926 25.43 72.6926 26.84C72.6926 28.18 73.2826 28.85 78.1226 29.96L80.0526 30.48C90.0126 32.86 92.4626 36.8 92.4626 42.37C92.4626 51.81 85.1026 56.19 74.4026 56.19C69.9726 56.19 65.5426 55.52 62.0826 54.29C60.4126 53.7 59.2426 52.18 59.1026 50.41H59.1226Z"/>
+          <path d="M115.743 56.04C105.933 56.04 99.9826 52.62 99.9826 38.5V27.49C99.9826 26.59 99.2526 25.86 98.3526 25.86H95.9626V14.27H99.9726V3.64H114.693V14.27H122.353V25.86H117.323C115.873 25.86 114.693 27.04 114.693 28.49V38.2C114.693 41.4 115.953 42.73 119.303 42.73C120.343 42.73 121.313 42.66 122.503 42.36L121.313 55.22C119.383 55.81 117.523 56.04 115.743 56.04Z"/>
+          <path d="M149.973 56.19C137.263 56.19 127.153 50.1 127.153 34.19C127.153 19.4 136.813 13.3 147.893 13.3C160.423 13.3 166.453 21.5 167.333 33.83C167.453 35.59 166.083 37.09 164.323 37.09H142.103C143.073 42.96 146.723 44.89 152.303 44.89C155.903 44.89 159.423 44.3 162.413 43.08C163.423 42.67 164.493 43.52 164.303 44.59L162.983 52.7C159.783 55.15 155.403 56.19 149.973 56.19ZM142.093 30.82H155.843C155.023 26.29 152.573 24.23 148.933 24.23C145.813 24.23 142.913 25.92 142.093 30.82Z"/>
+          <path d="M186.233 35.96V55.23H171.513V13.94H182.583L185.703 19.18C189.343 14.8 193.583 13.38 197.813 13.38V30.82C194.893 30.87 192.063 31.32 189.303 32.02C187.493 32.48 186.223 34.09 186.223 35.96H186.233Z"/>
+        </g>
+        <g transform="translate(307.22, 14.52)" class="fill-primary">
+          <path d="M13.9 31.24V55.22H0V0H14.05L28.64 26.62C29.5 28.2 31.77 28.21 32.64 26.64L47.5 0H61.03V55.22H46.39V30.87C46.39 29.7 44.83 29.29 44.26 30.31L30.42 54.92C30.32 55.1 30.13 55.21 29.92 55.21C29.71 55.21 29.52 55.1 29.42 54.92L16.03 30.68C15.46 29.65 13.9 30.05 13.9 31.23V31.24Z"/>
+          <path d="M66.08 0H87.78C107.7 0 115.21 10.63 115.21 27.13C115.21 43.63 106.14 55.23 88.23 55.23H66.08V0.00999832V0ZM85.33 41.99C95.07 41.99 99.23 37.83 99.23 27.27C99.23 17.31 95.51 13.22 85.4 13.22H85.33C83.15 13.22 81.39 14.98 81.39 17.16V38.05C81.39 40.23 83.15 41.99 85.33 41.99Z"/>
+        </g>
+      </svg>
+    </a>
+
+    <a href="../index.html" class="flex size-10 items-center justify-center text-heading transition-colors hover:text-primary" aria-label="Back to home">
+      <i data-lucide="house" class="size-6"></i>
+    </a>
+  </div>
+</header>
+
+<main>
+  <!-- ==================== STEP PROGRESS ==================== -->
+  <!-- Each label is absolutely centered under its own icon (left-1/2 + -translate-x-1/2)
+       instead of living in a matching-width flex column — flex items default to
+       min-width:auto, so a fixed-width label column would silently grow to fit
+       "Verify & Review" and stop lining up under its circle. Labels wrap within a
+       fixed w-20 box (no whitespace-nowrap) so "Verify & Review" breaks onto two
+       lines instead of overflowing past the viewport edge on narrow screens. -->
+  <div class="mx-auto max-w-[660px] px-6 pb-10 pt-10">
+    <div class="flex items-center">
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <i data-lucide="gauge" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight font-medium text-primary">Eligibility</span>
+      </div>
+      <div class="relative mx-2 h-0.5 flex-1 bg-border">
+        <div id="elig-progress-fill" class="absolute inset-y-0 left-0 bg-primary" style="width: 0%"></div>
+        <span id="elig-progress-label" class="absolute inset-x-0 -top-6 text-center text-xs font-medium text-primary">0%</span>
+      </div>
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-divider text-muted">
+          <i data-lucide="user" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight text-muted">Contact</span>
+      </div>
+      <div class="mx-2 h-0.5 flex-1 bg-border"></div>
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-divider text-muted">
+          <i data-lucide="list-ordered" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight text-muted">Medical</span>
+      </div>
+      <div class="mx-2 h-0.5 flex-1 bg-border"></div>
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-divider text-muted">
+          <i data-lucide="user-check" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight text-muted">Verify &amp; Review</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ELIGIBILITY QUESTIONS ==================== -->
+  <section class="mx-auto max-w-[660px] px-6 py-16">
+
+    <div data-elig-step="1">
+      <h1 class="font-heading text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">What state do you live in?</h1>
+      <div class="relative mt-8" data-searchable-select>
+        <button type="button" data-select-trigger aria-haspopup="listbox" aria-expanded="false" class="flex w-full items-center justify-center rounded-sm border-2 border-border bg-background py-4 pl-5 pr-12 text-center text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:text-lg">
+          <span data-select-value>New York</span>
+        </button>
+        <i data-lucide="chevron-down" data-select-chevron class="pointer-events-none absolute right-5 top-1/2 size-5 -translate-y-1/2 text-heading transition-transform"></i>
+
+        <div data-select-panel class="absolute inset-x-0 top-full z-20 mt-2 hidden rounded-sm border-2 border-border bg-background shadow-md">
+          <div class="relative border-b border-border p-3">
+            <i data-lucide="search" class="pointer-events-none absolute left-6 top-1/2 size-4 -translate-y-1/2 text-icon-muted"></i>
+            <input type="text" data-select-search placeholder="Search state..." autocomplete="off" class="w-full rounded-sm border border-border bg-background py-2.5 pl-9 pr-3 text-base text-heading placeholder:text-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary" />
+          </div>
+          <ul role="listbox" aria-label="State" data-select-list class="max-h-60 overflow-y-auto py-2">
+            <li role="option" data-select-item data-value="Alabama" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Alabama</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Alaska" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Alaska</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Arizona" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Arizona</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Arkansas" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Arkansas</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="California" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">California</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Colorado" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Colorado</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Connecticut" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Connecticut</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Delaware" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Delaware</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="District of Columbia" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">District of Columbia</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Florida" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Florida</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Georgia" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Georgia</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Hawaii" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Hawaii</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Idaho" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Idaho</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Illinois" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Illinois</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Indiana" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Indiana</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Iowa" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Iowa</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Kansas" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Kansas</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Kentucky" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Kentucky</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Louisiana" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Louisiana</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Maine" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Maine</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Maryland" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Maryland</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Massachusetts" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Massachusetts</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Michigan" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Michigan</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Minnesota" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Minnesota</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Mississippi" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Mississippi</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Missouri" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Missouri</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Montana" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Montana</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Nebraska" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Nebraska</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Nevada" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Nevada</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="New Hampshire" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">New Hampshire</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="New Jersey" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">New Jersey</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="New Mexico" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">New Mexico</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="New York" tabindex="-1" aria-selected="true" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label font-medium text-primary">New York</span>
+              <i data-lucide="check" data-select-check class="size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="North Carolina" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">North Carolina</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="North Dakota" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">North Dakota</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Ohio" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Ohio</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Oklahoma" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Oklahoma</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Oregon" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Oregon</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Pennsylvania" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Pennsylvania</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Rhode Island" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Rhode Island</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="South Carolina" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">South Carolina</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="South Dakota" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">South Dakota</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Tennessee" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Tennessee</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Texas" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Texas</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Utah" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Utah</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Vermont" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Vermont</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Virginia" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Virginia</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Washington" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Washington</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="West Virginia" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">West Virginia</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Wisconsin" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Wisconsin</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+            <li role="option" data-select-item data-value="Wyoming" tabindex="-1" aria-selected="false" class="flex cursor-pointer items-center justify-between px-5 py-2.5 text-base transition-colors hover:bg-divider">
+              <span class="select-item-label text-heading">Wyoming</span>
+              <i data-lucide="check" data-select-check class="hidden size-4 shrink-0 text-primary"></i>
+            </li>
+          </ul>
+          <p data-select-empty class="hidden px-5 py-6 text-center text-sm text-muted">No matches found.</p>
+        </div>
+      </div>
+    </div>
+
+    <div data-elig-step="2" class="hidden">
+      <h1 class="font-heading text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">What is your weight loss goal?</h1>
+      <div class="mt-8 flex flex-col gap-4" data-select-group>
+        <button type="button" data-select-option aria-pressed="true" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          1-20 lbs
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          21-50 lbs
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          50+ lbs
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          Not sure yet
+        </button>
+      </div>
+    </div>
+
+    <div data-elig-step="3" class="hidden">
+      <h1 class="font-heading text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">What is your biological gender?</h1>
+      <div class="mt-8 flex flex-col gap-4" data-select-group>
+        <button type="button" data-select-option aria-pressed="true" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          Male
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          Female
+        </button>
+      </div>
+    </div>
+
+    <div data-elig-step="4" class="hidden">
+      <h1 class="font-heading text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">What is your date of birth?</h1>
+      <div class="relative mt-8" data-datepicker>
+        <label for="dob" class="sr-only">Date of birth</label>
+        <input
+          id="dob"
+          type="text"
+          inputmode="numeric"
+          autocomplete="bday"
+          placeholder="MM / DD / YYYY"
+          data-datepicker-input
+          class="w-full rounded-sm border-2 border-border bg-background py-4 pl-5 pr-12 text-center text-base text-heading placeholder:text-muted transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:text-lg"
+        />
+        <button type="button" data-datepicker-toggle aria-label="Open calendar" aria-expanded="false" class="absolute right-5 top-1/2 -translate-y-1/2 text-icon-muted transition-colors hover:text-heading">
+          <i data-lucide="calendar" class="size-5"></i>
+        </button>
+
+        <div data-datepicker-panel class="hidden absolute left-0 top-full z-20 mt-2 w-[300px] rounded-lg border border-border bg-background p-4 shadow-md sm:w-[340px]">
+          <div class="flex items-center justify-between">
+            <span data-datepicker-month-label class="text-base font-medium text-heading"></span>
+            <div class="flex items-center gap-1">
+              <button type="button" data-datepicker-prev aria-label="Previous month" class="flex size-8 items-center justify-center rounded-sm text-heading transition-colors hover:bg-divider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                <i data-lucide="chevron-up" class="size-4"></i>
+              </button>
+              <button type="button" data-datepicker-next aria-label="Next month" class="flex size-8 items-center justify-center rounded-sm text-heading transition-colors hover:bg-divider focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                <i data-lucide="chevron-down" class="size-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-7 text-center text-xs font-medium text-muted">
+            <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+          </div>
+          <div class="mt-1 grid grid-cols-7 gap-y-1" data-datepicker-days></div>
+
+          <div class="mt-3 flex items-center justify-between border-t border-border pt-3">
+            <button type="button" data-datepicker-clear class="text-sm font-medium text-primary transition-colors hover:text-primary-hover">Clear</button>
+            <button type="button" data-datepicker-today class="text-sm font-medium text-primary transition-colors hover:text-primary-hover">Today</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-8 grid grid-cols-2 gap-4">
+      <button type="button" id="elig-back" class="inline-flex w-full items-center justify-center gap-2 rounded-sm border-2 border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        <i data-lucide="arrow-left" class="size-[14px]"></i>
+        Back
+      </button>
+      <button type="button" id="elig-next" class="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+        <span id="elig-next-label">Next</span>
+        <i data-lucide="arrow-right" class="size-[14px]"></i>
+      </button>
+    </div>
+
+  </section>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="border-t border-border bg-background">
+  <div class="mx-auto flex max-w-[1440px] flex-col items-center gap-6 px-6 py-8 lg:flex-row lg:justify-between lg:px-[120px]">
+    <div class="text-center lg:text-left">
+      <p class="text-sm text-muted">© 2026 AsterMD. All Rights Reserved.</p>
+      <p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-muted lg:justify-start">
+        <i data-lucide="lock" class="size-4"></i>
+        Your data is secure and HIPAA-compliant.
+      </p>
+    </div>
+
+    <img src="../assets/images/footer-badge-2.png" alt="LegitScript Certified" class="h-16 w-auto" />
+
+    <div class="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-body">
+      <a href="#" class="underline transition-colors hover:text-primary">Privacy Policy</a>
+      <a href="#" class="underline transition-colors hover:text-primary">Terms of Service</a>
+      <a href="#" class="underline transition-colors hover:text-primary">Refund Policy</a>
+      <a href="#" class="underline transition-colors hover:text-primary">HIPAA Compliance</a>
+    </div>
+  </div>
+</footer>
+
+<script>lucide.createIcons();</script>
+<script src="../assets/js/script.js"></script>
+<script src="../assets/js/datepicker.js"></script>
+<script>
+  // Searchable dropdown (currently just the state picker on step 1). Swaps out the
+  // native <select> — whose option list can't be themed and renders as an
+  // OS-native picker — for a themed combobox: trigger button + filterable listbox.
+  (function () {
+    document.querySelectorAll('[data-searchable-select]').forEach(function (root) {
+      var trigger = root.querySelector('[data-select-trigger]');
+      var valueLabel = root.querySelector('[data-select-value]');
+      var chevron = root.querySelector('[data-select-chevron]');
+      var panel = root.querySelector('[data-select-panel]');
+      var search = root.querySelector('[data-select-search]');
+      var list = root.querySelector('[data-select-list]');
+      var emptyState = root.querySelector('[data-select-empty]');
+      var items = Array.prototype.slice.call(root.querySelectorAll('[data-select-item]'));
+      var highlightedIndex = -1;
+
+      function visibleItems() {
+        return items.filter(function (item) { return !item.classList.contains('hidden'); });
+      }
+
+      function setHighlight(index) {
+        var visible = visibleItems();
+        visible.forEach(function (item) { item.classList.remove('bg-divider'); });
+        highlightedIndex = Math.max(0, Math.min(index, visible.length - 1));
+        var next = visible[highlightedIndex];
+        if (next) {
+          next.classList.add('bg-divider');
+          next.scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function open() {
+        panel.classList.remove('hidden');
+        trigger.setAttribute('aria-expanded', 'true');
+        chevron.classList.add('rotate-180');
+        search.value = '';
+        filter('');
+        search.focus();
+      }
+
+      function close() {
+        panel.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+        chevron.classList.remove('rotate-180');
+        highlightedIndex = -1;
+      }
+
+      function isOpen() {
+        return !panel.classList.contains('hidden');
+      }
+
+      function filter(query) {
+        var needle = query.trim().toLowerCase();
+        var anyVisible = false;
+        items.forEach(function (item) {
+          var matches = item.getAttribute('data-value').toLowerCase().indexOf(needle) !== -1;
+          item.classList.toggle('hidden', !matches);
+          if (matches) anyVisible = true;
+        });
+        emptyState.classList.toggle('hidden', anyVisible);
+        setHighlight(0);
+      }
+
+      function select(item) {
+        var value = item.getAttribute('data-value');
+        valueLabel.textContent = value;
+        items.forEach(function (other) {
+          var isSelected = other === item;
+          other.setAttribute('aria-selected', String(isSelected));
+          other.querySelector('.select-item-label').classList.toggle('text-primary', isSelected);
+          other.querySelector('.select-item-label').classList.toggle('font-medium', isSelected);
+          other.querySelector('.select-item-label').classList.toggle('text-heading', !isSelected);
+          other.querySelector('[data-select-check]').classList.toggle('hidden', !isSelected);
+        });
+        close();
+        trigger.focus();
+      }
+
+      trigger.addEventListener('click', function () {
+        if (isOpen()) { close(); } else { open(); }
+      });
+
+      search.addEventListener('input', function () {
+        filter(search.value);
+      });
+
+      search.addEventListener('keydown', function (event) {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          setHighlight(highlightedIndex + 1);
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          setHighlight(highlightedIndex - 1);
+        } else if (event.key === 'Enter') {
+          event.preventDefault();
+          var visible = visibleItems();
+          if (visible[highlightedIndex]) select(visible[highlightedIndex]);
+        } else if (event.key === 'Escape') {
+          close();
+          trigger.focus();
+        }
+      });
+
+      items.forEach(function (item) {
+        item.addEventListener('click', function () { select(item); });
+      });
+
+      document.addEventListener('click', function (event) {
+        if (isOpen() && !root.contains(event.target)) close();
+      });
+    });
+  })();
+</script>
+<script>
+  // Eligibility phase: a single-page wizard over 4 sub-questions (state, weight-loss
+  // goal, biological gender, date of birth). The connector between the Eligibility
+  // and Contact step icons doubles as a progress bar for these sub-questions — the
+  // percentages below come straight from the Figma prototype, not an even split.
+  (function () {
+    var steps = Array.prototype.slice.call(document.querySelectorAll('[data-elig-step]'));
+    var totalSteps = steps.length;
+    var currentStep = 1;
+    var progressByStep = { 1: 0, 2: 50, 3: 75, 4: 100 };
+
+    var backBtn = document.getElementById('elig-back');
+    var nextBtn = document.getElementById('elig-next');
+    var nextLabel = document.getElementById('elig-next-label');
+    var progressFill = document.getElementById('elig-progress-fill');
+    var progressLabel = document.getElementById('elig-progress-label');
+
+    function render() {
+      steps.forEach(function (panel) {
+        panel.classList.toggle('hidden', Number(panel.getAttribute('data-elig-step')) !== currentStep);
+      });
+      progressFill.style.width = progressByStep[currentStep] + '%';
+      progressLabel.textContent = progressByStep[currentStep] + '%';
+      nextLabel.textContent = currentStep === totalSteps ? 'Continue' : 'Next';
+    }
+
+    backBtn.addEventListener('click', function () {
+      if (currentStep === 1) {
+        window.location.href = '../index.html';
+        return;
+      }
+      currentStep -= 1;
+      render();
+    });
+
+    nextBtn.addEventListener('click', function () {
+      if (currentStep === totalSteps) {
+        window.location.href = 'contact.html';
+        return;
+      }
+      currentStep += 1;
+      render();
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>

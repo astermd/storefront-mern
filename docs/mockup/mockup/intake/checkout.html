@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Checkout | AsterMD</title>
+<meta name="description" content="Complete your AsterMD order: choose a treatment plan, delivery, and payment." />
+
+<!-- Fonts: Figma design specifies "Helvetica Now Display/Text" (proprietary). Substituted with Inter, the closest free Google Font match. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,700&display=swap" rel="stylesheet" />
+
+<!-- Lucide icon library: every icon in this page is a real Lucide icon, rendered from
+     `<i data-lucide="...">` placeholders by lucide.createIcons() at the end of <body>. -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Tailwind CSS (CDN build) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Every colour/radius/shadow/font/transition here is a thin pass-through to the
+  // CSS variables defined in assets/css/styles.css. This file should never need a
+  // hex value added to it — new colours are added as tokens in styles.css and
+  // wired to a semantic key here once. Keep this block identical to index.html's.
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: 'var(--primary)',
+            hover: 'var(--primary-hover)',
+            light: 'var(--primary-light)',
+            soft: 'var(--primary-soft)',
+            deep: 'var(--primary-deep)',
+            foreground: 'var(--primary-foreground)',
+          },
+          secondary: {
+            DEFAULT: 'var(--secondary)',
+            hover: 'var(--secondary-hover)',
+            light: 'var(--secondary-light)',
+            foreground: 'var(--secondary-foreground)',
+            'foreground-muted': 'var(--secondary-foreground-muted)',
+          },
+          success: 'var(--success)',
+          warning: 'var(--warning)',
+          danger: 'var(--danger)',
+
+          background: {
+            DEFAULT: 'var(--background)',
+            2: 'var(--background-2)',
+          },
+          surface: 'var(--surface)',
+          'surface-2': 'var(--surface-2)',
+
+          // Text-role colours are named distinctly from "primary"/"secondary" so
+          // `text-primary` unambiguously means "brand-coloured text" everywhere.
+          heading: 'var(--text-primary)',
+          body: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          faint: 'var(--text-faint)',
+          'icon-muted': 'var(--icon-muted)',
+
+          border: {
+            DEFAULT: 'var(--border)',
+            soft: 'var(--border-soft)',
+            darker: 'var(--border-darker)',
+          },
+          divider: 'var(--divider)',
+          link: {
+            DEFAULT: 'var(--link)',
+            hover: 'var(--link-hover)',
+          },
+          overlay: {
+            DEFAULT: 'var(--overlay)',
+            strong: 'var(--overlay-strong)',
+          },
+
+          // Third-party payment brand colors — express-checkout buttons only.
+          paypal: {
+            DEFAULT: 'var(--paypal-bg)',
+            foreground: 'var(--paypal-text)',
+          },
+          applepay: {
+            DEFAULT: 'var(--applepay-bg)',
+            foreground: 'var(--applepay-text)',
+          },
+        },
+        fontFamily: {
+          heading: ['var(--font-heading)', 'sans-serif'],
+          body: ['var(--font-body)', 'sans-serif'],
+        },
+        borderRadius: {
+          sm: 'var(--radius-sm)',
+          md: 'var(--radius-md)',
+          lg: 'var(--radius-lg)',
+          xl: 'var(--radius-xl)',
+        },
+        boxShadow: {
+          sm: 'var(--shadow-sm)',
+          md: 'var(--shadow-md)',
+        },
+        transitionDuration: {
+          DEFAULT: 'var(--transition-base)',
+        },
+        transitionTimingFunction: {
+          DEFAULT: 'var(--ease-standard)',
+        },
+        spacing: {
+          xs: 'var(--spacing-xs)',
+          sm: 'var(--spacing-sm)',
+          md: 'var(--spacing-md)',
+          lg: 'var(--spacing-lg)',
+          xl: 'var(--spacing-xl)',
+        },
+      },
+    },
+  };
+</script>
+
+<link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body class="bg-background font-body text-heading antialiased">
+
+<!-- ==================== HEADER ==================== -->
+<header class="border-b border-border bg-background">
+  <div class="mx-auto flex h-20 max-w-[1260px] items-center px-6 lg:px-16">
+    <a href="../index.html" class="shrink-0" aria-label="AsterMD home">
+      <svg class="h-[26px] w-auto sm:h-[30px]" width="151" height="30" viewBox="0 0 423 84" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AsterMD">
+        <circle cx="44.24" cy="38.34" r="9.98" class="fill-primary"/>
+        <circle cx="44.22" cy="10.86" r="7.71" class="fill-heading"/>
+        <circle cx="70.40" cy="29.93" r="7.71" class="fill-heading"/>
+        <circle cx="60.29" cy="60.63" r="7.71" class="fill-heading"/>
+        <circle cx="28.01" cy="60.63" r="7.71" class="fill-heading"/>
+        <circle cx="18.12" cy="29.93" r="7.71" class="fill-heading"/>
+        <circle cx="67.51" cy="6.594" r="5.88" class="fill-heading"/>
+        <circle cx="81.64" cy="50.61" r="5.88" class="fill-heading"/>
+        <circle cx="44.25" cy="77.67" r="5.88" class="fill-heading"/>
+        <circle cx="6.85" cy="50.61" r="5.88" class="fill-heading"/>
+        <circle cx="21.28" cy="6.60" r="5.88" class="fill-heading"/>
+        <g transform="translate(101.35, 14.52)" class="fill-heading">
+          <path d="M28.7226 47.79H17.8226L16.3226 52.79C15.8926 54.24 14.5526 55.23 13.0426 55.23H2.2026C0.702595 55.23 -0.357401 53.77 0.112599 52.34L16.3326 3.13C16.9526 1.26 18.6926 0 20.6626 0H27.0026C32.5926 0 37.5926 3.49 39.5226 8.75L54.7026 50.21C55.5926 52.65 53.7926 55.23 51.1926 55.23H38.9926C37.5326 50.79 33.3826 47.8 28.7126 47.8L28.7226 47.79ZM33.6526 39.28L27.4726 18.07C27.1926 17.18 25.9226 17.2 25.6826 18.1L20.8126 36.03C20.3426 37.77 22.0626 39.27 23.8726 39.27H33.6626L33.6526 39.28Z"/>
+          <path d="M59.1226 50.41L58.3726 41.18C62.1626 43.33 68.2626 44.9 73.9026 44.9C77.2426 44.9 78.7326 44.16 78.7326 42.3C78.7326 40.96 77.9926 40.29 72.7826 39.03L71.0726 38.58C62.9726 36.57 59.4726 33.23 59.4726 26.54C59.4726 17.77 65.2726 13.31 77.1626 13.31C80.4526 13.31 83.9326 13.73 86.8126 14.56C88.6926 15.1 90.0226 16.77 90.1626 18.72L90.8326 27.73C87.0426 25.95 80.8726 24.61 76.9326 24.61C73.8126 24.61 72.6926 25.43 72.6926 26.84C72.6926 28.18 73.2826 28.85 78.1226 29.96L80.0526 30.48C90.0126 32.86 92.4626 36.8 92.4626 42.37C92.4626 51.81 85.1026 56.19 74.4026 56.19C69.9726 56.19 65.5426 55.52 62.0826 54.29C60.4126 53.7 59.2426 52.18 59.1026 50.41H59.1226Z"/>
+          <path d="M115.743 56.04C105.933 56.04 99.9826 52.62 99.9826 38.5V27.49C99.9826 26.59 99.2526 25.86 98.3526 25.86H95.9626V14.27H99.9726V3.64H114.693V14.27H122.353V25.86H117.323C115.873 25.86 114.693 27.04 114.693 28.49V38.2C114.693 41.4 115.953 42.73 119.303 42.73C120.343 42.73 121.313 42.66 122.503 42.36L121.313 55.22C119.383 55.81 117.523 56.04 115.743 56.04Z"/>
+          <path d="M149.973 56.19C137.263 56.19 127.153 50.1 127.153 34.19C127.153 19.4 136.813 13.3 147.893 13.3C160.423 13.3 166.453 21.5 167.333 33.83C167.453 35.59 166.083 37.09 164.323 37.09H142.103C143.073 42.96 146.723 44.89 152.303 44.89C155.903 44.89 159.423 44.3 162.413 43.08C163.423 42.67 164.493 43.52 164.303 44.59L162.983 52.7C159.783 55.15 155.403 56.19 149.973 56.19ZM142.093 30.82H155.843C155.023 26.29 152.573 24.23 148.933 24.23C145.813 24.23 142.913 25.92 142.093 30.82Z"/>
+          <path d="M186.233 35.96V55.23H171.513V13.94H182.583L185.703 19.18C189.343 14.8 193.583 13.38 197.813 13.38V30.82C194.893 30.87 192.063 31.32 189.303 32.02C187.493 32.48 186.223 34.09 186.223 35.96H186.233Z"/>
+        </g>
+        <g transform="translate(307.22, 14.52)" class="fill-primary">
+          <path d="M13.9 31.24V55.22H0V0H14.05L28.64 26.62C29.5 28.2 31.77 28.21 32.64 26.64L47.5 0H61.03V55.22H46.39V30.87C46.39 29.7 44.83 29.29 44.26 30.31L30.42 54.92C30.32 55.1 30.13 55.21 29.92 55.21C29.71 55.21 29.52 55.1 29.42 54.92L16.03 30.68C15.46 29.65 13.9 30.05 13.9 31.23V31.24Z"/>
+          <path d="M66.08 0H87.78C107.7 0 115.21 10.63 115.21 27.13C115.21 43.63 106.14 55.23 88.23 55.23H66.08V0.00999832V0ZM85.33 41.99C95.07 41.99 99.23 37.83 99.23 27.27C99.23 17.31 95.51 13.22 85.4 13.22H85.33C83.15 13.22 81.39 14.98 81.39 17.16V38.05C81.39 40.23 83.15 41.99 85.33 41.99Z"/>
+        </g>
+      </svg>
+    </a>
+  </div>
+</header>
+
+<main class="lg:grid lg:grid-cols-2">
+
+  <!-- ==================== CHECKOUT FORM ==================== -->
+  <div class="px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
+    <div class="mx-auto max-w-[500px] lg:mx-0 lg:ml-auto">
+
+      <!-- ==================== EXPRESS CHECKOUT ==================== -->
+      <p class="text-center text-sm text-muted">Express checkout</p>
+      <div class="mt-5 grid grid-cols-2 gap-3">
+        <button type="button" class="flex items-center justify-center transition-opacity hover:opacity-90">
+          <img src="../assets/images/PayPal.svg" alt="Pay with PayPal" class="h-12 w-auto max-w-full" />
+        </button>
+        <button type="button" class="flex items-center justify-center transition-opacity hover:opacity-90">
+          <img src="../assets/images/Apple%20Pay.svg" alt="Pay with Apple Pay" class="h-12 w-auto max-w-full" />
+        </button>
+      </div>
+
+      <div class="mt-6 flex items-center gap-4">
+        <span class="h-px flex-1 bg-border"></span>
+        <span class="text-sm text-muted">OR</span>
+        <span class="h-px flex-1 bg-border"></span>
+      </div>
+
+      <!-- ==================== CONTACT ==================== -->
+      <h2 class="mt-5 font-heading text-base font-bold sm:text-lg text-heading">Contact</h2>
+      <div class="mt-4 flex flex-col gap-4">
+        <div class="relative">
+          <input type="email" id="checkout-email" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+          <label for="checkout-email" class="field-label">Email</label>
+        </div>
+
+        <div class="relative">
+          <input type="tel" id="checkout-phone" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 pr-16 text-sm text-heading" />
+          <span class="pointer-events-none absolute right-4 top-1/2 flex -translate-y-1/2 items-center gap-1 text-base text-muted" aria-hidden="true">
+            <img src="../assets/images/usa.svg" alt="" class="h-[19px] w-[34px] rounded-[2px]" />
+            <i data-lucide="chevron-down" class="size-4"></i>
+          </span>
+          <label for="checkout-phone" class="field-label">Phone</label>
+        </div>
+
+        <label class="flex cursor-pointer items-center gap-3">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-4 shrink-0 items-center justify-center rounded border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-sm text-muted">Notify me with news and offers</span>
+        </label>
+      </div>
+
+      <!-- ==================== DELIVERY ==================== -->
+      <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Delivery</h2>
+      <div class="mt-4 flex flex-col gap-4">
+        <div class="relative">
+          <label for="checkout-country" class="sr-only">Country</label>
+          <select id="checkout-country" class="focus-ring-primary h-12 w-full appearance-none rounded-sm border border-border bg-background px-4 py-0 pr-10 text-sm text-heading">
+            <option>United States</option>
+          </select>
+          <i data-lucide="chevron-down" class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-heading"></i>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="relative">
+            <input type="text" id="checkout-first-name" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+            <label for="checkout-first-name" class="field-label">First name</label>
+          </div>
+          <div class="relative">
+            <input type="text" id="checkout-last-name" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+            <label for="checkout-last-name" class="field-label">Last name</label>
+          </div>
+        </div>
+
+        <div class="relative">
+          <input type="text" id="checkout-company" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+          <label for="checkout-company" class="field-label">Company (optional)</label>
+        </div>
+
+        <div class="relative">
+          <input type="text" id="checkout-address" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 pr-10 text-sm text-heading" />
+          <i data-lucide="search" class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-icon-muted"></i>
+          <label for="checkout-address" class="field-label">Address</label>
+        </div>
+
+        <div class="relative">
+          <input type="text" id="checkout-apt" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+          <label for="checkout-apt" class="field-label">Apartment, suite, etc. (optional)</label>
+        </div>
+
+        <div class="relative">
+          <input type="text" id="checkout-city" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+          <label for="checkout-city" class="field-label">City</label>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="relative">
+            <label for="checkout-state" class="sr-only">State</label>
+            <select id="checkout-state" class="focus-ring-primary h-12 w-full appearance-none rounded-sm border border-border bg-background px-4 py-0 pr-10 text-sm text-heading">
+              <option>Alabama</option>
+              <option>Alaska</option>
+              <option>Arizona</option>
+              <option>Arkansas</option>
+              <option>California</option>
+              <option>Colorado</option>
+              <option>Connecticut</option>
+              <option>Delaware</option>
+              <option>District of Columbia</option>
+              <option>Florida</option>
+              <option>Georgia</option>
+              <option>Hawaii</option>
+              <option>Idaho</option>
+              <option>Illinois</option>
+              <option>Indiana</option>
+              <option>Iowa</option>
+              <option>Kansas</option>
+              <option>Kentucky</option>
+              <option>Louisiana</option>
+              <option>Maine</option>
+              <option>Maryland</option>
+              <option>Massachusetts</option>
+              <option>Michigan</option>
+              <option>Minnesota</option>
+              <option>Mississippi</option>
+              <option>Missouri</option>
+              <option>Montana</option>
+              <option>Nebraska</option>
+              <option>Nevada</option>
+              <option>New Hampshire</option>
+              <option>New Jersey</option>
+              <option>New Mexico</option>
+              <option selected>New York</option>
+              <option>North Carolina</option>
+              <option>North Dakota</option>
+              <option>Ohio</option>
+              <option>Oklahoma</option>
+              <option>Oregon</option>
+              <option>Pennsylvania</option>
+              <option>Rhode Island</option>
+              <option>South Carolina</option>
+              <option>South Dakota</option>
+              <option>Tennessee</option>
+              <option>Texas</option>
+              <option>Utah</option>
+              <option>Vermont</option>
+              <option>Virginia</option>
+              <option>Washington</option>
+              <option>West Virginia</option>
+              <option>Wisconsin</option>
+              <option>Wyoming</option>
+            </select>
+            <i data-lucide="chevron-down" class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-heading"></i>
+          </div>
+          <div class="relative">
+            <input type="text" id="checkout-postal" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+            <label for="checkout-postal" class="field-label">Postal code</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SHIPPING ==================== -->
+      <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Shipping</h2>
+      <div class="mt-3.5 flex flex-col gap-2 rounded-md border border-border bg-background overflow-hidden" data-select-group>
+        <button type="button" data-select-option aria-pressed="true" class="group flex w-full items-center justify-between gap-3 rounded-md border border-transparent p-3 text-left transition-colors hover:border-primary/40 aria-pressed:rounded-t-md aria-pressed:rounded-b-none aria-pressed:border-primary aria-pressed:bg-primary-light">
+          <span class="flex items-center gap-3">
+            <span class="flex w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+              <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+            </span>
+            <span>
+              <span class="block text-sm font-semibold text-heading">DHL Ecommerce Parcel Direct</span>
+              <span class="block text-sm text-muted mt-1">5 to 9 business days</span>
+            </span>
+          </span>
+          <span class="shrink-0 text-sm font-semibold text-heading">$7.50</span>
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group flex w-full items-center justify-between gap-3 rounded-md border border-transparent p-3 text-left transition-colors hover:border-primary/40 aria-pressed:rounded-t-none aria-pressed:rounded-b-m aria-pressed:border-primary aria-pressed:bg-primary-light">
+          <span class="flex items-center gap-3">
+            <span class="flex w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+              <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+            </span>
+            <span>
+              <span class="block text-sm font-semibold text-heading">DHL Express</span>
+              <span class="block text-sm text-muted mt-1">3 to 5 business days</span>
+            </span>
+          </span>
+          <span class="shrink-0 text-sm font-semibold text-heading">$12.50</span>
+        </button>
+      </div>
+
+      <!-- ==================== PAYMENT ==================== -->
+      <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Payment</h2>
+      <p class="mt-1 text-sm text-muted">All transactions are secure and encrypted.</p>
+
+      <div class="mt-3.5 overflow-hidden rounded-md border border-border bg-background" data-select-group id="payment-method-group">
+        <div class="border-b border-border">
+          <button type="button" data-select-option data-payment="card" aria-pressed="true" class="group flex w-full items-center justify-between gap-3 rounded-t-md bg-background p-3 text-left transition-colors aria-pressed:bg-primary-light">
+            <span class="flex items-center gap-3">
+              <span class="flex w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+                <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+              </span>
+              <span class="text-sm font-semibold text-heading">Credit card</span>
+            </span>
+            <span class="flex shrink-0 items-center">
+              <img src="../assets/images/payment-icons.svg" alt="Mastercard, Visa, Amex, Discover" class="h-6 w-auto" />
+            </span>
+          </button>
+          <div data-payment-panel="card" class="flex flex-col gap-4 border-t border-border bg-background-2 px-5 py-5">
+            <div class="relative">
+              <input type="text" id="checkout-card-number" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 pr-10 text-sm text-heading" />
+              <i data-lucide="lock" class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-icon-muted"></i>
+              <label for="checkout-card-number" class="field-label">Card number</label>
+            </div>
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div class="relative">
+                <input type="text" id="checkout-card-expiry" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+                <label for="checkout-card-expiry" class="field-label">Expiration date (MM / YY)</label>
+              </div>
+              <div class="relative">
+                <input type="text" id="checkout-card-cvc" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 pr-10 text-sm text-heading" />
+                <i data-lucide="circle-help" class="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-icon-muted"></i>
+                <label for="checkout-card-cvc" class="field-label">Security code</label>
+              </div>
+            </div>
+            <div class="relative">
+              <input type="text" id="checkout-card-name" placeholder=" " class="field-input w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+              <label for="checkout-card-name" class="field-label">Name on card</label>
+            </div>
+            <label class="flex cursor-pointer items-center gap-3">
+              <input type="checkbox" class="peer sr-only" />
+              <span class="flex size-4 shrink-0 items-center justify-center rounded border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+                <i data-lucide="check" class="size-3 text-background" stroke-width="3"></i>
+              </span>
+              <span class="text-sm text-heading">Use shipping address as billing address</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="border-b border-border">
+          <button type="button" data-select-option data-payment="paypal" aria-pressed="false" class="group flex w-full items-center justify-between gap-3 bg-background p-3 text-left transition-colors aria-pressed:bg-primary-light">
+            <span class="flex items-center gap-3">
+              <span class="flex w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+                <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+              </span>
+              <span class="text-sm font-semibold text-heading">PayPal</span>
+            </span>
+            <img src="../assets/images/paypal-logo.svg" alt="PayPal" class="h-3.5 w-auto shrink-0" />
+          </button>
+        </div>
+
+        <div>
+          <button type="button" data-select-option data-payment="afterpay" aria-pressed="false" class="group flex w-full items-center justify-between gap-3 rounded-b-md bg-background p-3 text-left transition-colors aria-pressed:bg-primary-light">
+            <span class="flex items-center gap-3">
+              <span class="flex w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+                <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+              </span>
+              <span class="text-sm font-semibold text-heading">Afterpay</span>
+            </span>
+            <img src="../assets/images/afterpay-logo.svg" alt="Afterpay" class="h-3.5 w-auto shrink-0" />
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== CONSENT + SUBMIT ==================== -->
+      <div class="mt-6 flex flex-col gap-4">
+        <label class="flex cursor-pointer items-start gap-3 rounded-md border border-border px-5 py-4">
+          <input type="checkbox" checked class="peer sr-only" />
+          <span class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-sm text-body">By completing this order, I agree to the <a href="#" class="text-primary underline hover:text-primary-hover">Terms of Service</a> and confirm my <a href="#" class="text-primary underline hover:text-primary-hover">Privacy &amp; HIPAA Consent</a>.</span>
+        </label>
+        <label class="flex cursor-pointer items-start gap-3 rounded-md border border-border px-5 py-4">
+          <input type="checkbox" checked class="peer sr-only" />
+          <span class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-sm text-body">I understand my subscription renews automatically until cancelled, refills require a valid prescription, and eligible refunds are subject to the <a href="#" class="text-primary underline hover:text-primary-hover">Refund Policy</a>.</span>
+        </label>
+      </div>
+
+      <button type="button" id="checkout-pay" class="mt-6 flex h-[41px] w-full items-center justify-center rounded-sm bg-primary px-5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover sm:h-[41px]">
+        Pay Now
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== ORDER SUMMARY ==================== -->
+  <div class="border-border bg-background-2 px-6 py-10 sm:px-10 lg:border-l lg:px-12 lg:py-14">
+    <div class="mx-auto max-w-[410px] lg:mx-0 lg:sticky lg:top-10">
+
+      <!-- ==================== TREATMENT PLAN SELECTOR ==================== -->
+      <h2 class="font-heading text-base font-bold sm:text-lg text-heading">Select Treatment Plan</h2>
+      <p class="mt-0.5 text-xs text-muted">Ramelteon 8mg</p>
+
+      <div class="mt-3.5 flex flex-col gap-2 rounded-md border border-border bg-background overflow-hidden" data-select-group>
+        <button type="button" data-select-option aria-pressed="false" class="group flex w-full items-center justify-between gap-3 rounded-md border border-transparent p-3 text-left transition-colors hover:border-primary/40 aria-pressed:rounded-t-md aria-pressed:rounded-b-none aria-pressed:border-primary aria-pressed:bg-primary-light">
+          <span class="flex gap-3">
+            <span class="flex mt-1 w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+              <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+            </span>
+            <span>
+              <span class="block text-sm font-semibold text-heading">1 Month Plan</span>
+              <span class="block text-sm text-muted mt-1">Billed monthly</span>
+            </span>
+          </span>
+          <span class="shrink-0 text-sm font-semibold text-heading">$50.00/mo</span>
+        </button>
+
+        <button type="button" data-select-option aria-pressed="true" class="group flex w-full flex-col gap-1.5 border border-transparent p-3 text-left transition-colors hover:border-primary/40 aria-pressed:border-primary aria-pressed:bg-primary-light">
+          <span class="inline-flex self-start rounded-full bg-secondary px-2.5 py-0.5 text-[10px] font-medium tracking-wider text-secondary-foreground">MOST POPULAR</span>
+          <div class="flex w-full items-center justify-between gap-3">
+            <span class="flex gap-3">
+              <span class="flex mt-1 w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+                <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-heading">3 Month Plan</span>
+                <span class="block text-sm text-muted mt-1">Billed every 3 months</span>
+              </span>
+            </span>
+            <span class="shrink-0 text-right">
+              <span class="block text-sm font-semibold text-heading">$46.00/mo</span>
+              <span class="block text-sm font-semibold text-primary">Save 8%</span>
+            </span>
+          </div>
+        </button>
+
+        <button type="button" data-select-option aria-pressed="false" class="group flex w-full flex-col gap-1.5 rounded-md border border-transparent p-3 text-left transition-colors hover:border-primary/40 aria-pressed:rounded-b-md aria-pressed:rounded-t-none aria-pressed:border-primary aria-pressed:bg-primary-light">
+          <span class="inline-flex self-start rounded-full bg-link px-2.5 py-0.5 text-[10px] font-medium tracking-wider text-white">BEST VALUE</span>
+          <div class="flex w-full items-center justify-between gap-3">
+            <span class="flex gap-3">
+              <span class="flex mt-1 w-[18px] h-[18px] shrink-0 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+                <span class="size-2 rounded-full group-aria-pressed:bg-primary"></span>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-heading">6 Month Plan</span>
+                <span class="block text-sm text-muted mt-1">Billed every 6 months</span>
+              </span>
+            </span>
+            <span class="shrink-0 text-right">
+              <span class="block text-sm font-semibold text-heading">$40.00/mo</span>
+              <span class="block text-sm font-semibold text-primary">Save 20%</span>
+            </span>
+          </div>
+        </button>
+      </div>
+
+      <!-- ==================== LINE ITEMS ==================== -->
+      <!-- NOTE: "Sleeping Mask" has no product photo yet (placeholder icon tile below) —
+           swap in a real image once one is exported. -->
+      <div class="mt-8 flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <div class="relative shrink-0">
+            <img src="../assets/images/product-ramelteon.png" alt="Ramelteon 8mg" class="size-14 rounded-sm object-cover" />
+            <span class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-heading text-xs font-medium text-background">1</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm text-heading">Ramelteon 8mg</p>
+            <p class="mt-0.5 flex items-center gap-1 text-sm text-muted">
+              <i data-lucide="refresh-cw" class="size-3.5"></i>
+              3 Month Plan
+            </p>
+          </div>
+          <p class="shrink-0 text-base font-medium text-heading">$138.00</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="relative shrink-0">
+            <span class="flex size-14 items-center justify-center rounded-sm bg-surface">
+              <i data-lucide="moon" class="size-6 text-icon-muted"></i>
+            </span>
+            <span class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-heading text-xs font-medium text-background">1</span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm text-heading">Sleeping Mask</p>
+          </div>
+          <p class="shrink-0 text-base font-medium text-heading">$0.00</p>
+        </div>
+      </div>
+
+      <!-- ==================== DISCOUNT CODE ==================== -->
+      <div class="mt-6 flex gap-3">
+        <label for="checkout-discount" class="sr-only">Discount code or gift card</label>
+        <input type="text" id="checkout-discount" placeholder="Discount code or gift card" class="focus-ring-primary h-12 min-w-0 flex-1 rounded-sm border border-border bg-background px-4 py-0 text-sm text-heading placeholder:text-sm placeholder:text-body" />
+        <button type="button" disabled class="flex h-12 items-center justify-center shrink-0 rounded-sm border border-border bg-background px-6 text-base font-medium text-muted disabled:cursor-not-allowed">Apply</button>
+      </div>
+
+      <!-- ==================== TOTALS ==================== -->
+      <div class="mt-6 flex flex-col gap-2 border-t border-border pt-6 text-[14px] text-heading">
+        <div class="flex items-center justify-between">
+          <span>Subtotal • 2 items</span>
+          <span>$138.00</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Consultation Fee</span>
+          <span>Included</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Shipping</span>
+          <span>$7.50</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Estimated taxes</span>
+          <span>$0.00</span>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
+        <span class="text-base font-medium sm:text-lg text-heading">Total</span>
+        <span class="text-base font-medium sm:text-lg text-heading"><span class="mr-1 text-sm font-normal text-muted align-middle">USD</span>$145.50</span>
+      </div>
+
+      <!-- ==================== PAYMENT AUTHORIZATION NOTICE ==================== -->
+      <div class="mt-6 flex items-start gap-3 rounded-sm border border-primary bg-primary-light px-4 py-4">
+        <i data-lucide="info" class="mt-0.5 size-5 shrink-0 text-primary"></i>
+        <p class="text-sm leading-relaxed text-heading">Payment authorization will be held; you will only be charged if approved and prescribed by a doctor.</p>
+      </div>
+
+      <!-- ==================== UPSELL ADD-ONS ==================== -->
+      <!-- NOTE: none of these accessory products have real photos yet (placeholder
+           icon tiles below) — swap in real images once they're exported. -->
+      <div class="mt-8 flex flex-col gap-4">
+        <div class="flex items-center gap-3">
+          <span class="flex size-14 shrink-0 items-center justify-center rounded-sm bg-surface">
+            <i data-lucide="pill" class="size-6 text-icon-muted"></i>
+          </span>
+          <div class="flex-1">
+            <p class="text-sm text-heading">Pill Organizer</p>
+            <p class="text-sm text-muted">$4.99</p>
+          </div>
+          <button type="button" class="shrink-0 rounded-sm border border-border bg-background px-5 py-2 text-sm font-medium text-heading transition-colors hover:border-primary hover:text-primary">Add</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="flex size-14 shrink-0 items-center justify-center rounded-sm bg-surface">
+            <i data-lucide="leaf" class="size-6 text-icon-muted"></i>
+          </span>
+          <div class="flex-1">
+            <p class="text-sm text-heading">Organic Sleeping Tea</p>
+            <p class="text-sm text-muted">$3.99</p>
+          </div>
+          <button type="button" class="shrink-0 rounded-sm border border-border bg-background px-5 py-2 text-sm font-medium text-heading transition-colors hover:border-primary hover:text-primary">Add</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="flex size-14 shrink-0 items-center justify-center rounded-sm bg-surface">
+            <i data-lucide="flame" class="size-6 text-icon-muted"></i>
+          </span>
+          <div class="flex-1">
+            <p class="text-sm text-heading">Wooden Diffuser</p>
+            <p class="text-sm text-muted">$10.99</p>
+          </div>
+          <button type="button" class="shrink-0 rounded-sm border border-border bg-background px-5 py-2 text-sm font-medium text-heading transition-colors hover:border-primary hover:text-primary">Add</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="border-t border-border bg-background lg:col-span-2">
+  <div class="mx-auto flex max-w-[1260px] flex-col items-center gap-6 px-6 py-8 lg:flex-row lg:justify-between lg:px-16">
+    <div class="text-center lg:text-left">
+      <p class="text-sm text-muted">© 2026 AsterMD. All Rights Reserved.</p>
+      <p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-muted lg:justify-start">
+        <i data-lucide="lock" class="size-4"></i>
+        Your data is secure and HIPAA-compliant.
+      </p>
+    </div>
+
+    <img src="../assets/images/footer-badge-2.png" alt="LegitScript Certified" class="h-16 w-auto" />
+
+    <div class="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-body">
+      <a href="#" class="underline transition-colors hover:text-primary">Privacy Policy</a>
+      <a href="#" class="underline transition-colors hover:text-primary">Terms of Service</a>
+      <a href="#" class="underline transition-colors hover:text-primary">Refund Policy</a>
+      <a href="#" class="underline transition-colors hover:text-primary">HIPAA Compliance</a>
+    </div>
+  </div>
+</footer>
+
+<script>lucide.createIcons();</script>
+<script src="../assets/js/script.js"></script>
+<script>
+  // Only the "Credit card" payment method has expanded fields to show/hide;
+  // PayPal/Afterpay are single-line rows with no extra inputs.
+  (function () {
+    var group = document.getElementById('payment-method-group');
+    if (!group) return;
+    var options = Array.prototype.slice.call(group.querySelectorAll('[data-select-option]'));
+    var panel = group.querySelector('[data-payment-panel="card"]');
+
+    function sync() {
+      var selected = options.filter(function (o) { return o.getAttribute('aria-pressed') === 'true'; })[0];
+      panel.classList.toggle('hidden', !selected || selected.getAttribute('data-payment') !== 'card');
+    }
+
+    options.forEach(function (option) {
+      option.addEventListener('click', sync);
+    });
+    sync();
+  })();
+</script>
+<script>
+  // No real payment processing yet — "Pay Now" hands off straight to the
+  // post-order upsell page.
+  document.getElementById('checkout-pay').addEventListener('click', function () {
+    window.location.href = 'upsell.html';
+  });
+</script>
+</body>
+</html>

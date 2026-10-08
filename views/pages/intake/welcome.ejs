@@ -1,0 +1,21 @@
+<%
+/* Ported from storefront-lamp/theme/templates/pages/intake/welcome.twig — a static page served by
+   the generic PageController in the PHP original, at /intake/. */
+const page_title = 'Start Your Assessment';
+%>
+<%- include('../../partials/head', { page_title, noindex }) %>
+<%- include('../../partials/header') %>
+
+  <section class="mx-auto max-w-[660px] px-6 py-16 text-center lg:py-24">
+    <h1 class="font-heading text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Let's get started</h1>
+    <p class="mt-4 text-base text-body">
+      A few quick questions about your health and goals help our physicians decide whether this
+      treatment is right for you.
+    </p>
+    <a href="<%= url('/treatments') %>" class="mx-auto mt-8 inline-flex w-full max-w-[300px] items-center justify-center gap-2 rounded-sm bg-primary h-12 px-5 text-base font-medium text-primary-foreground hover:bg-primary-hover">
+      Browse Treatments
+    </a>
+  </section>
+
+<%- include('../../partials/footer') %>
+<%- include('../../partials/foot') %>

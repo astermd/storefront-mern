@@ -1,0 +1,22 @@
+<fieldset>
+  <legend class="block text-sm font-medium text-heading">
+    <%= f.label %><% if (f.required) { %> <span class="text-danger">*</span><% } %>
+  </legend>
+  <% if (f.description) { %><p class="mt-1 text-sm text-muted"><%= f.description %></p><% } %>
+  <div class="mt-2 flex flex-col gap-2">
+    <% f.options.forEach(function (option, i) { %>
+    <label class="flex items-center gap-2 rounded-sm border <%= option.selected ? 'border-primary' : 'border-border' %> px-3 py-2 text-sm text-body">
+      <input
+        type="checkbox"
+        name="<%= f.name %>[]"
+        value="<%= option.value %>"
+        <% if (option.selected) { %>checked<% } %>
+        <% if (f.disabled) { %>disabled<% } %>
+        id="field-<%= f.name %>-<%= i %>"
+      />
+      <%= option.label %>
+    </label>
+    <% }) %>
+  </div>
+  <%- include('field-error', { f }) %>
+</fieldset>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Treatments — AsterMD</title>
+<meta name="description" content="Explore clinician-guided treatments for weight loss, hair loss, and personal wellbeing. All plans include medical review, ongoing support, and fast discreet shipping." />
+
+<!-- Fonts: Figma design specifies "Helvetica Now Display/Text" (proprietary). Substituted with Inter, the closest free Google Font match. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,700&display=swap" rel="stylesheet" />
+
+<!-- Lucide icon library: every icon in this page is a real Lucide icon, rendered from
+     `<i data-lucide="...">` placeholders by lucide.createIcons() at the end of <body>. -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Tailwind CSS (CDN build) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Every colour/radius/shadow/font/transition here is a thin pass-through to the
+  // CSS variables defined in assets/css/styles.css. This file should never need a
+  // hex value added to it — new colours are added as tokens in styles.css and
+  // wired to a semantic key here once. Keep this block identical to index.html's.
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: 'var(--primary)',
+            hover: 'var(--primary-hover)',
+            light: 'var(--primary-light)',
+            soft: 'var(--primary-soft)',
+            deep: 'var(--primary-deep)',
+            foreground: 'var(--primary-foreground)',
+          },
+          secondary: {
+            DEFAULT: 'var(--secondary)',
+            hover: 'var(--secondary-hover)',
+            light: 'var(--secondary-light)',
+            foreground: 'var(--secondary-foreground)',
+            'foreground-muted': 'var(--secondary-foreground-muted)',
+          },
+          success: 'var(--success)',
+          warning: 'var(--warning)',
+          danger: 'var(--danger)',
+
+          background: {
+            DEFAULT: 'var(--background)',
+            2: 'var(--background-2)',
+          },
+          surface: 'var(--surface)',
+          'surface-2': 'var(--surface-2)',
+
+          // Text-role colours are named distinctly from "primary"/"secondary" so
+          // `text-primary` unambiguously means "brand-coloured text" everywhere.
+          heading: 'var(--text-primary)',
+          body: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          faint: 'var(--text-faint)',
+          'icon-muted': 'var(--icon-muted)',
+
+          border: {
+            DEFAULT: 'var(--border)',
+            soft: 'var(--border-soft)',
+            darker: 'var(--border-darker)',
+          },
+          divider: 'var(--divider)',
+          link: {
+            DEFAULT: 'var(--link)',
+            hover: 'var(--link-hover)',
+          },
+          overlay: {
+            DEFAULT: 'var(--overlay)',
+            strong: 'var(--overlay-strong)',
+          },
+        },
+        fontFamily: {
+          heading: ['var(--font-heading)', 'sans-serif'],
+          body: ['var(--font-body)', 'sans-serif'],
+        },
+        borderRadius: {
+          sm: 'var(--radius-sm)',
+          md: 'var(--radius-md)',
+          lg: 'var(--radius-lg)',
+          xl: 'var(--radius-xl)',
+        },
+        boxShadow: {
+          sm: 'var(--shadow-sm)',
+          md: 'var(--shadow-md)',
+        },
+        transitionDuration: {
+          DEFAULT: 'var(--transition-base)',
+        },
+        transitionTimingFunction: {
+          DEFAULT: 'var(--ease-standard)',
+        },
+        spacing: {
+          xs: 'var(--spacing-xs)',
+          sm: 'var(--spacing-sm)',
+          md: 'var(--spacing-md)',
+          lg: 'var(--spacing-lg)',
+          xl: 'var(--spacing-xl)',
+        },
+      },
+    },
+  };
+</script>
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body class="bg-background font-body text-heading antialiased">
+
+<!-- ==================== HEADER ==================== -->
+<header class="bg-background">
+  <!-- Announcement bar -->
+  <div class="bg-secondary">
+    <p class="mx-auto max-w-[1440px] px-4 py-1.5 text-center text-xs sm:text-sm text-secondary-foreground-muted">
+      US&#8209;based physicians&nbsp;&nbsp;•&nbsp;&nbsp;No insurance required&nbsp;&nbsp;•&nbsp;&nbsp;Ships in 3&#8209;5 days
+    </p>
+  </div>
+
+  <!-- Main nav -->
+  <nav class="border-b border-border bg-background" aria-label="Primary">
+    <div class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 lg:px-[120px]">
+      <a href="index.html" class="shrink-0" aria-label="AsterMD home">
+        <svg class="h-[26px] w-auto sm:h-[30px]" width="151" height="30" viewBox="0 0 423 84" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AsterMD">
+          <circle cx="44.24" cy="38.34" r="9.98" class="fill-primary"/>
+          <circle cx="44.22" cy="10.86" r="7.71" class="fill-heading"/>
+          <circle cx="70.40" cy="29.93" r="7.71" class="fill-heading"/>
+          <circle cx="60.29" cy="60.63" r="7.71" class="fill-heading"/>
+          <circle cx="28.01" cy="60.63" r="7.71" class="fill-heading"/>
+          <circle cx="18.12" cy="29.93" r="7.71" class="fill-heading"/>
+          <circle cx="67.51" cy="6.594" r="5.88" class="fill-heading"/>
+          <circle cx="81.64" cy="50.61" r="5.88" class="fill-heading"/>
+          <circle cx="44.25" cy="77.67" r="5.88" class="fill-heading"/>
+          <circle cx="6.85" cy="50.61" r="5.88" class="fill-heading"/>
+          <circle cx="21.28" cy="6.60" r="5.88" class="fill-heading"/>
+          <g transform="translate(101.35, 14.52)" class="fill-heading">
+            <path d="M28.7226 47.79H17.8226L16.3226 52.79C15.8926 54.24 14.5526 55.23 13.0426 55.23H2.2026C0.702595 55.23 -0.357401 53.77 0.112599 52.34L16.3326 3.13C16.9526 1.26 18.6926 0 20.6626 0H27.0026C32.5926 0 37.5926 3.49 39.5226 8.75L54.7026 50.21C55.5926 52.65 53.7926 55.23 51.1926 55.23H38.9926C37.5326 50.79 33.3826 47.8 28.7126 47.8L28.7226 47.79ZM33.6526 39.28L27.4726 18.07C27.1926 17.18 25.9226 17.2 25.6826 18.1L20.8126 36.03C20.3426 37.77 22.0626 39.27 23.8726 39.27H33.6626L33.6526 39.28Z"/>
+            <path d="M59.1226 50.41L58.3726 41.18C62.1626 43.33 68.2626 44.9 73.9026 44.9C77.2426 44.9 78.7326 44.16 78.7326 42.3C78.7326 40.96 77.9926 40.29 72.7826 39.03L71.0726 38.58C62.9726 36.57 59.4726 33.23 59.4726 26.54C59.4726 17.77 65.2726 13.31 77.1626 13.31C80.4526 13.31 83.9326 13.73 86.8126 14.56C88.6926 15.1 90.0226 16.77 90.1626 18.72L90.8326 27.73C87.0426 25.95 80.8726 24.61 76.9326 24.61C73.8126 24.61 72.6926 25.43 72.6926 26.84C72.6926 28.18 73.2826 28.85 78.1226 29.96L80.0526 30.48C90.0126 32.86 92.4626 36.8 92.4626 42.37C92.4626 51.81 85.1026 56.19 74.4026 56.19C69.9726 56.19 65.5426 55.52 62.0826 54.29C60.4126 53.7 59.2426 52.18 59.1026 50.41H59.1226Z"/>
+            <path d="M115.743 56.04C105.933 56.04 99.9826 52.62 99.9826 38.5V27.49C99.9826 26.59 99.2526 25.86 98.3526 25.86H95.9626V14.27H99.9726V3.64H114.693V14.27H122.353V25.86H117.323C115.873 25.86 114.693 27.04 114.693 28.49V38.2C114.693 41.4 115.953 42.73 119.303 42.73C120.343 42.73 121.313 42.66 122.503 42.36L121.313 55.22C119.383 55.81 117.523 56.04 115.743 56.04Z"/>
+            <path d="M149.973 56.19C137.263 56.19 127.153 50.1 127.153 34.19C127.153 19.4 136.813 13.3 147.893 13.3C160.423 13.3 166.453 21.5 167.333 33.83C167.453 35.59 166.083 37.09 164.323 37.09H142.103C143.073 42.96 146.723 44.89 152.303 44.89C155.903 44.89 159.423 44.3 162.413 43.08C163.423 42.67 164.493 43.52 164.303 44.59L162.983 52.7C159.783 55.15 155.403 56.19 149.973 56.19ZM142.093 30.82H155.843C155.023 26.29 152.573 24.23 148.933 24.23C145.813 24.23 142.913 25.92 142.093 30.82Z"/>
+            <path d="M186.233 35.96V55.23H171.513V13.94H182.583L185.703 19.18C189.343 14.8 193.583 13.38 197.813 13.38V30.82C194.893 30.87 192.063 31.32 189.303 32.02C187.493 32.48 186.223 34.09 186.223 35.96H186.233Z"/>
+          </g>
+          <g transform="translate(307.22, 14.52)" class="fill-primary">
+            <path d="M13.9 31.24V55.22H0V0H14.05L28.64 26.62C29.5 28.2 31.77 28.21 32.64 26.64L47.5 0H61.03V55.22H46.39V30.87C46.39 29.7 44.83 29.29 44.26 30.31L30.42 54.92C30.32 55.1 30.13 55.21 29.92 55.21C29.71 55.21 29.52 55.1 29.42 54.92L16.03 30.68C15.46 29.65 13.9 30.05 13.9 31.23V31.24Z"/>
+            <path d="M66.08 0H87.78C107.7 0 115.21 10.63 115.21 27.13C115.21 43.63 106.14 55.23 88.23 55.23H66.08V0.00999832V0ZM85.33 41.99C95.07 41.99 99.23 37.83 99.23 27.27C99.23 17.31 95.51 13.22 85.4 13.22H85.33C83.15 13.22 81.39 14.98 81.39 17.16V38.05C81.39 40.23 83.15 41.99 85.33 41.99Z"/>
+          </g>
+        </svg>
+      </a>
+
+      <ul class="hidden md:flex md:items-center md:gap-10">
+        <li><a href="treatments.html" class="text-base font-medium text-primary" aria-current="page">Treatments</a></li>
+        <li><a href="index.html#how-it-works" class="text-base text-body transition-colors hover:text-primary">How It Works</a></li>
+        <li><a href="index.html#about" class="text-base text-body transition-colors hover:text-primary">About</a></li>
+        <li><a href="index.html#contact" class="text-base text-body transition-colors hover:text-primary">Contact</a></li>
+      </ul>
+
+      <div class="flex items-center gap-2">
+        <a href="#sign-in" class="hidden shrink-0 items-center justify-center rounded-sm bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover sm:inline-flex">
+          Sign In
+        </a>
+
+        <!-- Mobile menu toggle -->
+        <button type="button" id="mobile-menu-btn" class="inline-flex h-10 w-10 items-center justify-center rounded-sm text-heading md:hidden" aria-expanded="false" aria-controls="mobile-menu" aria-label="Toggle menu">
+          <i data-lucide="menu" id="icon-menu-open" class="size-6"></i>
+          <i data-lucide="x" id="icon-menu-close" class="hidden size-6"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu panel -->
+    <div id="mobile-menu" class="hidden border-t border-border bg-background md:hidden">
+      <ul class="flex flex-col gap-1 px-6 py-4">
+        <li><a href="treatments.html" class="block rounded-sm px-2 py-2.5 text-base font-medium text-primary" aria-current="page">Treatments</a></li>
+        <li><a href="index.html#how-it-works" class="block rounded-sm px-2 py-2.5 text-base text-body hover:bg-divider">How It Works</a></li>
+        <li><a href="index.html#about" class="block rounded-sm px-2 py-2.5 text-base text-body hover:bg-divider">About</a></li>
+        <li><a href="index.html#contact" class="block rounded-sm px-2 py-2.5 text-base text-body hover:bg-divider">Contact</a></li>
+        <li class="pt-2">
+          <a href="#sign-in" class="block rounded-sm bg-primary px-4 py-2.5 text-center text-sm font-medium text-primary-foreground hover:bg-primary-hover">Sign In</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ==================== PAGE HEADER ==================== -->
+  <section class="mx-auto max-w-[1440px] px-6 pt-[38px] lg:px-[120px] lg:pt-[68px]">
+    <h1 class="font-heading text-[44px] font-semibold leading-[1.25] text-faint sm:text-[52px] lg:text-[56px] lg:leading-[70px]">Treatments</h1>
+    <p class="mt-8 max-w-[640px] text-base leading-6 text-body">
+      Explore clinician-guided treatments for weight loss, hair loss, and personal wellbeing<br class="hidden lg:block" />
+      All plans include medical review, ongoing support, and fast discreet shipping.
+    </p>
+  </section>
+
+  <!-- ==================== FILTERS + TREATMENTS GRID ==================== -->
+  <section class="mx-auto max-w-[1440px] px-6 pb-16 pt-[38px] lg:px-[120px] lg:pb-24 lg:pt-[60px]">
+    <div class="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-[60px]">
+
+      <!-- Sidebar filters -->
+      <aside class="w-full shrink-0 lg:w-[282px]">
+        <div class="rounded-lg border border-border bg-background-2 p-6">
+          <fieldset>
+            <legend class="text-base font-medium sm:text-lg text-heading">Filters</legend>
+            <div class="mt-5 flex flex-col gap-6">
+              <label class="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" name="filter-condition" value="hair-loss" class="peer sr-only" />
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                  <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+                </span>
+                <span class="text-base text-heading">Hair Loss</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" name="filter-condition" value="hormone-balance" class="peer sr-only" />
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                  <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+                </span>
+                <span class="text-base text-heading">Hormone Balance</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" name="filter-condition" value="sexual-health" class="peer sr-only" />
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                  <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+                </span>
+                <span class="text-base text-heading">Sexual Health</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" name="filter-condition" value="weight-loss" class="peer sr-only" />
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                  <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+                </span>
+                <span class="text-base text-heading">Weight Loss</span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="mt-10">
+            <legend class="text-base font-medium sm:text-lg text-heading">Type</legend>
+            <div class="mt-5 flex flex-col gap-6">
+              <label class="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" name="filter-type" value="prescription" class="peer sr-only" />
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                  <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+                </span>
+                <span class="text-base text-heading">Prescription</span>
+              </label>
+              <label class="flex cursor-pointer items-center gap-3">
+                <input type="checkbox" name="filter-type" value="non-prescription" class="peer sr-only" />
+                <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary">
+                  <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+                </span>
+                <span class="text-base text-heading">Non-Prescription</span>
+              </label>
+            </div>
+          </fieldset>
+        </div>
+      </aside>
+
+      <!-- Treatments grid -->
+      <div class="grid flex-1 gap-8 sm:grid-cols-2" id="treatments-grid">
+
+        <article class="rounded-lg border border-border bg-background p-8">
+          <img src="assets/images/t1.png" alt="Enclomiphene medication packaging" class="h-[211px] w-full rounded-lg object-cover" width="349" height="211" />
+          <h2 class="font-heading mt-6 text-lg font-medium sm:text-xl text-heading">Enclomiphene</h2>
+          <p class="mt-3 text-base leading-6 text-body">Supports the body's natural testosterone production in men</p>
+          <p class="mt-5 text-base font-medium text-primary">Starting from $50.00/mo</p>
+          <div class="mt-8 flex flex-wrap gap-5">
+            <a href="#" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+              Get Started
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+            <a href="product-details.html?slug=enclomiphene" class="inline-flex items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              Learn More
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8">
+          <img src="assets/images/t2.png" alt="Finasteride medication packaging" class="h-[211px] w-full rounded-lg object-cover" width="349" height="211" />
+          <h2 class="font-heading mt-6 text-lg font-medium sm:text-xl text-heading">Finasteride</h2>
+          <p class="mt-3 text-base leading-6 text-body">A treatment that helps slow hair loss and support hair regrowth in men.</p>
+          <p class="mt-5 text-base font-medium text-primary">Starting from $50.00/mo</p>
+          <div class="mt-8 flex flex-wrap gap-5">
+            <a href="#" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+              Get Started
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+            <a href="product-details.html?slug=finasteride" class="inline-flex items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              Learn More
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8">
+          <img src="assets/images/t3.png" alt="Ramelteon medication packaging" class="h-[211px] w-full rounded-lg object-cover" width="349" height="211" />
+          <h2 class="font-heading mt-6 text-lg font-medium sm:text-xl text-heading">Ramelteon</h2>
+          <p class="mt-3 text-base leading-6 text-body">A non-habit-forming medication that helps you fall asleep naturally.</p>
+          <p class="mt-5 text-base font-medium text-primary">Starting from $50.00/mo</p>
+          <div class="mt-8 flex flex-wrap gap-5">
+            <a href="#" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+              Get Started
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+            <a href="product-details.html?slug=ramelteon" class="inline-flex items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              Learn More
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8">
+          <img src="assets/images/t4.png" alt="Semaglutide medication packaging" class="h-[211px] w-full rounded-lg object-cover" width="349" height="211" />
+          <h2 class="font-heading mt-6 text-lg font-medium sm:text-xl text-heading">Semaglutide</h2>
+          <p class="mt-3 text-base leading-6 text-body">Helps reduce appetite and support long-term weight loss.</p>
+          <p class="mt-5 text-base font-medium text-primary">Starting from $50.00/mo</p>
+          <div class="mt-8 flex flex-wrap gap-5">
+            <a href="product-details.html?slug=semaglutide" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+              Get Started
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+            <a href="product-details.html?slug=semaglutide" class="inline-flex items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              Learn More
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8">
+          <img src="assets/images/t5.png" alt="Sermorelin medication packaging" class="h-[211px] w-full rounded-lg object-cover" width="349" height="211" />
+          <h2 class="font-heading mt-6 text-lg font-medium sm:text-xl text-heading">Sermorelin</h2>
+          <p class="mt-3 text-base leading-6 text-body">A peptide that stimulates natural growth hormone production</p>
+          <p class="mt-5 text-base font-medium text-primary">Starting from $50.00/mo</p>
+          <div class="mt-8 flex flex-wrap gap-5">
+            <a href="#" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+              Get Started
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+            <a href="product-details.html?slug=sermorelin" class="inline-flex items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              Learn More
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+          </div>
+        </article>
+
+        <article class="rounded-lg border border-border bg-background p-8">
+          <img src="assets/images/t6.png" alt="Tadalafil medication packaging" class="h-[211px] w-full rounded-lg object-cover" width="349" height="211" />
+          <h2 class="font-heading mt-6 text-lg font-medium sm:text-xl text-heading">Tadalafil</h2>
+          <p class="mt-3 text-base leading-6 text-body">Improve erectile function by increasing blood flow when stimulated</p>
+          <p class="mt-5 text-base font-medium text-primary">Starting from $50.00/mo</p>
+          <div class="mt-8 flex flex-wrap gap-5">
+            <a href="#" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+              Get Started
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+            <a href="product-details.html?slug=tadalafil" class="inline-flex items-center justify-center gap-2 rounded-sm border border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+              Learn More
+              <i data-lucide="arrow-right" class="size-[17px]"></i>
+            </a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer id="contact" class="border-t border-border bg-background">
+  <div class="mx-auto max-w-[1440px] px-6 py-14 lg:px-[120px] lg:py-16">
+    <div class="flex flex-col justify-between gap-10 lg:flex-row lg:items-start">
+      <div class="flex flex-col gap-6 lg:gap-8">
+        <a href="index.html" class="shrink-0" aria-label="AsterMD home">
+          <svg class="h-[30px] w-auto" width="151" height="30" viewBox="0 0 423 84" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AsterMD">
+          <circle cx="44.24" cy="38.34" r="9.98" class="fill-primary"/>
+          <circle cx="44.22" cy="10.86" r="7.71" class="fill-heading"/>
+          <circle cx="70.40" cy="29.93" r="7.71" class="fill-heading"/>
+          <circle cx="60.29" cy="60.63" r="7.71" class="fill-heading"/>
+          <circle cx="28.01" cy="60.63" r="7.71" class="fill-heading"/>
+          <circle cx="18.12" cy="29.93" r="7.71" class="fill-heading"/>
+          <circle cx="67.51" cy="6.594" r="5.88" class="fill-heading"/>
+          <circle cx="81.64" cy="50.61" r="5.88" class="fill-heading"/>
+          <circle cx="44.25" cy="77.67" r="5.88" class="fill-heading"/>
+          <circle cx="6.85" cy="50.61" r="5.88" class="fill-heading"/>
+          <circle cx="21.28" cy="6.60" r="5.88" class="fill-heading"/>
+          <g transform="translate(101.35, 14.52)" class="fill-heading">
+            <path d="M28.7226 47.79H17.8226L16.3226 52.79C15.8926 54.24 14.5526 55.23 13.0426 55.23H2.2026C0.702595 55.23 -0.357401 53.77 0.112599 52.34L16.3326 3.13C16.9526 1.26 18.6926 0 20.6626 0H27.0026C32.5926 0 37.5926 3.49 39.5226 8.75L54.7026 50.21C55.5926 52.65 53.7926 55.23 51.1926 55.23H38.9926C37.5326 50.79 33.3826 47.8 28.7126 47.8L28.7226 47.79ZM33.6526 39.28L27.4726 18.07C27.1926 17.18 25.9226 17.2 25.6826 18.1L20.8126 36.03C20.3426 37.77 22.0626 39.27 23.8726 39.27H33.6626L33.6526 39.28Z"/>
+            <path d="M59.1226 50.41L58.3726 41.18C62.1626 43.33 68.2626 44.9 73.9026 44.9C77.2426 44.9 78.7326 44.16 78.7326 42.3C78.7326 40.96 77.9926 40.29 72.7826 39.03L71.0726 38.58C62.9726 36.57 59.4726 33.23 59.4726 26.54C59.4726 17.77 65.2726 13.31 77.1626 13.31C80.4526 13.31 83.9326 13.73 86.8126 14.56C88.6926 15.1 90.0226 16.77 90.1626 18.72L90.8326 27.73C87.0426 25.95 80.8726 24.61 76.9326 24.61C73.8126 24.61 72.6926 25.43 72.6926 26.84C72.6926 28.18 73.2826 28.85 78.1226 29.96L80.0526 30.48C90.0126 32.86 92.4626 36.8 92.4626 42.37C92.4626 51.81 85.1026 56.19 74.4026 56.19C69.9726 56.19 65.5426 55.52 62.0826 54.29C60.4126 53.7 59.2426 52.18 59.1026 50.41H59.1226Z"/>
+            <path d="M115.743 56.04C105.933 56.04 99.9826 52.62 99.9826 38.5V27.49C99.9826 26.59 99.2526 25.86 98.3526 25.86H95.9626V14.27H99.9726V3.64H114.693V14.27H122.353V25.86H117.323C115.873 25.86 114.693 27.04 114.693 28.49V38.2C114.693 41.4 115.953 42.73 119.303 42.73C120.343 42.73 121.313 42.66 122.503 42.36L121.313 55.22C119.383 55.81 117.523 56.04 115.743 56.04Z"/>
+            <path d="M149.973 56.19C137.263 56.19 127.153 50.1 127.153 34.19C127.153 19.4 136.813 13.3 147.893 13.3C160.423 13.3 166.453 21.5 167.333 33.83C167.453 35.59 166.083 37.09 164.323 37.09H142.103C143.073 42.96 146.723 44.89 152.303 44.89C155.903 44.89 159.423 44.3 162.413 43.08C163.423 42.67 164.493 43.52 164.303 44.59L162.983 52.7C159.783 55.15 155.403 56.19 149.973 56.19ZM142.093 30.82H155.843C155.023 26.29 152.573 24.23 148.933 24.23C145.813 24.23 142.913 25.92 142.093 30.82Z"/>
+            <path d="M186.233 35.96V55.23H171.513V13.94H182.583L185.703 19.18C189.343 14.8 193.583 13.38 197.813 13.38V30.82C194.893 30.87 192.063 31.32 189.303 32.02C187.493 32.48 186.223 34.09 186.223 35.96H186.233Z"/>
+          </g>
+          <g transform="translate(307.22, 14.52)" class="fill-primary">
+            <path d="M13.9 31.24V55.22H0V0H14.05L28.64 26.62C29.5 28.2 31.77 28.21 32.64 26.64L47.5 0H61.03V55.22H46.39V30.87C46.39 29.7 44.83 29.29 44.26 30.31L30.42 54.92C30.32 55.1 30.13 55.21 29.92 55.21C29.71 55.21 29.52 55.1 29.42 54.92L16.03 30.68C15.46 29.65 13.9 30.05 13.9 31.23V31.24Z"/>
+            <path d="M66.08 0H87.78C107.7 0 115.21 10.63 115.21 27.13C115.21 43.63 106.14 55.23 88.23 55.23H66.08V0.00999832V0ZM85.33 41.99C95.07 41.99 99.23 37.83 99.23 27.27C99.23 17.31 95.51 13.22 85.4 13.22H85.33C83.15 13.22 81.39 14.98 81.39 17.16V38.05C81.39 40.23 83.15 41.99 85.33 41.99Z"/>
+          </g>
+        </svg>
+        </a>
+        <div class="flex flex-wrap items-center gap-4">
+          <img src="assets/images/footer-badge-2.png" alt="LegitScript Certified" class="h-16 w-auto" />
+          <img src="assets/images/footer-badge-3.png" alt="HIPAA Compliant" class="h-9 w-auto" />
+          <img src="assets/images/footer-badge-1.png" alt="DMCA Protected" class="h-6 w-auto" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:gap-x-12">
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Treatments</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <li><a href="#" class="transition-colors hover:text-primary">Enclomiphene</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Finasteride</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Ramelteon</a></li>
+            <li><a href="product-details.html?slug=semaglutide" class="transition-colors hover:text-primary">Semaglutide</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Sermorelin</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Taladafil</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Company</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <li><a href="index.html#about" class="transition-colors hover:text-primary">About</a></li>
+            <li><a href="index.html#how-it-works" class="transition-colors hover:text-primary">How It Works</a></li>
+            <li><a href="index.html#contact" class="transition-colors hover:text-primary">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Legal</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <li><a href="#" class="transition-colors hover:text-primary">HIPAA Compliance</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Telehealth Consent</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Privacy Policy</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Terms of Service</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Refund Policy</a></li>
+            <li><a href="#" class="transition-colors hover:text-primary">Shipping &amp; Returns</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Contact</h3>
+          <ul class="mt-4 space-y-4 text-[15px] text-body">
+            <li class="max-w-[220px] leading-6">123 Address Placeholder, City, ST, 10001</li>
+            <li><a href="mailto:support@mail.com" class="leading-6 text-link hover:underline">support@mail.com</a></li>
+            <li><a href="tel:0000000000" class="leading-6 text-link hover:underline">(000) 000-0000</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-12 border-t border-border pt-8 text-center">
+      <p class="mx-auto max-w-[947px] text-sm leading-relaxed text-muted">
+        Compounded drug are prepared by licensed 503A pharmacies. Compounded drugs are not FDA-approved and have not been evaluated by the FDA for safety or effectiveness
+      </p>
+      <p class="mt-4 text-sm leading-relaxed text-muted">© 2026 AsterMD. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+<script>lucide.createIcons();</script>
+<script src="assets/js/script.js"></script>
+</body>
+</html>

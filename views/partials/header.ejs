@@ -1,0 +1,123 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/partials/header.twig. The cart drawer's per-line
+  branching (child / rx / otc-or-free-addon) and its footer actions (assessment/checkout/terminal)
+  mirror `TemplateGlobalsMiddleware`'s `cart` view-model exactly — see that middleware's doc
+  comment for why the shapes are what they are.
+*/
+const itemLabel = cart.count === 1 ? 'item' : 'items';
+%>
+<header class="border-b border-border bg-background">
+  <div class="bg-secondary">
+    <p class="mx-auto max-w-[1440px] px-4 py-1.5 text-center text-xs sm:text-sm text-secondary-foreground-muted">
+      US&#8209;based physicians&nbsp;&nbsp;&bull;&nbsp;&nbsp;No insurance required&nbsp;&nbsp;&bull;&nbsp;&nbsp;Ships in 3&#8209;5 days
+    </p>
+  </div>
+  <div class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 lg:px-[120px]">
+    <a href="<%= url('/') %>" class="shrink-0" aria-label="AsterMD home">
+      <%- include('logo') %>
+    </a>
+
+    <nav class="hidden items-center gap-8 lg:flex">
+      <a href="<%= url('/treatments') %>" class="text-sm font-medium text-heading transition-colors hover:text-primary">Treatments</a>
+      <a href="<%= url('/') %>#how-it-works" class="text-sm font-medium text-heading transition-colors hover:text-primary">How It Works</a>
+      <a href="<%= url('/') %>#about" class="text-sm font-medium text-heading transition-colors hover:text-primary">About</a>
+      <a href="<%= url('/') %>#contact" class="text-sm font-medium text-heading transition-colors hover:text-primary">Contact</a>
+    </nav>
+
+    <div class="relative flex items-center gap-4">
+      <% if (typeof portal_url !== 'undefined' && portal_url) { %>
+      <a href="<%= portal_url %>" class="hidden text-sm font-medium text-heading hover:text-primary lg:inline">Sign In</a>
+      <% } %>
+
+      <button id="cart-btn" type="button" aria-expanded="false" aria-controls="cart-panel" class="inline-flex h-10 w-10 items-center justify-center rounded-sm text-heading transition-colors aria-expanded:text-primary" aria-label="Open cart, <%= cart.count %> <%= itemLabel %>">
+        <span class="relative inline-flex size-6">
+          <i data-lucide="shopping-cart" class="size-6"></i>
+          <% if (cart.count > 0) { %>
+          <span class="absolute top-[-0.675rem] right-[-0.075rem] flex h-[14px] min-w-[14px] items-center justify-center rounded-xs bg-primary px-[3px] text-[10px] font-bold leading-none text-white"><%= cart.count %></span>
+          <% } %>
+        </span>
+      </button>
+
+      <!-- Cart dropdown -->
+      <div id="cart-panel" class="hidden absolute right-0 top-[calc(100%+12px)] z-30 flex max-h-[min(661px,calc(100vh-104px))] w-[min(441px,calc(100vw-48px))] flex-col overflow-hidden rounded-lg border border-border bg-background-2 shadow-dropdown"<% if (cart.notice) { %> data-cart-notice="1"<% } %>>
+        <p class="shrink-0 px-4 pt-4 font-heading text-[18px] font-medium text-heading sm:px-[24px] sm:pt-[24px]">My Cart</p>
+
+        <div class="mt-4 min-h-0 flex-1 flex flex-col gap-4 overflow-y-auto px-4 pb-4 sm:gap-[28px] sm:px-[24px] sm:pb-[24px]">
+          <% if (cart.lines.length === 0) { %>
+          <p class="text-sm text-body">Your cart is empty.</p>
+          <% } else { %>
+            <% cart.lines.forEach(function (line, index) { %>
+            <div class="rounded-md border border-divider bg-background">
+              <div class="flex gap-3 px-3 py-4 sm:gap-5 sm:px-5 sm:py-6">
+                <% if (line.image) { %>
+                <div class="size-[82px] shrink-0 overflow-hidden rounded-sm">
+                  <img src="<%= line.image %>" alt="" class="h-full w-full object-cover" />
+                </div>
+                <% } else { %>
+                <span class="flex size-[82px] shrink-0 items-center justify-center rounded-sm bg-surface"><i data-lucide="pill" class="size-6 text-icon-muted"></i></span>
+                <% } %>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <p class="text-base font-bold text-heading"><%= line.name %></p>
+                    <% if (!line.is_child) { %><%- include('cart-remove-form', { line }) %><% } %>
+                  </div>
+                  <% if (line.is_child) { %>
+                    <p class="mt-2 text-sm text-body">Qty: <%= line.quantity %></p>
+                  <% } else if (line.kind === 'rx') { %>
+                    <% if (line.variant_name) { %><p class="mt-2 text-sm text-body"><%= line.variant_name %></p><% } %>
+                  <% } else { %>
+                    <div class="mt-2 flex items-center justify-between">
+                      <span class="text-sm text-body">Qty:</span>
+                      <%- include('cart-quantity-stepper', { line }) %>
+                    </div>
+                  <% } %>
+                  <p class="mt-2 text-sm font-medium text-heading"><%= money(line.line_total_cents) %></p>
+                </div>
+              </div>
+            </div>
+            <% if (index < cart.lines.length - 1) { %><hr class="border-border" /><% } %>
+            <% }) %>
+          <% } %>
+        </div>
+
+        <% if (cart.actions.terminal || cart.actions.assessment || cart.actions.checkout) { %>
+        <div class="shrink-0 border-t border-border px-4 py-4 sm:px-[24px]">
+          <% if (cart.actions.terminal) { %>
+          <a href="<%= cart.actions.terminal.url %>" class="flex h-11 w-full items-center justify-center rounded-sm bg-primary text-sm font-medium text-primary-foreground hover:bg-primary-hover"><%= cart.actions.terminal.label %></a>
+          <% } else { %>
+            <% if (cart.actions.assessment) { %>
+            <a href="<%= cart.actions.assessment.url %>" class="flex h-11 w-full items-center justify-center rounded-sm border border-primary text-sm font-medium text-primary hover:bg-surface"><%= cart.actions.assessment.label %></a>
+            <% } %>
+            <% if (cart.actions.checkout) { %>
+            <a href="<%= cart.actions.checkout.url %>" class="mt-2 flex h-11 w-full items-center justify-center rounded-sm bg-primary text-sm font-medium text-primary-foreground hover:bg-primary-hover"><%= cart.actions.checkout.label %></a>
+            <% } %>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+
+      <button id="mobile-menu-btn" type="button" class="flex size-10 items-center justify-center text-heading lg:hidden" aria-label="Open menu">
+        <i data-lucide="menu" class="size-6"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="fixed inset-0 z-50 hidden bg-background lg:hidden">
+    <div class="flex items-center justify-between border-b border-border px-6 py-4">
+      <%- include('logo') %>
+      <button type="button" id="mobile-menu-close" class="text-heading" aria-label="Close menu"><i data-lucide="x" class="size-6"></i></button>
+    </div>
+    <nav class="flex flex-col gap-1 px-6 py-4">
+      <a href="<%= url('/treatments') %>" class="py-3 text-base font-medium text-heading">Treatments</a>
+      <a href="<%= url('/') %>#how-it-works" class="py-3 text-base font-medium text-heading">How It Works</a>
+      <a href="<%= url('/') %>#about" class="py-3 text-base font-medium text-heading">About</a>
+      <a href="<%= url('/') %>#contact" class="py-3 text-base font-medium text-heading">Contact</a>
+      <% if (typeof portal_url !== 'undefined' && portal_url) { %>
+      <a href="<%= portal_url %>" class="py-3 text-base font-medium text-heading">Sign In</a>
+      <% } %>
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,18 @@
+<label class="block text-sm font-medium text-heading" for="field-<%= f.name %>">
+  <%= f.label %><% if (f.required) { %> <span class="text-danger">*</span><% } %>
+</label>
+<% if (f.description) { %><p class="mt-1 text-sm text-muted"><%= f.description %></p><% } %>
+<select
+  id="field-<%= f.name %>"
+  name="<%= f.name %>"
+  <% if (f.required) { %>required<% } %>
+  <% if (f.disabled) { %>disabled<% } %>
+  <% if (f.error) { %>aria-invalid="true" aria-describedby="<%= f.error_id %>"<% } %>
+  class="mt-2 block w-full rounded-sm border <%= f.error ? 'border-danger' : 'border-border' %> px-3 py-2 text-base text-body focus:border-primary focus:outline-none"
+>
+  <option value="" <% if (!f.value) { %>selected<% } %>><% if (f.placeholder) { %><%= f.placeholder %><% } else { %>Select…<% } %></option>
+  <% f.options.forEach(function (option) { %>
+  <option value="<%= option.value %>" <% if (option.selected) { %>selected<% } %>><%= option.label %></option>
+  <% }) %>
+</select>
+<%- include('field-error', { f }) %>

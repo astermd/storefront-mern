@@ -1,0 +1,96 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/upsell.twig, styled per
+  docs/mockup/mockup/intake/upsell.html. `upsell` is the UpsellViewModel `UpsellController.show()`
+  assembled — the price, the copy and both button labels are all resolved server-side.
+
+  No "back to home" affordance, matching the mockup: this is a one-time post-order interstitial, so
+  the only intended exits are the page's own Accept/Decline actions, each a real form post (correct
+  with JavaScript off, per `[8.7]`'s reasoning — no client-side redirect needed).
+
+  `upsell.footnote` is rendered only when configured (never a hardcoded "Cancel anytime" default —
+  see `Upsell.php`'s doc comment on why that line can only be written truthfully per deployment).
+*/
+%>
+<%- include('../partials/head', { page_title: 'Exclusive Offer', page_description: null, noindex: true }) %>
+
+<header class="border-b border-border bg-background">
+  <div class="mx-auto flex h-20 max-w-[1440px] items-center px-6 lg:px-[120px]">
+    <span class="shrink-0" aria-label="AsterMD"><%- include('../partials/logo') %></span>
+  </div>
+</header>
+
+<%- include('../partials/cart-notice') %>
+
+<main class="flex flex-1 flex-col lg:flex-row">
+  <% if (upsell.image) { %>
+  <div class="min-h-[240px] shrink-0 overflow-hidden bg-primary-soft lg:min-h-0 lg:w-[38%]">
+    <img src="<%= upsell.image %>" alt="<%= upsell.productName %>" class="h-full w-full object-cover" />
+  </div>
+  <% } %>
+
+  <div class="flex flex-1 items-center justify-center px-6 py-16 lg:px-20">
+    <div class="w-full max-w-[500px]">
+      <% if (upsell.total > 1) { %>
+      <p class="text-sm text-muted">Offer <%= upsell.position %> of <%= upsell.total %></p>
+      <% } %>
+
+      <% if (upsell.eyebrow) { %>
+      <p class="flex items-center gap-2 text-base font-medium text-warning">
+        <i data-lucide="circle-alert" class="size-6"></i>
+        <%= upsell.eyebrow %>
+      </p>
+      <% } %>
+
+      <h1 class="font-heading mt-4 text-[28px] font-bold leading-tight text-heading sm:text-[32px]"><%= upsell.headline %></h1>
+
+      <% if (upsell.body) { %>
+      <p class="mt-4 text-base leading-6 text-body"><%= upsell.body %></p>
+      <% } %>
+
+      <hr class="mt-6 border-border" />
+
+      <div class="mt-6 flex items-start justify-between gap-4">
+        <p class="text-base font-medium sm:text-lg text-heading"><%= upsell.productName %></p>
+        <p class="shrink-0 text-base font-medium sm:text-lg text-heading"><%= money(upsell.priceCents) %></p>
+      </div>
+
+      <% if (upsell.bullets.length > 0) { %>
+      <ul class="mt-4 flex flex-col gap-3">
+        <% upsell.bullets.forEach(function (bullet) { %>
+        <li class="flex items-center gap-3">
+          <i data-lucide="circle-check" class="size-5 shrink-0 text-primary"></i>
+          <span class="text-base text-body"><%= bullet %></span>
+        </li>
+        <% }) %>
+      </ul>
+      <% } %>
+
+      <div class="mt-6 grid grid-cols-2 gap-4">
+        <form method="post" action="<%= url(upsell.declinePath) %>">
+          <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
+          <input type="hidden" name="upsell_key" value="<%= upsell.key %>" />
+          <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-sm border-2 border-border bg-background h-[41px] px-5 text-base font-medium text-heading transition-colors hover:border-primary hover:text-primary">
+            <i data-lucide="x" class="size-[14px]"></i>
+            <%= upsell.declineLabel %>
+          </button>
+        </form>
+        <form method="post" action="<%= url(upsell.acceptPath) %>">
+          <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
+          <input type="hidden" name="upsell_key" value="<%= upsell.key %>" />
+          <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
+            <%= upsell.acceptLabel %>
+            <i data-lucide="shopping-cart" class="size-[17px]"></i>
+          </button>
+        </form>
+      </div>
+
+      <% if (upsell.footnote) { %>
+      <p class="mt-4 text-center text-sm text-muted"><%= upsell.footnote %></p>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer-compliance') %>
+<%- include('../partials/foot') %>

@@ -1,0 +1,60 @@
+<%- /* Ported from storefront-lamp/theme/templates/partials/footer.twig. `footer_products` comes
+       from `TemplateGlobalsMiddleware.footerProducts()` — up to 6 rx/otc products. */ '' %>
+<footer id="contact" class="border-t border-border bg-background">
+  <div class="mx-auto max-w-[1440px] px-6 py-14 lg:px-[120px] lg:py-16">
+    <div class="flex flex-col justify-between gap-10 lg:flex-row lg:items-start">
+      <div class="flex flex-col gap-6 lg:gap-8">
+        <a href="<%= url('/') %>" class="shrink-0" aria-label="AsterMD home">
+          <%- include('logo', { logoClass: 'h-[30px] w-auto' }) %>
+        </a>
+        <div class="flex flex-wrap items-center gap-4">
+          <img src="/assets/img/footer-badge-2.png" alt="LegitScript Certified" class="h-16 w-auto" />
+          <img src="/assets/img/footer-badge-3.png" alt="HIPAA Compliant" class="h-9 w-auto" />
+          <img src="/assets/img/footer-badge-1.png" alt="DMCA Protected" class="h-6 w-auto" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-4 lg:gap-x-12">
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Treatments</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <% footer_products.forEach(function (product) { %>
+            <li><a href="<%= url('/products/' + product.slug) %>" class="transition-colors hover:text-primary"><%= product.name %></a></li>
+            <% }) %>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Company</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <li><a href="<%= url('/') %>#about" class="transition-colors hover:text-primary">About</a></li>
+            <li><a href="<%= url('/') %>#how-it-works" class="transition-colors hover:text-primary">How It Works</a></li>
+            <li><a href="<%= url('/') %>#contact" class="transition-colors hover:text-primary">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Legal</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <li><a href="<%= url('/terms') %>" class="transition-colors hover:text-primary">Terms of Service</a></li>
+            <li><a href="<%= url('/privacy') %>" class="transition-colors hover:text-primary">Privacy Policy</a></li>
+            <li><a href="<%= url('/telehealth-consent') %>" class="transition-colors hover:text-primary">Telehealth Consent</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="font-heading text-base font-medium text-heading">Contact</h3>
+          <ul class="mt-4 space-y-2.5 text-[15px] text-body">
+            <li><a href="mailto:support@astermd.com" class="transition-colors hover:text-primary">support@astermd.com</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-12 border-t border-border pt-8 text-sm text-muted">
+      <p>
+        AsterMD is a telehealth platform connecting patients with independently licensed physicians.
+        Products discussed are not evaluated by the FDA and are not intended to diagnose, treat,
+        cure, or prevent any disease. This is a 503A-compliant pharmacy arrangement.
+      </p>
+      <p class="mt-4">&copy; 2026 AsterMD. All Rights Reserved.</p>
+    </div>
+  </div>
+</footer>

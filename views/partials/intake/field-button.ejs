@@ -1,0 +1,59 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/partials/intake/field-button.twig. Navigation comes
+  from the definition, not the template (`[10.10]`): the form author decides whether a page carries
+  Back, Next or Submit.
+
+  `data-intake-action` (not `data-button-action`) is load-bearing — it's the exact attribute name
+  `public/js/intake.js`'s click handler queries for (`event.target.closest('[data-intake-action]')`),
+  the same contract `pages/intake/form.ejs`'s own shared nav buttons use. A form whose pages all
+  carry authored buttons hides that shared nav entirely (`definition_has_buttons`), so an authored
+  button using a different attribute name was never wired to anything — no click handler exists for
+  it, and clicking does nothing at all, silently. Confirmed live against a real teleform (Rameltion's)
+  whose pages are entirely authored-button-driven: every "Continue"/"Next" click was inert.
+
+  A two-button field (`f.secondary_label` set, from `properties.buttonCount === 2`) is a real,
+  live-authored pattern — a "Back"/"Next" pair sharing one field slot — that PHP's own
+  `field-button.twig` doesn't render either (it reads only `buttonAction`/the generic `label`,
+  silently dropping the secondary slot). No PHP markup exists to port for this half; laid out as a
+  two-column row, matching the shared nav's own `grid grid-cols-2 gap-4` Back/Continue pattern,
+  since the raw definition offers no more specific layout instruction this port implements
+  (`buttonRowAlign` is authored but neither renderer maps it to anything).
+
+  **Whatever the author typed is what renders, unexamined.** A button labelled "Back" whose own
+  `buttonAction` says `next_page` is authored data, not a rendering decision this partial makes —
+  confirmed on a real teleform (Rameltion's) whose primary slot does exactly that. Fix the source
+  data in AsterMD's form builder if that's wrong; this partial's job is to be faithful to it.
+*/
+function classesFor(action) {
+  return action === 'previous_page'
+    ? 'inline-flex w-full items-center justify-center gap-2 rounded-sm border-2 border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary'
+    : 'inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover disabled:cursor-not-allowed disabled:opacity-60';
+}
+%>
+<% if (f.secondary_label) { %>
+<div class="grid grid-cols-2 gap-4<% if (f.runtime_class) { %> <%= f.runtime_class %><% } %>">
+  <button
+    type="<%= f.button_action === 'submit' ? 'submit' : 'button' %>"
+    data-intake-action="<%= f.button_action %>"
+    <% if (f.button_action === 'submit') { %>name="intake_submit" value="1"<% } %>
+    <% if (f.disabled) { %>disabled<% } %>
+    class="<%= classesFor(f.button_action) %>"
+  ><%= f.label %></button>
+  <button
+    type="<%= f.secondary_action === 'submit' ? 'submit' : 'button' %>"
+    data-intake-action="<%= f.secondary_action %>"
+    <% if (f.secondary_action === 'submit') { %>name="intake_submit" value="1"<% } %>
+    <% if (f.disabled) { %>disabled<% } %>
+    class="<%= classesFor(f.secondary_action) %>"
+  ><%= f.secondary_label %></button>
+</div>
+<% } else { %>
+<button
+  type="<%= f.button_action === 'submit' ? 'submit' : 'button' %>"
+  data-intake-action="<%= f.button_action %>"
+  <% if (f.button_action === 'submit') { %>name="intake_submit" value="1"<% } %>
+  <% if (f.disabled) { %>disabled<% } %>
+  class="<%= classesFor(f.button_action) %><% if (f.runtime_class) { %> <%= f.runtime_class %><% } %>"
+><%= f.label %></button>
+<% } %>

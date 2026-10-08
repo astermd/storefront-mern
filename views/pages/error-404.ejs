@@ -1,0 +1,36 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/error-404.twig, translated to EJS (see
+  MERN.md's Templates section for why this is a hand-translation rather than a mechanical port).
+  Includes partials/head.ejs directly for now — the funnel layout (header-funnel/cart-notice/
+  footer-compliance) it visually belongs on lands in Phase 9; the content below is unchanged from
+  the PHP original.
+
+  Rendered by the fallback controller / error boundary rather than by a normal route, so it
+  arrives at any URL at all and the robots policy has no rule that can name it — it refuses
+  indexing itself.
+*/
+const page_title = 'Page not found';
+const page_description = "The page you're looking for doesn't exist or may have been moved.";
+const noindex = true;
+%>
+<%- include('../partials/head', { page_title, page_description, noindex }) %>
+
+  <section class="mx-auto max-w-[660px] px-6 py-16 lg:py-24">
+    <div class="text-center">
+      <span class="mx-auto flex size-14 items-center justify-center rounded-full border-2 border-danger">
+        <i data-lucide="search-x" class="size-7 text-danger"></i>
+      </span>
+      <h1 class="font-heading mt-6 text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Page not found</h1>
+      <p class="mx-auto mt-4 max-w-[520px] text-base leading-6 text-body">
+        The page you&rsquo;re looking for doesn&rsquo;t exist or may have been moved.
+      </p>
+    </div>
+
+    <a href="<%= url('/') %>" class="mx-auto mt-8 inline-flex w-full max-w-[300px] items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+      Back to Home
+      <i data-lucide="house" class="size-4"></i>
+    </a>
+  </section>
+
+<%- include('../partials/foot') %>

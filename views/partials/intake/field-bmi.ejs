@@ -1,0 +1,25 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/partials/intake/field-bmi.twig. The BMI composite
+  (`[10.28]`): a hidden unit-system subfield plus height and weight, and a result written into a
+  field of its own so the score is submitted as an ordinary answer (`[10.32]`).
+
+  The result is rendered server-side from the stored value, so a prefilled composite shows its
+  score immediately rather than waiting for scripts (`[10.34]`). `data-intake-bmi-target` names
+  this composite (not a subfield) so intake.js can scope its subfield queries within one fieldset.
+*/
+%>
+<fieldset data-intake-bmi data-intake-bmi-target="<%= f.name %>"<% if (f.runtime_class) { %> class="<%= f.runtime_class %>"<% } %>>
+  <legend class="text-sm font-semibold leading-snug text-heading">
+    <%= f.label %><% if (f.required) { %><span class="text-danger" aria-hidden="true"> *</span><% } %>
+  </legend>
+  <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <% f.subfields.forEach(function (subfield) { %>
+    <%- include('field', { f: subfield }) %>
+    <% }) %>
+  </div>
+  <p data-intake-bmi-result class="mt-3 text-sm font-medium text-heading<% if (f.value === null) { %> hidden<% } %>">
+    <% if (f.value !== null) { %>BMI <%= f.value %> &middot; <%= f.category %><% } %>
+  </p>
+  <input type="hidden" name="<%= f.name %>" value="<%= f.value === null ? '' : f.value %>" data-intake-bmi-score />
+</fieldset>

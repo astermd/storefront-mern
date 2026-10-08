@@ -1,0 +1,17 @@
+<%
+/* Ported from storefront-lamp/theme/templates/partials/intake/field-alert.twig. Visibility is
+   the dispatcher's concern (field.ejs's wrapper hides the whole thing when f.hidden) — an alert
+   revealed by a condition is exactly how Disqualification.php reads a disqualification rule out of
+   the definition (see that class's doc comment), so an alert appearing on screen and a hard stop
+   firing are frequently the same authored condition becoming true. */
+const styles = {
+  danger: 'border-danger bg-danger/5 text-danger',
+  warning: 'border-warning bg-warning/5 text-warning',
+  success: 'border-success bg-success/5 text-success',
+  info: 'border-border bg-surface text-body',
+};
+const style = styles[f.alert_type] || styles.info;
+%>
+<div class="rounded-sm border p-4 text-sm <%= style %>">
+  <%= f.alert_text || f.label %>
+</div>

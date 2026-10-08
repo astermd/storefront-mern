@@ -1,0 +1,153 @@
+// Ported from storefront-lamp's database/migrations/*.php (schema shape) and this project's own
+// earlier Kysely-based src/database/schema.ts — see MERN.md's "Persistence" section for why this
+// is Prisma now, and what that costs (the datasource provider below is fixed at generate time;
+// switching engines means editing it here, running `npx prisma generate`, and a fresh
+// `npx prisma migrate dev` against the new engine, not a runtime config value).
+//
+// Prisma 7 removed the inline `datasource.url` this block used to carry — see
+// `prisma.config.ts` (the CLI's connection string, for `migrate`/`generate`) and
+// `src/database/connection-factory.ts` (the app's own, via a driver adapter passed to
+// `PrismaClient`'s constructor) for where it lives now.
+//
+// Money is integer cents everywhere; timestamps are plain ISO-8601 UTC strings (`String`, not a
+// native DateTime) so the original's lexicographic-sort trick — a plain string comparison is a
+// valid range query, because every writer uses the same fixed width — survives verbatim. Column
+// names stay snake_case in the underlying tables via @map/@@map; the generated client uses
+// idiomatic camelCase property names.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Session {
+  sessionUuid   String  @id @map("session_uuid")
+  opportunityId String? @map("opportunity_id")
+  journeyState  String  @map("journey_state")
+  attribution   String?
+  createdAt     String  @map("created_at")
+  updatedAt     String  @map("updated_at")
+
+  orders Order[]
+
+  @@index([updatedAt], map: "idx_sessions_updated_at")
+  @@map("sessions")
+}
+
+model Order {
+  id                 Int     @id @default(autoincrement())
+  sessionUuid        String? @map("session_uuid")
+  providerReference  String  @map("provider_reference")
+  anchorSlug         String  @map("anchor_slug")
+  amountCents        Int     @map("amount_cents")
+  currency           String
+  status             String
+  treatmentReference String? @map("treatment_reference")
+  verificationStatus String? @map("verification_status")
+  verificationAt     String? @map("verification_at")
+  buyerEmail         String? @map("buyer_email")
+  buyerName          String? @map("buyer_name")
+  buyerTerritory     String? @map("buyer_territory")
+  discountCents      Int     @default(0) @map("discount_cents")
+  promotionCode      String? @map("promotion_code")
+  paymentMethod      String? @map("payment_method")
+  cardLastFour       String? @map("card_last_four")
+  idempotencyKey     String? @map("idempotency_key")
+  providerCategory   String? @map("provider_category")
+  placedAt           String? @map("placed_at")
+  isUpsell           Int     @default(0) @map("is_upsell")
+  /// 'capture' | 'authorize' — see SettlementMode/SettlementPolicy (Phase 7). Defaulted so a row
+  /// written before this column existed reads as 'capture', which is what every such row really was.
+  settlement         String  @default("capture")
+  userAgent          String? @map("user_agent")
+  createdAt          String  @map("created_at")
+  updatedAt          String  @map("updated_at")
+
+  session  Session?       @relation(fields: [sessionUuid], references: [sessionUuid])
+  lines    OrderLine[]
+  consents OrderConsent[]
+
+  @@index([sessionUuid], map: "idx_orders_session")
+  @@index([treatmentReference], map: "idx_orders_treatment_reference")
+  @@index([placedAt], map: "idx_orders_placed_at")
+  @@index([providerReference], map: "idx_orders_provider_reference")
+  @@map("orders")
+}
+
+model OrderLine {
+  id              Int     @id @default(autoincrement())
+  orderId         Int     @map("order_id")
+  slug            String
+  name            String
+  kind            String
+  providerOffer   String? @map("provider_offer")
+  providerItem    String? @map("provider_item")
+  unitPriceCents  Int     @map("unit_price_cents")
+  quantity        Int
+  sentToProvider  Int     @default(1) @map("sent_to_provider")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId], map: "idx_order_lines_order")
+  @@map("order_lines")
+}
+
+model OrderConsent {
+  id          Int    @id @default(autoincrement())
+  orderId     Int    @map("order_id")
+  consentKey  String @map("consent_key")
+  granted     Int
+  copyVersion String @map("copy_version")
+  copyShown   String @map("copy_shown")
+  recordedAt  String @map("recorded_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@index([orderId], map: "idx_order_consents_order")
+  @@map("order_consents")
+}
+
+/// The local, append-only audit trail — CartMirror (Phase 5) and RecordingIntakeGateway (Phase 6)
+/// are its writers so far.
+model Event {
+  id          Int     @id @default(autoincrement())
+  sessionUuid String  @map("session_uuid")
+  name        String
+  payload     String?
+  createdAt   String  @map("created_at")
+
+  @@index([sessionUuid], map: "idx_events_session")
+  @@index([createdAt], map: "idx_events_created_at")
+  @@map("events")
+}
+
+model CheckoutAttempt {
+  id             Int     @id @default(autoincrement())
+  /// UNIQUE — the entire double-charge defense; see storefront-lamp's 0002_checkout migration.
+  idempotencyKey String  @unique @map("idempotency_key")
+  sessionKey     String  @map("session_key")
+  /// 'claimed' | 'sent' | 'complete' — see CheckoutAttemptRepository's constants (Phase 7).
+  state          String
+  outcome        String?
+  createdAt      String  @map("created_at")
+  completedAt    String? @map("completed_at")
+
+  @@index([createdAt], map: "idx_checkout_attempts_created_at")
+  @@map("checkout_attempts")
+}
+
+model RateLimit {
+  id          Int    @id @default(autoincrement())
+  bucket      String
+  identity    String
+  hits        Int
+  /// Integer unix time, unlike every other table's string timestamps.
+  windowStart Int    @map("window_start")
+
+  @@unique([bucket, identity], map: "idx_rate_limits_bucket_identity")
+  @@index([windowStart], map: "idx_rate_limits_window_start")
+  @@map("rate_limits")
+}

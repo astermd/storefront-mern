@@ -1,0 +1,18 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/partials/structured-data.twig. schema.org JSON-LD for
+  the current page (`[24.8]`-`[24.10]`).
+
+  The document is built and encoded in TypeScript (`StructuredData.json()`) rather than assembled
+  here: the offer inside it has to carry the resolved variant's price rather than the product-level
+  one (`[24.9]`), and a template is the wrong place for a rule that a price disagreeing with the
+  checkout is a compliance problem.
+
+  `structured_data` is already the encoded JSON string (see `StructuredData.json()`, which escapes
+  angle brackets and ampersands so no catalog string can close this element) — rendered unescaped
+  below because HTML-entity-escaping it would corrupt the JSON.
+*/
+%>
+<% if (typeof structured_data !== 'undefined' && structured_data) { %>
+<script type="application/ld+json"><%- structured_data %></script>
+<% } %>

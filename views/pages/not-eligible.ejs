@@ -1,0 +1,74 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/not-eligible.twig. The terminal page a
+  disqualified journey lands on. `reason` is the form author's own wording for the rule that fired
+  (never a generic line, `[10.42]`) — null when this page was reached without a verdict (typed
+  URL). Two ways off: "Go Back and Correct It" re-opens the questionnaire with every answer intact
+  (a disqualifying answer is sometimes simply a mistake, `[10.43]`); "Start Over" is destructive
+  and clears the cart line plus the verdict (`[10.47]`). No payment has been taken at this point in
+  the funnel, so nothing here mentions money or refunds.
+*/
+const page_title = 'Not Eligible';
+const noindex = true;
+%>
+<%- include('../partials/head', { page_title, noindex }) %>
+<%- include('../partials/header') %>
+
+  <section class="mx-auto max-w-[660px] px-6 py-16 lg:py-24">
+    <div class="text-center">
+      <span class="mx-auto flex size-14 items-center justify-center rounded-full border-2 border-danger">
+        <i data-lucide="circle-x" class="size-7 text-danger"></i>
+      </span>
+      <h1 class="font-heading mt-6 text-[24px] font-bold leading-tight sm:text-[28px] text-heading">
+        <% if (treatment) { %>You're not eligible for <%= treatment %> right now<% } else { %>You're not eligible for this treatment right now<% } %>
+      </h1>
+      <% if (reason) { %>
+      <p class="mt-4 text-base text-body"><%= reason %></p>
+      <% } else { %>
+      <p class="mt-4 text-base text-body">Based on your answers, one of our physicians is unable to prescribe this treatment.</p>
+      <% } %>
+    </div>
+
+    <div class="mt-8 border-t border-border pt-8">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">NEXT STEPS &amp; ALTERNATIVES</p>
+
+      <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="rounded-lg border border-border bg-background p-6">
+          <i data-lucide="dumbbell" class="size-6 text-primary"></i>
+          <h2 class="font-heading mt-4 text-base font-medium text-heading">Holistic Wellness</h2>
+          <p class="mt-2 text-[15px] leading-relaxed text-body">Explore lifestyle-based programs and nutrition coaching.</p>
+        </div>
+        <div class="rounded-lg border border-border bg-background p-6">
+          <i data-lucide="hospital" class="size-6 text-primary"></i>
+          <h2 class="font-heading mt-4 text-base font-medium text-heading">Primary Physician</h2>
+          <p class="mt-2 text-[15px] leading-relaxed text-body">We recommend discussing these results with your local doctor.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mx-auto mt-8 flex max-w-[420px] flex-col gap-3">
+      <% if (disqualified) { %>
+      <a href="<%= back_path %>" class="inline-flex h-[41px] w-full items-center justify-center gap-2 rounded-sm bg-primary px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+        Go Back and Correct It
+      </a>
+      <form method="post" action="<%= url('/intake/start-over') %>">
+        <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+        <button type="submit" class="inline-flex h-[41px] w-full items-center justify-center gap-2 rounded-sm border border-border bg-background px-5 text-base font-medium sm:h-auto sm:py-4 text-heading transition-colors hover:border-primary hover:text-primary">
+          Start Over
+          <i data-lucide="refresh-cw" class="size-4"></i>
+        </button>
+      </form>
+      <a href="<%= url('/treatments') %>" class="flex h-11 w-full items-center justify-center gap-2 text-sm font-medium text-muted hover:text-body">
+        Browse Other Treatments
+      </a>
+      <% } else { %>
+      <a href="<%= url('/treatments') %>" class="inline-flex h-[41px] w-full items-center justify-center gap-2 rounded-sm bg-primary px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+        Browse Other Treatments
+        <i data-lucide="arrow-right" class="size-4"></i>
+      </a>
+      <% } %>
+    </div>
+  </section>
+
+<%- include('../partials/footer') %>
+<%- include('../partials/foot') %>

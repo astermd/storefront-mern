@@ -1,0 +1,36 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+
+# Reversed from storefront-lamp's own "built assets are committed, servers never run Node"
+# convention (user-directed) — this port now builds at deploy time instead (see package.json's
+# `prestart` script and MERN.md's Layout section). Nothing under here survives a fresh
+# `npm run build:assets`, or needs to: the script creates the directory itself.
+public/assets/build/
+
+# Written by `theme:sync --apply` — carries live payment-processor credentials once a real sync
+# populates it (see the file's own header comment). Matches storefront-lamp's own
+# channel.generated.php convention; the placeholder shape lives in git history from the initial
+# commit, but must never gain a real secret in a future commit.
+config/channel.generated.ts
+CLAUDE.local.md
+storage/logs/*.log
+storage/cache/*
+!storage/cache/.gitkeep
+storage/sessions/*
+!storage/sessions/.gitkeep
+storage/database/*.sqlite3
+storage/database/*.sqlite3-journal
+storage/database/*.sqlite3-shm
+storage/database/*.sqlite3-wal
+!storage/database/.gitkeep
+
+# Other env files (keep the example)
+.env.*
+!.env.example
+
+.DS_Store
+.vscode/
+ignored/

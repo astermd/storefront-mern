@@ -1,0 +1,69 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/verify.twig. One form, one POST, no JavaScript
+  required (see VerifyController's doc comment). `verification_notice` is null on an ordinary first
+  visit (nothing to say yet); `verification_held` distinguishes a hard stop (no submit button, the
+  visitor cannot proceed) from every other case (submit re-runs the check or simply carries on).
+  `collect_ssn` gates the one field this page can ask for that no earlier step collects — see
+  VerificationStep.collectsSsn()'s doc comment for why it's almost always false.
+*/
+const page_title = 'Verify Your Identity';
+%>
+<%- include('../partials/head', { page_title, noindex }) %>
+<%- include('../partials/header') %>
+
+  <section class="mx-auto max-w-[560px] px-6 py-16 lg:py-24">
+    <h1 class="font-heading text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Verify Your Identity</h1>
+    <p class="mt-2 text-sm text-body">
+      A quick check against the details you've already given us, required before we can move
+      forward with your treatment.
+    </p>
+
+    <% if (verification_notice) { %>
+    <div class="mt-6 rounded-sm border <%= verification_failed ? 'border-danger bg-danger/5' : 'border-border bg-surface' %> p-4">
+      <p class="text-sm text-body"><%= verification_notice %></p>
+    </div>
+    <% } %>
+
+    <% if (!verification_held) { %>
+    <form method="post" action="<%= url('/verify') %>" class="mt-8 flex flex-col gap-4">
+      <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+
+      <% if (collect_ssn) { %>
+      <div>
+        <label class="block text-sm font-medium text-heading" for="verify-ssn">
+          Last 4 digits of your Social Security Number
+        </label>
+        <input
+          type="text"
+          id="verify-ssn"
+          name="ssn"
+          inputmode="numeric"
+          maxlength="4"
+          autocomplete="off"
+          class="mt-2 block w-full rounded-sm border border-border px-3 py-2 text-base text-body focus:border-primary focus:outline-none"
+        />
+      </div>
+      <% } %>
+
+      <button type="submit" class="flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-primary text-base font-medium text-primary-foreground hover:bg-primary-hover">
+        Continue
+      </button>
+    </form>
+    <% } else { %>
+    <div class="mt-8 flex flex-col gap-3">
+      <a href="<%= back_path %>" class="flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-primary text-base font-medium text-primary-foreground hover:bg-primary-hover">
+        Go Back and Correct It
+      </a>
+      <form method="post" action="<%= url('/verify') %>">
+        <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+        <button type="submit" class="flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border text-base font-medium text-body hover:bg-surface">
+          Try Again
+        </button>
+      </form>
+    </div>
+    <% } %>
+  </section>
+
+<%- include('../partials/footer') %>
+<%- include('../partials/foot') %>

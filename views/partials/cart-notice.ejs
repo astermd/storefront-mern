@@ -1,0 +1,14 @@
+<%
+/* Ported from storefront-lamp/theme/templates/partials/cart-notice.twig. The single render site
+   for whatever a cart mutation left to say — included by each layout directly beneath its header,
+   never inside the drawer (see header.ejs's note): a notice rendered only in the drawer says
+   nothing to a visitor with JavaScript off. `noticeContainer` lets a caller match its own content
+   width; default is the marketing width. */
+const container = typeof noticeContainer !== 'undefined' && noticeContainer ? noticeContainer : 'max-w-[1440px] px-6 lg:px-[120px]';
+const cartModel = typeof cart !== 'undefined' ? cart : null;
+%>
+<% if (cartModel && cartModel.notice) { %>
+<div class="mx-auto <%= container %> pt-4">
+  <p role="status" class="rounded-sm border border-border bg-surface px-4 py-3 text-sm text-body"><%= cartModel.notice %></p>
+</div>
+<% } %>

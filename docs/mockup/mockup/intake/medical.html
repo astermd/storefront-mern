@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Intake — Medical | AsterMD</title>
+<meta name="description" content="AsterMD medical questionnaire: a short set of health questions reviewed by your physician." />
+
+<!-- Fonts: Figma design specifies "Helvetica Now Display/Text" (proprietary). Substituted with Inter, the closest free Google Font match. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,700&display=swap" rel="stylesheet" />
+
+<!-- Lucide icon library: every icon in this page is a real Lucide icon, rendered from
+     `<i data-lucide="...">` placeholders by lucide.createIcons() at the end of <body>. -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Tailwind CSS (CDN build) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  // Every colour/radius/shadow/font/transition here is a thin pass-through to the
+  // CSS variables defined in assets/css/styles.css. This file should never need a
+  // hex value added to it — new colours are added as tokens in styles.css and
+  // wired to a semantic key here once. Keep this block identical to index.html's.
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: 'var(--primary)',
+            hover: 'var(--primary-hover)',
+            light: 'var(--primary-light)',
+            soft: 'var(--primary-soft)',
+            deep: 'var(--primary-deep)',
+            foreground: 'var(--primary-foreground)',
+          },
+          secondary: {
+            DEFAULT: 'var(--secondary)',
+            hover: 'var(--secondary-hover)',
+            light: 'var(--secondary-light)',
+            foreground: 'var(--secondary-foreground)',
+            'foreground-muted': 'var(--secondary-foreground-muted)',
+          },
+          success: 'var(--success)',
+          warning: 'var(--warning)',
+          danger: 'var(--danger)',
+
+          background: {
+            DEFAULT: 'var(--background)',
+            2: 'var(--background-2)',
+          },
+          surface: 'var(--surface)',
+          'surface-2': 'var(--surface-2)',
+
+          // Text-role colours are named distinctly from "primary"/"secondary" so
+          // `text-primary` unambiguously means "brand-coloured text" everywhere.
+          heading: 'var(--text-primary)',
+          body: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
+          faint: 'var(--text-faint)',
+          'icon-muted': 'var(--icon-muted)',
+
+          border: {
+            DEFAULT: 'var(--border)',
+            soft: 'var(--border-soft)',
+            darker: 'var(--border-darker)',
+          },
+          divider: 'var(--divider)',
+          link: {
+            DEFAULT: 'var(--link)',
+            hover: 'var(--link-hover)',
+          },
+          overlay: {
+            DEFAULT: 'var(--overlay)',
+            strong: 'var(--overlay-strong)',
+          },
+        },
+        fontFamily: {
+          heading: ['var(--font-heading)', 'sans-serif'],
+          body: ['var(--font-body)', 'sans-serif'],
+        },
+        borderRadius: {
+          sm: 'var(--radius-sm)',
+          md: 'var(--radius-md)',
+          lg: 'var(--radius-lg)',
+          xl: 'var(--radius-xl)',
+        },
+        boxShadow: {
+          sm: 'var(--shadow-sm)',
+          md: 'var(--shadow-md)',
+        },
+        transitionDuration: {
+          DEFAULT: 'var(--transition-base)',
+        },
+        transitionTimingFunction: {
+          DEFAULT: 'var(--ease-standard)',
+        },
+        spacing: {
+          xs: 'var(--spacing-xs)',
+          sm: 'var(--spacing-sm)',
+          md: 'var(--spacing-md)',
+          lg: 'var(--spacing-lg)',
+          xl: 'var(--spacing-xl)',
+        },
+      },
+    },
+  };
+</script>
+
+<link rel="stylesheet" href="../assets/css/styles.css" />
+</head>
+<body class="bg-background font-body text-heading antialiased">
+
+<!-- ==================== HEADER ==================== -->
+<header class="border-b border-border bg-background">
+  <div class="mx-auto flex h-20 max-w-[1440px] items-center justify-between px-6 lg:px-[120px]">
+    <a href="../index.html" class="shrink-0" aria-label="AsterMD home">
+      <svg class="h-[26px] w-auto sm:h-[30px]" width="151" height="30" viewBox="0 0 423 84" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AsterMD">
+        <circle cx="44.24" cy="38.34" r="9.98" class="fill-primary"/>
+        <circle cx="44.22" cy="10.86" r="7.71" class="fill-heading"/>
+        <circle cx="70.40" cy="29.93" r="7.71" class="fill-heading"/>
+        <circle cx="60.29" cy="60.63" r="7.71" class="fill-heading"/>
+        <circle cx="28.01" cy="60.63" r="7.71" class="fill-heading"/>
+        <circle cx="18.12" cy="29.93" r="7.71" class="fill-heading"/>
+        <circle cx="67.51" cy="6.594" r="5.88" class="fill-heading"/>
+        <circle cx="81.64" cy="50.61" r="5.88" class="fill-heading"/>
+        <circle cx="44.25" cy="77.67" r="5.88" class="fill-heading"/>
+        <circle cx="6.85" cy="50.61" r="5.88" class="fill-heading"/>
+        <circle cx="21.28" cy="6.60" r="5.88" class="fill-heading"/>
+        <g transform="translate(101.35, 14.52)" class="fill-heading">
+          <path d="M28.7226 47.79H17.8226L16.3226 52.79C15.8926 54.24 14.5526 55.23 13.0426 55.23H2.2026C0.702595 55.23 -0.357401 53.77 0.112599 52.34L16.3326 3.13C16.9526 1.26 18.6926 0 20.6626 0H27.0026C32.5926 0 37.5926 3.49 39.5226 8.75L54.7026 50.21C55.5926 52.65 53.7926 55.23 51.1926 55.23H38.9926C37.5326 50.79 33.3826 47.8 28.7126 47.8L28.7226 47.79ZM33.6526 39.28L27.4726 18.07C27.1926 17.18 25.9226 17.2 25.6826 18.1L20.8126 36.03C20.3426 37.77 22.0626 39.27 23.8726 39.27H33.6626L33.6526 39.28Z"/>
+          <path d="M59.1226 50.41L58.3726 41.18C62.1626 43.33 68.2626 44.9 73.9026 44.9C77.2426 44.9 78.7326 44.16 78.7326 42.3C78.7326 40.96 77.9926 40.29 72.7826 39.03L71.0726 38.58C62.9726 36.57 59.4726 33.23 59.4726 26.54C59.4726 17.77 65.2726 13.31 77.1626 13.31C80.4526 13.31 83.9326 13.73 86.8126 14.56C88.6926 15.1 90.0226 16.77 90.1626 18.72L90.8326 27.73C87.0426 25.95 80.8726 24.61 76.9326 24.61C73.8126 24.61 72.6926 25.43 72.6926 26.84C72.6926 28.18 73.2826 28.85 78.1226 29.96L80.0526 30.48C90.0126 32.86 92.4626 36.8 92.4626 42.37C92.4626 51.81 85.1026 56.19 74.4026 56.19C69.9726 56.19 65.5426 55.52 62.0826 54.29C60.4126 53.7 59.2426 52.18 59.1026 50.41H59.1226Z"/>
+          <path d="M115.743 56.04C105.933 56.04 99.9826 52.62 99.9826 38.5V27.49C99.9826 26.59 99.2526 25.86 98.3526 25.86H95.9626V14.27H99.9726V3.64H114.693V14.27H122.353V25.86H117.323C115.873 25.86 114.693 27.04 114.693 28.49V38.2C114.693 41.4 115.953 42.73 119.303 42.73C120.343 42.73 121.313 42.66 122.503 42.36L121.313 55.22C119.383 55.81 117.523 56.04 115.743 56.04Z"/>
+          <path d="M149.973 56.19C137.263 56.19 127.153 50.1 127.153 34.19C127.153 19.4 136.813 13.3 147.893 13.3C160.423 13.3 166.453 21.5 167.333 33.83C167.453 35.59 166.083 37.09 164.323 37.09H142.103C143.073 42.96 146.723 44.89 152.303 44.89C155.903 44.89 159.423 44.3 162.413 43.08C163.423 42.67 164.493 43.52 164.303 44.59L162.983 52.7C159.783 55.15 155.403 56.19 149.973 56.19ZM142.093 30.82H155.843C155.023 26.29 152.573 24.23 148.933 24.23C145.813 24.23 142.913 25.92 142.093 30.82Z"/>
+          <path d="M186.233 35.96V55.23H171.513V13.94H182.583L185.703 19.18C189.343 14.8 193.583 13.38 197.813 13.38V30.82C194.893 30.87 192.063 31.32 189.303 32.02C187.493 32.48 186.223 34.09 186.223 35.96H186.233Z"/>
+        </g>
+        <g transform="translate(307.22, 14.52)" class="fill-primary">
+          <path d="M13.9 31.24V55.22H0V0H14.05L28.64 26.62C29.5 28.2 31.77 28.21 32.64 26.64L47.5 0H61.03V55.22H46.39V30.87C46.39 29.7 44.83 29.29 44.26 30.31L30.42 54.92C30.32 55.1 30.13 55.21 29.92 55.21C29.71 55.21 29.52 55.1 29.42 54.92L16.03 30.68C15.46 29.65 13.9 30.05 13.9 31.23V31.24Z"/>
+          <path d="M66.08 0H87.78C107.7 0 115.21 10.63 115.21 27.13C115.21 43.63 106.14 55.23 88.23 55.23H66.08V0.00999832V0ZM85.33 41.99C95.07 41.99 99.23 37.83 99.23 27.27C99.23 17.31 95.51 13.22 85.4 13.22H85.33C83.15 13.22 81.39 14.98 81.39 17.16V38.05C81.39 40.23 83.15 41.99 85.33 41.99Z"/>
+        </g>
+      </svg>
+    </a>
+
+    <a href="../index.html" class="flex size-10 items-center justify-center text-heading transition-colors hover:text-primary" aria-label="Back to home">
+      <i data-lucide="house" class="size-6"></i>
+    </a>
+  </div>
+</header>
+
+<main>
+  <!-- ==================== STEP PROGRESS ==================== -->
+  <div class="mx-auto max-w-[660px] px-6 pb-10 pt-10">
+    <div class="flex items-center">
+      <!-- Eligibility: completed -->
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+          <i data-lucide="gauge" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight font-medium text-heading">Eligibility</span>
+      </div>
+      <div class="relative mx-2 h-0.5 flex-1 bg-secondary">
+        <span class="absolute inset-x-0 -top-6 text-center text-sm text-heading">&#10003;</span>
+      </div>
+
+      <!-- Contact: completed -->
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+          <i data-lucide="user" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight font-medium text-heading">Contact</span>
+      </div>
+      <div class="relative mx-2 h-0.5 flex-1 bg-secondary">
+        <span class="absolute inset-x-0 -top-6 text-center text-sm text-heading">&#10003;</span>
+      </div>
+
+      <!-- Medical: active -->
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <i data-lucide="list-ordered" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight font-medium text-primary">Medical</span>
+      </div>
+      <div class="relative mx-2 h-0.5 flex-1 bg-border">
+        <div id="med-progress-fill" class="absolute inset-y-0 left-0 bg-primary" style="width: 12%"></div>
+        <span id="med-progress-label" class="absolute inset-x-0 -top-6 text-center text-xs font-medium text-primary">12%</span>
+      </div>
+
+      <!-- Verify & Review: upcoming -->
+      <div class="relative shrink-0">
+        <span class="flex size-12 items-center justify-center rounded-full bg-divider text-muted">
+          <i data-lucide="user-check" class="size-5"></i>
+        </span>
+        <span class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight text-muted">Verify &amp; Review</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MEDICAL QUESTIONNAIRE ==================== -->
+  <!-- All 8 questions. Question 6 branches: answering "Yes" reveals a lab-results
+       upload panel (still counted as question 6) before continuing to question 7;
+       "No" skips straight to question 7. Question 8's "Proceed" button continues
+       to the Verify & Review phase (verify.html). -->
+  <section class="mx-auto max-w-[660px] px-6 py-16">
+
+    <!-- ==================== QUESTION 1: WEIGHT LOSS EVALUATION ==================== -->
+    <div data-med-step="1" data-question-label="QUESTION 1 OF 8" data-progress="12">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 1 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Are you here to be evaluated for weight loss?</h1>
+      <div class="mt-8 flex flex-col gap-4" data-select-group>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          No
+        </button>
+        <button type="button" data-select-option aria-pressed="true" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          Yes
+        </button>
+      </div>
+      <p class="mx-auto mt-6 max-w-[480px] text-center text-sm leading-relaxed text-muted">All responses will be evaluated by a board-certified doctor. Medication will only be prescribed to eligible patients.</p>
+    </div>
+
+    <!-- ==================== QUESTION 2: BARIATRIC / GASTRIC BYPASS SURGERY ==================== -->
+    <div data-med-step="2" data-question-label="QUESTION 2 OF 8" data-progress="24" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 2 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Have you undergone bariatric or gastric bypass surgery?</h1>
+      <div class="mt-8 flex flex-col gap-4" data-select-group>
+        <button type="button" data-select-option aria-pressed="true" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          No
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          Yes
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== QUESTION 3: EXISTING CONDITIONS ==================== -->
+    <div data-med-step="3" data-question-label="QUESTION 3 OF 8" data-progress="36" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 3 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Do you have any of these conditions?</h1>
+      <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-multi-group>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" data-none-option checked class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">None Mentioned</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Gallbladder Disease / Removal</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Hypertension</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">High Cholesterol / Triglycerides</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Sleep Apnea</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">GERD</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">PCOS / PMOS</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Liver Disease</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ==================== QUESTION 4: DIABETES / METABOLIC HISTORY ==================== -->
+    <div data-med-step="4" data-question-label="QUESTION 4 OF 8" data-progress="48" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 4 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Do any of these apply to you?</h1>
+      <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-multi-group>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" data-none-option checked class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">None Mentioned</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Gastroparesis (Paralysis of your intestines)</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Triglycerides over 600 at any point in your life</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Pancreatic Cancer</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Pancreatitis</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Type-1 Diabetes</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Hypoglycemia (low blood sugar)</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Insulin-Dependent Diabetes</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Family history of thyroid cancer</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Personal or family history of (MEN-2) syndrome</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ==================== QUESTION 5: CURRENT MEDICATIONS ==================== -->
+    <div data-med-step="5" data-question-label="QUESTION 5 OF 8" data-progress="60" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 5 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Are you currently taking any of these medications?</h1>
+      <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-multi-group>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" data-none-option checked class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">None Mentioned</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Insulin</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Glimepiride (Amaryl)</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Meglitinides</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Glipizide</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Glyburide</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Sitagliptin</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Saxagliptin</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Linagliptin</span>
+        </label>
+        <label class="flex cursor-pointer items-center gap-3 rounded-sm border border-border bg-background px-5 py-4 transition-colors hover:border-primary">
+          <input type="checkbox" class="peer sr-only" />
+          <span class="flex size-5 shrink-0 items-center justify-center rounded-sm border border-border-darker bg-background transition-colors peer-checked:border-primary peer-checked:bg-primary">
+            <i data-lucide="check" class="size-3.5 text-background" stroke-width="3"></i>
+          </span>
+          <span class="text-base font-medium text-heading">Alogliptin</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ==================== QUESTION 6A: RECENT LAB TESTS (YES/NO) ==================== -->
+    <div data-med-step="6" data-question-label="QUESTION 6 OF 8" data-progress="72" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 6 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Have you had any lab tests completed within the last 12 months?</h1>
+      <div class="mt-8 flex flex-col gap-4" data-select-group id="lab-tests-group">
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          No
+        </button>
+        <button type="button" data-select-option aria-pressed="true" data-value="yes" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          Yes
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== QUESTION 6B: LAB RESULTS UPLOAD (conditional on 6A = Yes) ==================== -->
+    <div data-med-step="7" data-question-label="QUESTION 6 OF 8" data-progress="72" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 6 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Please upload your lab results</h1>
+      <p class="mx-auto mt-4 max-w-[480px] text-center text-base leading-6 text-body">Alternatively, you can send your lab results to your provider after the medical review by signing into your patient portal</p>
+
+      <label class="mt-8 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-sm border-2 border-dashed border-border-darker bg-background px-6 py-14 text-center transition-colors hover:border-primary">
+        <input type="file" multiple data-file-input class="sr-only" />
+        <i data-lucide="upload" class="size-8 text-icon-muted"></i>
+        <p class="text-base text-body">Drag and drop your files or <span class="font-medium text-primary">browse</span></p>
+      </label>
+
+      <div data-file-list class="mt-6 flex flex-col gap-3">
+        <div class="flex items-center gap-3 rounded-sm border border-border bg-background px-5 py-4" data-file-row>
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-sm bg-surface">
+            <i data-lucide="file-text" class="size-4 text-icon-muted"></i>
+          </span>
+          <div class="flex-1">
+            <p class="text-base text-heading">JD_Lab_Test-Results-1.pdf</p>
+            <p class="text-sm text-muted">1.2 MB</p>
+          </div>
+          <button type="button" data-remove-file class="text-icon-muted transition-colors hover:text-danger" aria-label="Remove file">
+            <i data-lucide="trash-2" class="size-5"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-3 rounded-sm border border-border bg-background px-5 py-4" data-file-row>
+          <span class="flex size-9 shrink-0 items-center justify-center rounded-sm bg-surface">
+            <i data-lucide="file-text" class="size-4 text-icon-muted"></i>
+          </span>
+          <div class="flex-1">
+            <p class="text-base text-heading">JD_Lab_Test-Results-2.pdf</p>
+            <p class="text-sm text-muted">1.2 MB</p>
+          </div>
+          <button type="button" data-remove-file class="text-icon-muted transition-colors hover:text-danger" aria-label="Remove file">
+            <i data-lucide="trash-2" class="size-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== QUESTION 7: ANYTHING ELSE FOR YOUR DOCTOR ==================== -->
+    <div data-med-step="8" data-question-label="QUESTION 7 OF 8" data-progress="84" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 7 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Anything else you&rsquo;d like your doctor to know?</h1>
+      <textarea rows="6" placeholder="Not that I know of" class="mt-8 w-full resize-none rounded-sm border-2 border-border bg-background p-5 text-base text-heading placeholder:text-muted transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"></textarea>
+    </div>
+
+    <!-- ==================== QUESTION 8: OFF-LABEL / INVESTIGATIONAL CONSENT ==================== -->
+    <div data-med-step="9" data-question-label="QUESTION 8 OF 8" data-progress="96" class="hidden">
+      <p class="text-center text-xs font-medium tracking-wide text-muted">QUESTION 8 OF 8</p>
+      <h1 class="font-heading mt-2 text-center text-[24px] font-bold leading-tight sm:text-[28px] text-heading">This is an off-label / investigational compound. Proceed?</h1>
+      <div class="mt-8 flex flex-col gap-4" data-select-group>
+        <button type="button" data-select-option aria-pressed="true" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          I understand and consent to proceed
+        </button>
+        <button type="button" data-select-option aria-pressed="false" class="group relative flex w-full items-center justify-center rounded-sm border-2 border-border bg-background px-6 py-4 text-base font-medium text-heading transition-colors hover:border-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary aria-pressed:border-primary aria-pressed:text-primary">
+          <span class="absolute left-6 flex size-5 items-center justify-center rounded-full border-2 border-border-darker group-aria-pressed:border-primary">
+            <span class="size-2.5 rounded-full group-aria-pressed:bg-primary"></span>
+          </span>
+          I do not consent
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== BACK / NEXT NAVIGATION (shared across all questions) ==================== -->
+    <div class="mt-8 grid grid-cols-2 gap-4">
+      <button type="button" id="med-back" class="inline-flex w-full items-center justify-center gap-2 rounded-sm border-2 border-border bg-background h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-heading transition-colors hover:border-primary hover:text-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+        <i data-lucide="arrow-left" class="size-[14px]"></i>
+        Back
+      </button>
+      <button type="button" id="med-next" class="inline-flex w-full items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+        <span id="med-next-label">Next</span>
+        <i data-lucide="arrow-right" class="size-[14px]"></i>
+      </button>
+    </div>
+
+  </section>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<footer class="border-t border-border bg-background">
+  <div class="mx-auto flex max-w-[1440px] flex-col items-center gap-6 px-6 py-8 lg:flex-row lg:justify-between lg:px-[120px]">
+    <div class="text-center lg:text-left">
+      <p class="text-sm text-muted">© 2026 AsterMD. All Rights Reserved.</p>
+      <p class="mt-2 flex items-center justify-center gap-1.5 text-sm text-muted lg:justify-start">
+        <i data-lucide="lock" class="size-4"></i>
+        Your data is secure and HIPAA-compliant.
+      </p>
+    </div>
+
+    <img src="../assets/images/footer-badge-2.png" alt="LegitScript Certified" class="h-16 w-auto" />
+
+    <div class="grid grid-cols-2 gap-x-10 gap-y-2 text-sm text-body">
+      <a href="#" class="underline transition-colors hover:text-primary">Privacy Policy</a>
+      <a href="#" class="underline transition-colors hover:text-primary">Terms of Service</a>
+      <a href="#" class="underline transition-colors hover:text-primary">Refund Policy</a>
+      <a href="#" class="underline transition-colors hover:text-primary">HIPAA Compliance</a>
+    </div>
+  </div>
+</footer>
+
+<script>lucide.createIcons();</script>
+<script src="../assets/js/script.js"></script>
+<script>
+  // "None Mentioned" is mutually exclusive with the other options in each
+  // multi-select condition/medication group: picking it clears everything else,
+  // and picking anything else clears it.
+  document.querySelectorAll('[data-multi-group]').forEach(function (group) {
+    var checkboxes = Array.prototype.slice.call(group.querySelectorAll('input[type="checkbox"]'));
+    var noneOption = group.querySelector('[data-none-option]');
+
+    checkboxes.forEach(function (checkbox) {
+      checkbox.addEventListener('change', function () {
+        if (checkbox === noneOption) {
+          if (checkbox.checked) {
+            checkboxes.forEach(function (other) {
+              if (other !== noneOption) other.checked = false;
+            });
+          }
+        } else if (checkbox.checked) {
+          noneOption.checked = false;
+        }
+      });
+    });
+  });
+
+  // File upload panel: "browse"/drag-drop is decorative (no real upload backend),
+  // but the remove buttons on the pre-listed files are functional.
+  document.querySelectorAll('[data-remove-file]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      button.closest('[data-file-row]').remove();
+    });
+  });
+</script>
+<script>
+  // Medical phase: an 8-question wizard, fully built. Question 6 branches to a
+  // lab-results upload panel when answered "Yes" (skipping straight to question 7
+  // on "No") — a history stack (rather than a simple currentStep-1) makes Back
+  // unwind correctly regardless of which branch was taken. Panel numbers
+  // (data-med-step) are internal wizard-sequence indices, not question numbers —
+  // question numbers/labels live in each panel's own QUESTION X OF 8 text.
+  (function () {
+    var steps = Array.prototype.slice.call(document.querySelectorAll('[data-med-step]'));
+    var currentStep = 1;
+    var history = [];
+    var lastStep = Math.max.apply(null, steps.map(function (s) { return Number(s.getAttribute('data-med-step')); }));
+
+    var backBtn = document.getElementById('med-back');
+    var nextBtn = document.getElementById('med-next');
+    var nextLabel = document.getElementById('med-next-label');
+    var progressFill = document.getElementById('med-progress-fill');
+    var progressLabel = document.getElementById('med-progress-label');
+
+    function panelFor(step) {
+      return steps.filter(function (panel) { return Number(panel.getAttribute('data-med-step')) === step; })[0];
+    }
+
+    function render() {
+      var panel = panelFor(currentStep);
+      steps.forEach(function (other) { other.classList.toggle('hidden', other !== panel); });
+      progressFill.style.width = panel.getAttribute('data-progress') + '%';
+      progressLabel.textContent = panel.getAttribute('data-progress') + '%';
+      nextLabel.textContent = currentStep === 7 ? 'Upload & Continue' : (currentStep === lastStep ? 'Proceed' : 'Next');
+    }
+
+    function goTo(step) {
+      history.push(currentStep);
+      currentStep = step;
+      render();
+    }
+
+    backBtn.addEventListener('click', function () {
+      if (history.length === 0) {
+        window.location.href = 'contact.html';
+        return;
+      }
+      currentStep = history.pop();
+      render();
+    });
+
+    nextBtn.addEventListener('click', function () {
+      if (currentStep === 6) {
+        var labTestsGroup = document.getElementById('lab-tests-group');
+        var yesSelected = labTestsGroup.querySelector('[data-value="yes"]').getAttribute('aria-pressed') === 'true';
+        goTo(yesSelected ? 7 : 8);
+        return;
+      }
+      if (currentStep === lastStep) {
+        window.location.href = 'verify.html';
+        return;
+      }
+      goTo(currentStep + 1);
+    });
+
+    render();
+  })();
+</script>
+</body>
+</html>

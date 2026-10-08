@@ -1,0 +1,7 @@
+<%- /*
+  Ported from storefront-lamp/theme/templates/partials/intake/field-error.twig. The inline error,
+  adjacent to its control and programmatically associated with it (`[25.4]`). Rendered even when
+  empty so intake.js has a stable node to write into as it re-validates a page client-side, which
+  is what keeps a client-side message in the same place the server would have put it.
+*/ '' %>
+<p id="<%= f.name ? 'intake-error-' + f.name : '' %>" data-intake-error class="mt-2 text-sm font-medium text-danger <%= !f.error ? 'hidden' : '' %>"><%= f.error || '' %></p>

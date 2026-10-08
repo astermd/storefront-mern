@@ -1,0 +1,22 @@
+<%- /*
+  No PHP equivalent — see src/forms/field-types.ts's doc comment on `file-upload`. The answer this
+  field actually submits is the hidden input's value (the stored file's reference, returned by
+  POST /intake/upload); the visible <input type="file"> never submits anything itself, since the
+  bytes already left the browser the moment a file was chosen. intake.js wires the two together.
+*/ '' %>
+<label class="block text-sm font-medium text-heading" for="field-<%= f.name %>">
+  <%= f.label %><% if (f.required) { %> <span class="text-danger">*</span><% } %>
+</label>
+<% if (f.description) { %><p class="mt-1 text-sm text-muted"><%= f.description %></p><% } %>
+<div class="mt-2" data-intake-file-upload>
+  <input
+    type="file"
+    id="field-<%= f.name %>"
+    data-intake-file-input
+    <% if (f.disabled) { %>disabled<% } %>
+    class="block w-full text-sm text-body file:mr-3 file:rounded-sm file:border-0 file:bg-primary file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary-hover"
+  />
+  <input type="hidden" name="<%= f.name %>" data-intake-file-reference value="<%= f.value || '' %>" <% if (f.required) { %>required<% } %> />
+  <p class="mt-1 text-sm text-muted" data-intake-file-status><%= f.value ? 'A file is already on record for this question.' : '' %></p>
+</div>
+<%- include('field-error', { f }) %>

@@ -1,0 +1,10 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/layouts/base.twig, restructured for EJS — see
+  partials/head.ejs's note. Every page includes this at its bottom, mirroring head.ejs at the top.
+*/
+%>
+<script>window.addEventListener('DOMContentLoaded', function () { if (window.lucide) lucide.createIcons(); });</script>
+<% if (typeof scripts !== 'undefined' && scripts) { %><%- scripts %><% } %>
+</body>
+</html>

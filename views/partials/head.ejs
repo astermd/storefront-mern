@@ -1,0 +1,61 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/layouts/base.twig, restructured for EJS.
+
+  EJS has no extends/block inheritance (unlike Nunjucks/Twig), so there is no single "layout"
+  every page renders through — each page template includes this partial at its top and
+  partials/foot.ejs at its bottom, passing whatever locals it knows about itself
+  (page_title/page_description/noindex/body_class) before this renders. That's a convention every
+  page has to follow now, not something enforced structurally by being "extended" — see MERN.md's
+  Templates section.
+
+  Phase 9 adds what was deferred here: the `seo` global (`SeoMiddleware`, real `RobotsPolicy`/
+  `MetaResolver`/`PageMeta`) supplies the real per-path robots directive and canonical URL, and
+  `structured_data` (`StructuredData.json()`, Phase 9) is included when a controller resolved a
+  graph for its page. Both are additive — a page/test that renders this partial with neither local
+  gets exactly the title/description behaviour it always got, since every existing page still passes
+  its own `page_title`/`page_description` directly rather than going through `seo.page.with(...)`:
+  that single-writer resolution chain is available for a page to opt into, not a forced rewrite of
+  ~30 already-built templates.
+
+  **The robots *meta tag* is the one place this partial now disagrees with its own past behaviour on
+  purpose**, and only when a page passes no opinion of its own: `noindex` explicitly `true` or
+  `false` always wins (a funnel step hardcoding `true` regardless of `config/app.ts`'s
+  `robotsRules`, matching the PHP original), but a page that sets neither — most of the marketing
+  surface, and both legal and error pages as of Phase 9 — now falls through to `seo.robots`, the
+  same per-path directive `SeoMiddleware` already put on the `X-Robots-Tag` *header* for every
+  response regardless of what any page rendered. Before this fallback existed, such a page's header
+  said `noindex` under `discourageIndexing` (every non-production environment) while its meta tag
+  said nothing at all — exactly the disagreement `[24.2]` requires both channels to avoid.
+
+  Resolved into differently-named variables throughout — EJS wraps template bodies in
+  `with(locals) {...}`, so `const noindex = typeof noindex !== 'undefined' ? noindex : ...` would
+  shadow the outer local via the temporal dead zone and throw at render time (see logo.ejs's own
+  note, the first template this bit).
+*/
+const resolvedSeo = typeof seo !== 'undefined' && seo ? seo : null;
+const resolvedNoindex = typeof noindex !== 'undefined' ? noindex : resolvedSeo !== null && resolvedSeo.robots !== null;
+const resolvedRobotsDirective = resolvedNoindex ? (resolvedSeo ? (resolvedSeo.robots ?? resolvedSeo.refused) : 'noindex, nofollow') : null;
+const resolvedTitle = typeof page_title !== 'undefined' && page_title ? page_title : 'AsterMD — A Smarter Path to Longevity & Wellness';
+const resolvedDescription = typeof page_description !== 'undefined' && page_description ? page_description : 'Connect with licensed physicians in minutes.';
+const resolvedCanonical = resolvedSeo ? resolvedSeo.canonical : null;
+const resolvedStructuredData = typeof structured_data !== 'undefined' && structured_data ? structured_data : null;
+%>
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title><%= resolvedTitle %></title>
+<meta name="description" content="<%= resolvedDescription %>" />
+<% if (resolvedRobotsDirective) { %>
+<meta name="robots" content="<%= resolvedRobotsDirective %>" />
+<% } %>
+<% if (resolvedCanonical) { %>
+<link rel="canonical" href="<%= resolvedCanonical %>" />
+<% } %>
+<link rel="stylesheet" href="<%= asset('app.css') %>" />
+<script src="<%= asset('lucide.min.js') %>" defer></script>
+<%- include('structured-data', { structured_data: resolvedStructuredData }) %>
+</head>
+<body class="bg-background font-body text-heading antialiased<%= typeof body_class !== 'undefined' && body_class ? body_class : '' %>">

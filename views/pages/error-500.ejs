@@ -1,0 +1,31 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/error-500.twig, translated to EJS — see
+  error-404.ejs's note. `request_id` is set by ErrorPresenter, shown as a small reference line for
+  support.
+*/
+const page_title = 'Something went wrong';
+const page_description = 'An unexpected error occurred while processing your request.';
+const noindex = true;
+%>
+<%- include('../partials/head', { page_title, page_description, noindex }) %>
+
+  <section class="mx-auto max-w-[660px] px-6 py-16 lg:py-24">
+    <div class="text-center">
+      <span class="mx-auto flex size-14 items-center justify-center rounded-full border-2 border-danger">
+        <i data-lucide="server-crash" class="size-7 text-danger"></i>
+      </span>
+      <h1 class="font-heading mt-6 text-[24px] font-bold leading-tight sm:text-[28px] text-heading">Something went wrong</h1>
+      <p class="mx-auto mt-4 max-w-[520px] text-base leading-6 text-body">
+        We&rsquo;re sorry — an unexpected error occurred on our end. Please try again in a moment.
+      </p>
+      <p class="mt-2 text-sm text-muted">Reference: <%= request_id %></p>
+    </div>
+
+    <a href="<%= url('/') %>" class="mx-auto mt-8 inline-flex w-full max-w-[300px] items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-4 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+      Back to Home
+      <i data-lucide="house" class="size-4"></i>
+    </a>
+  </section>
+
+<%- include('../partials/foot') %>

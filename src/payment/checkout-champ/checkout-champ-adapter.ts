@@ -1,0 +1,267 @@
+import { CardScrubber } from '../../support/card-scrubber';
+import { OperatorLog } from '../../support/operator-log';
+import { AdapterCapabilities, SCOPE_ORDER_LEVEL, STRATEGY_ORDER_REFERENCE, SURFACE_THEME_FIELDS } from '../adapter-capabilities';
+import { CaptureOutcome } from '../capture-outcome';
+import { CaptureRequest } from '../capture-request';
+import { OrderEnvelope } from '../order-envelope';
+import { OrderSearch } from '../order-search';
+import { OrderSearchResult } from '../order-search-result';
+import { PaymentAdapter } from '../payment-adapter';
+import { PaymentCredential } from '../payment-credential';
+import { PlacementOutcome } from '../placement-outcome';
+import { PromotionQuote } from '../promotion-quote';
+import { SettlementMode } from '../settlement-mode';
+import { CheckoutChampApiFactory } from './checkout-champ-api-factory';
+import { CheckoutChampAuthorizeMode, CheckoutChampAuthorizeModeValue } from './checkout-champ-authorize-mode';
+import { CheckoutChampCredentials } from './checkout-champ-credentials';
+import { CheckoutChampOutcome } from './checkout-champ-outcome';
+import { CheckoutChampPayload } from './checkout-champ-payload';
+
+type Envelope = Record<string, unknown>;
+
+function asRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+}
+
+/**
+ * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampAdapter.php. Real
+ * CheckoutChamp integration, wrapping `@astermd-hq/checkoutchamp-client` (the npm sibling of the
+ * PHP original's `astermd/checkoutchamp-client` Composer package — both explicitly unofficial,
+ * same publisher as `@astermd-hq/sdk`).
+ */
+export class CheckoutChampAdapter implements PaymentAdapter {
+  constructor(
+    private readonly credentials: CheckoutChampCredentials,
+    private readonly apiFactory: CheckoutChampApiFactory,
+    private readonly log: OperatorLog,
+    private readonly salesUrl: string = '',
+    private readonly authorizeMode: CheckoutChampAuthorizeModeValue = CheckoutChampAuthorizeMode.Qa,
+  ) {}
+
+  capabilities(): AdapterCapabilities {
+    return new AdapterCapabilities(
+      'checkout_champ',
+      false,
+      SCOPE_ORDER_LEVEL,
+      STRATEGY_ORDER_REFERENCE,
+      SURFACE_THEME_FIELDS,
+      ['api_endpoint', 'api_username', 'api_password'],
+      ['offer_id', 'product_id'],
+      "Reduced scope via stored-customer reuse: the card is collected by the storefront once, at checkout, and is never held afterwards — later charges name the customer the provider already holds. NOTE that this provider authenticates and takes every parameter in the QUERY STRING, including the card number and security code, so anything on the egress path that records request URLs (a forward proxy, an egress gateway, an APM agent, a TLS-inspecting appliance) records cardholder data and this deployment's provider password in clear text. Audit that path before going live; it is a larger obligation than the collection surface itself.",
+      false,
+      false,
+      false,
+      true,
+      [],
+    );
+  }
+
+  async place(order: OrderEnvelope, credential: PaymentCredential): Promise<PlacementOutcome> {
+    if (order.chargeableLines().length === 0) {
+      this.log.error('payment.no_chargeable_lines', { anchor: order.anchorSlug });
+      return PlacementOutcome.declined(null, CheckoutChampOutcome.GENERIC_DECLINE, 'no_chargeable_lines');
+    }
+
+    for (const line of order.unmappedLines()) {
+      this.log.info('payment.line_not_sent', { slug: line.slug, free: line.isFree() });
+    }
+
+    const paymentFields = CheckoutChampPayload.paymentFor(credential);
+    if (Object.keys(paymentFields).length === 0) {
+      this.log.error('payment.credential_unusable', { kind: credential.kind, anchor: order.anchorSlug });
+      return PlacementOutcome.declined(null, CheckoutChampOutcome.GENERIC_DECLINE, 'credential_unusable');
+    }
+
+    const campaignId = CheckoutChampPayload.campaignFor(order);
+    if (campaignId === null) {
+      const offers = [...new Set(order.chargeableLines().map((line) => String(line.providerOffer)))];
+      this.log.error('payment.campaign_unresolved', { anchor: order.anchorSlug, offers });
+      return PlacementOutcome.declined(null, CheckoutChampOutcome.GENERIC_DECLINE, 'campaign_unresolved');
+    }
+
+    const reference = await this.openOrder(order);
+    if (reference === null) {
+      return PlacementOutcome.declined(null, CheckoutChampOutcome.GENERIC_DECLINE, 'lead_not_created');
+    }
+
+    const authorize = SettlementMode.isAuthorize(order.settlement);
+    const holdForReview = authorize && this.authorizeMode === CheckoutChampAuthorizeMode.Qa;
+    const legacyPreauth = authorize && !holdForReview;
+
+    const body = CheckoutChampPayload.forOrder(order, credential, reference, holdForReview);
+
+    let envelope: Envelope;
+    try {
+      const api = this.apiFactory.create(this.credentials);
+      const { response } = await (legacyPreauth ? api.preauth(body) : api.importOrder(body)).getInObject();
+      envelope = asRecord(response) ?? {};
+    } catch (e) {
+      this.log.error('payment.place_threw', { reason: CardScrubber.scrub(e instanceof Error ? e.message : String(e)) });
+      return PlacementOutcome.declined(null, CheckoutChampOutcome.GENERIC_DECLINE, 'exception');
+    }
+
+    const outcome = CheckoutChampOutcome.from(envelope, reference, order.totalCents, order.settlement, holdForReview);
+
+    if (!outcome.isPlaced()) {
+      this.log.warning('payment.not_placed', {
+        state: outcome.state,
+        reference: outcome.reference,
+        raw_status: outcome.rawStatus,
+        response: CardScrubber.scrub(envelope),
+      });
+    }
+
+    if (outcome.chargeDiscrepancy !== null) {
+      this.log.error('payment.total_mismatch', {
+        reference: outcome.reference,
+        expected_cents: outcome.chargeDiscrepancy.expectedCents,
+        charged_cents: outcome.chargeDiscrepancy.chargedCents,
+        difference_cents: outcome.chargeDiscrepancy.differenceCents(),
+        provider_discount_cents: outcome.chargeDiscrepancy.providerDiscountCents,
+        anchor: order.anchorSlug,
+      });
+    }
+
+    return outcome;
+  }
+
+  private async openOrder(order: OrderEnvelope): Promise<string | null> {
+    let envelope: Envelope;
+    try {
+      const { response } = await this.apiFactory.create(this.credentials).importLeads(CheckoutChampPayload.forLead(order, this.salesUrl)).getInObject();
+      envelope = asRecord(response) ?? {};
+    } catch (e) {
+      this.log.error('payment.lead_threw', { reason: CardScrubber.scrub(e instanceof Error ? e.message : String(e)) });
+      return null;
+    }
+
+    const reference = CheckoutChampOutcome.referenceFrom(envelope);
+    if (reference === null) {
+      this.log.error('payment.lead_not_created', { anchor: order.anchorSlug, response: CardScrubber.scrub(envelope) });
+    }
+    return reference;
+  }
+
+  /** No endpoint exists on this provider for a standalone discount quote. */
+  async quotePromotion(_order: OrderEnvelope, code: string): Promise<PromotionQuote> {
+    return PromotionQuote.rejected(code, 'unsupported');
+  }
+
+  /** Deliberately unsupported, even though `orderQuery` exists — an unverified projection would produce false confidence in the reverse-reconciliation sweep. */
+  async searchOrders(_search: OrderSearch): Promise<OrderSearchResult> {
+    return OrderSearchResult.unsupported();
+  }
+
+  async capture(request: CaptureRequest): Promise<CaptureOutcome> {
+    const reference = request.reference.trim();
+    if (reference === '') {
+      this.log.error('payment.capture_without_reference', {});
+      return CaptureOutcome.failed(null, 'missing_reference');
+    }
+
+    if (this.authorizeMode === CheckoutChampAuthorizeMode.Qa) {
+      return this.approveQa(reference);
+    }
+
+    const lines = request.chargeableLines();
+    const campaignId = CheckoutChampPayload.campaignOf(lines);
+
+    if (lines.length === 0 || campaignId === null) {
+      this.log.error('payment.capture_lines_unusable', { reference, lines: request.lines.length, chargeable: lines.length });
+      return CaptureOutcome.failed(reference, 'lines_unusable');
+    }
+
+    let envelope: Envelope;
+    try {
+      const { response } = await this.apiFactory.create(this.credentials).importOrder(CheckoutChampPayload.forCapture(reference, lines, campaignId)).getInObject();
+      envelope = asRecord(response) ?? {};
+    } catch (e) {
+      this.log.error('payment.capture_threw', { reference, exception: e instanceof Error ? e.constructor.name : 'unknown' });
+      return CaptureOutcome.failed(reference, 'exception');
+    }
+
+    if (envelope.curlError !== undefined) {
+      this.log.error('payment.capture_unreachable', { reference });
+      return CaptureOutcome.failed(reference, 'transport_error');
+    }
+
+    if (!CheckoutChampOutcome.capturedFrom(envelope)) {
+      const reason = CheckoutChampAdapter.captureFailureReason(envelope);
+      this.log.error('payment.capture_refused', { reference, reason });
+      return CaptureOutcome.failed(reference, reason);
+    }
+
+    this.log.info('payment.captured', { reference });
+    return CaptureOutcome.captured(reference);
+  }
+
+  /** Under Qa mode, no lines are ever sent or checked — `forQaApproval` is just `{orderId, action: 'APPROVE'}`. */
+  private async approveQa(reference: string): Promise<CaptureOutcome> {
+    let envelope: Envelope;
+    try {
+      const { response } = await this.apiFactory.create(this.credentials).qa(CheckoutChampPayload.forQaApproval(reference)).getInObject();
+      envelope = asRecord(response) ?? {};
+    } catch (e) {
+      this.log.error('payment.capture_threw', { reference, exception: e instanceof Error ? e.constructor.name : 'unknown' });
+      return CaptureOutcome.failed(reference, 'exception');
+    }
+
+    if (envelope.curlError !== undefined) {
+      this.log.error('payment.capture_unreachable', { reference });
+      return CaptureOutcome.failed(reference, 'transport_error');
+    }
+
+    if (!CheckoutChampOutcome.capturedFrom(envelope)) {
+      const reason = CheckoutChampAdapter.captureFailureReason(envelope);
+      this.log.error('payment.capture_refused', { reference, reason });
+      return CaptureOutcome.failed(reference, reason);
+    }
+
+    this.log.info('payment.captured', { reference, mechanism: 'qa' });
+    return CaptureOutcome.captured(reference);
+  }
+
+  /** Unlike `CheckoutChampOutcome.reason()` (the placement path, with a buyer watching), this flattens a field-map message into readable text — there is no buyer to protect from it on the operator-only capture path. */
+  private static captureFailureReason(envelope: Envelope): string {
+    const message = envelope.message;
+
+    if (typeof message === 'string' && message.trim() !== '') {
+      return CardScrubber.scrub(message.trim()) as string;
+    }
+
+    const fieldMap = asRecord(message);
+    if (fieldMap && Object.keys(fieldMap).length > 0) {
+      const parts = Object.entries(fieldMap).map(([field, problem]) => `${field} ${typeof problem === 'string' || typeof problem === 'number' || typeof problem === 'boolean' ? String(problem) : 'is invalid'}`);
+      return CardScrubber.scrub(parts.join('; ')) as string;
+    }
+
+    return 'rejected';
+  }
+
+  async ping(): Promise<{ ok: boolean; detail: string }> {
+    let envelope: Envelope;
+    try {
+      const { response } = await this.apiFactory.create(this.credentials).campaignQuery({}).getInObject();
+      envelope = asRecord(response) ?? {};
+    } catch (e) {
+      return { ok: false, detail: `checkout_champ ${this.credentials.host} — ${e instanceof Error ? e.message : String(e)}` };
+    }
+
+    if (envelope.curlError !== undefined) {
+      return { ok: false, detail: `checkout_champ ${this.credentials.host} — unreachable` };
+    }
+
+    if (envelope.result !== 'SUCCESS') {
+      const message = envelope.message;
+      return { ok: false, detail: `checkout_champ ${this.credentials.host} — rejected: ${typeof message === 'string' ? message : 'no reason given'}` };
+    }
+
+    const message = asRecord(envelope.message);
+    const campaigns = message && Array.isArray(message.data) ? message.data : [];
+
+    return {
+      ok: true,
+      detail: `checkout_champ ${this.credentials.host} — login ${this.credentials.loginId}, ${campaigns.length} campaign(s) visible, order campaign taken from the catalog, authorize mechanism "${this.authorizeMode}" (${CheckoutChampAuthorizeMode.holdsTheOrderAmount(this.authorizeMode) ? 'holds the order amount' : 'does not hold the order amount'})`,
+    };
+  }
+}

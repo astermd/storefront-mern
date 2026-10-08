@@ -1,0 +1,293 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/checkout.twig, styled per
+  docs/mockup/mockup/intake/checkout.html (the two-column contact/delivery/payment form beside a
+  sticky order summary). `checkout` is the CheckoutViewModel `CheckoutController` assembled —
+  every price, every offer and every consent control is resolved server-side; this template does
+  no pricing of its own.
+
+  The mockup's plan-selector/shipping/express-checkout/PayPal/Afterpay/upsell-add-on sections are
+  presentational mockup content with no backing service yet in this port (shipping/wallets are
+  declared gaps in `config/app.ts`'s `features` block; upsell add-ons are Phase 8) — omitted here
+  rather than wired to nothing. What IS wired: contact + delivery (the 8 BuyerDetails fields),
+  the Rx plan selector when the cart has a prescription line, order bumps (§27), a discount code
+  box, the line-item/consent/totals summary, and the card fields the adapter's capabilities call for.
+*/
+const errors = checkout.errors || {};
+const prefill = checkout.prefill || {};
+function fieldError(name) { return errors[name] || null; }
+const scripts = '<script src="' + asset('checkout.js') + '" defer></script>';
+%>
+<%- include('../partials/head', { page_title: 'Checkout', page_description: null, noindex: true }) %>
+
+<header class="border-b border-border bg-background">
+  <div class="mx-auto flex h-20 max-w-[1260px] items-center px-6 lg:px-16">
+    <a href="<%= url('/') %>" class="shrink-0" aria-label="AsterMD home">
+      <%- include('../partials/logo') %>
+    </a>
+  </div>
+</header>
+
+<% if (checkout.notice) { %>
+<div class="border-b border-primary bg-primary-light px-6 py-3 text-center text-sm text-heading"><%= checkout.notice %></div>
+<% } %>
+
+<main class="lg:grid lg:grid-cols-2">
+
+  <!-- ==================== CHECKOUT FORM ==================== -->
+  <div class="px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
+    <div class="mx-auto max-w-[500px] lg:mx-0 lg:ml-auto">
+
+      <form id="checkout-form" data-checkout-form method="post" action="<%= url('/checkout') %>" novalidate>
+        <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
+
+        <h2 class="font-heading text-base font-bold sm:text-lg text-heading">Contact</h2>
+        <div class="mt-4 flex flex-col gap-4">
+          <div>
+            <label for="checkout-email" class="mb-1 block text-sm text-muted">Email</label>
+            <input type="email" id="checkout-email" name="email" value="<%= prefill.email || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('email') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+            <% if (fieldError('email')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('email') %></p><% } %>
+          </div>
+          <div>
+            <label for="checkout-phone" class="mb-1 block text-sm text-muted">Phone</label>
+            <input type="tel" id="checkout-phone" name="phone" value="<%= prefill.phone || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('phone') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+            <% if (fieldError('phone')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('phone') %></p><% } %>
+          </div>
+        </div>
+
+        <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Delivery</h2>
+        <div class="mt-4 flex flex-col gap-4">
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="checkout-first-name" class="mb-1 block text-sm text-muted">First name</label>
+              <input type="text" id="checkout-first-name" name="first_name" value="<%= prefill.first_name || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('first_name') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+              <% if (fieldError('first_name')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('first_name') %></p><% } %>
+            </div>
+            <div>
+              <label for="checkout-last-name" class="mb-1 block text-sm text-muted">Last name</label>
+              <input type="text" id="checkout-last-name" name="last_name" value="<%= prefill.last_name || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('last_name') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+              <% if (fieldError('last_name')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('last_name') %></p><% } %>
+            </div>
+          </div>
+
+          <div>
+            <label for="checkout-address" class="mb-1 block text-sm text-muted">Address</label>
+            <input type="text" id="checkout-address" name="address_line" value="<%= prefill.address_line || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('address_line') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+            <% if (fieldError('address_line')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('address_line') %></p><% } %>
+          </div>
+
+          <div>
+            <label for="checkout-city" class="mb-1 block text-sm text-muted">City</label>
+            <input type="text" id="checkout-city" name="city" value="<%= prefill.city || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('city') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+            <% if (fieldError('city')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('city') %></p><% } %>
+          </div>
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="checkout-state" class="mb-1 block text-sm text-muted">State</label>
+              <input type="text" id="checkout-state" name="territory" maxlength="2" value="<%= prefill.territory || '' %>" placeholder="NY" class="h-12 w-full rounded-sm border <%= fieldError('territory') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm uppercase text-heading" />
+              <% if (fieldError('territory')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('territory') %></p><% } %>
+            </div>
+            <div>
+              <label for="checkout-postal" class="mb-1 block text-sm text-muted">Postal code</label>
+              <input type="text" id="checkout-postal" name="postal_code" value="<%= prefill.postal_code || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('postal_code') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+              <% if (fieldError('postal_code')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('postal_code') %></p><% } %>
+            </div>
+          </div>
+        </div>
+
+        <% checkout.planChoices.forEach(function (plans, planIndex) { %>
+        <h2 class="<%= planIndex === 0 ? 'mt-8' : 'mt-6' %> font-heading text-base font-bold sm:text-lg text-heading">Select Treatment Plan</h2>
+        <p class="mt-0.5 text-xs text-muted"><%= plans.name %></p>
+        <div class="mt-3.5 flex flex-col gap-2 rounded-md border border-border bg-background overflow-hidden">
+          <% /* Each radio names its own prescription as `plan[slug]`, so with several in the order
+                 only the option actually clicked is submitted, and it says which line it belongs to. */ %>
+          <% plans.options.forEach(function (option) { %>
+          <label class="flex w-full cursor-pointer items-center justify-between gap-3 border border-transparent p-3 has-[:checked]:border-primary has-[:checked]:bg-primary-light">
+            <span class="flex items-center gap-3">
+              <input type="radio" name="plan[<%= plans.slug %>]" value="<%= option.id %>" form="plan-form" <%= option.id === plans.chosen ? 'checked' : '' %> onchange="document.getElementById('plan-form').submit()" />
+              <span class="text-sm font-semibold text-heading"><%= option.name %></span>
+            </span>
+            <span class="shrink-0 text-sm font-semibold text-heading"><%= money(option.price_cents) %></span>
+          </label>
+          <% }) %>
+        </div>
+        <% }) %>
+
+        <% if (checkout.postCheckoutSteps) { %>
+        <%- include('../partials/post-checkout-steps', { note_class: 'mt-6' }) %>
+        <% } %>
+
+        <% if (checkout.bumps.length > 0) { %>
+        <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Add to your order</h2>
+        <div class="mt-3.5 flex flex-col gap-3">
+          <% checkout.bumps.forEach(function (bump) { %>
+          <div class="flex items-center gap-3 rounded-md border border-border p-3">
+            <% if (bump.image) { %><img src="<%= bump.image %>" alt="" class="size-14 shrink-0 rounded-sm object-cover" />
+            <% } else { %><span class="flex size-14 shrink-0 items-center justify-center rounded-sm bg-surface"><i data-lucide="plus-circle" class="size-6 text-icon-muted"></i></span><% } %>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-heading"><%= bump.headline %></p>
+              <% if (bump.body) { %><p class="mt-0.5 text-sm text-muted"><%= bump.body %></p><% } %>
+              <p class="mt-1 text-sm font-medium text-heading">
+                <%= money(bump.price_cents) %>
+                <% if (bump.discounted) { %><span class="ml-1 text-xs text-muted line-through"><%= money(bump.catalog_price_cents) %></span><% } %>
+              </p>
+            </div>
+            <button type="submit" form="bump-form-<%= bump.key %>" class="shrink-0 rounded-sm border border-border bg-background px-5 py-2 text-sm font-medium text-heading transition-colors hover:border-primary hover:text-primary">Add</button>
+          </div>
+          <% }) %>
+        </div>
+        <% } %>
+
+        <% if (checkout.capabilities.supportsPromotions) { %>
+        <div class="mt-8 flex flex-col gap-2">
+          <label for="checkout-discount" class="sr-only">Discount code</label>
+          <div class="flex gap-3">
+            <input type="text" id="checkout-discount" placeholder="Discount code" class="h-12 min-w-0 flex-1 rounded-sm border border-border bg-background px-4 text-sm text-heading" form="promo-form" name="discount_code" />
+            <button type="submit" form="promo-form" class="flex h-12 shrink-0 items-center justify-center rounded-sm border border-border bg-background px-6 text-sm font-medium text-heading hover:border-primary hover:text-primary">Apply</button>
+          </div>
+          <% if (checkout.promotion) { %>
+          <div class="flex items-center justify-between text-sm text-heading">
+            <span>Code <strong><%= checkout.promotion.code %></strong> applied</span>
+            <button type="submit" form="promo-remove-form" class="text-primary underline">Remove</button>
+          </div>
+          <% } %>
+        </div>
+        <% } %>
+
+        <% if (checkout.capabilities.rendersOwnCardFields()) { %>
+        <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Payment</h2>
+        <p class="mt-1 text-sm text-muted">All transactions are secure and encrypted.</p>
+        <div class="mt-3.5 flex flex-col gap-4 rounded-md border border-border bg-background-2 px-5 py-5">
+          <div>
+            <label for="checkout-card-number" class="mb-1 block text-sm text-muted">Card number</label>
+            <input type="text" id="checkout-card-number" name="card_number" inputmode="numeric" autocomplete="cc-number" maxlength="23" class="h-12 w-full rounded-sm border <%= fieldError('card_number') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+            <% if (fieldError('card_number')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('card_number') %></p><% } %>
+          </div>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label for="checkout-card-expiry" class="mb-1 block text-sm text-muted">Expiration date (MM / YY)</label>
+              <input type="text" id="checkout-card-expiry" name="card_expiry" inputmode="numeric" autocomplete="cc-exp" maxlength="7" placeholder="MM / YY" class="h-12 w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+            </div>
+            <div>
+              <label for="checkout-card-cvc" class="mb-1 block text-sm text-muted">Security code</label>
+              <input type="text" id="checkout-card-cvc" name="card_cvc" inputmode="numeric" autocomplete="cc-csc" maxlength="4" class="h-12 w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
+            </div>
+          </div>
+        </div>
+        <% } %>
+
+        <div class="mt-6 flex flex-col gap-4">
+          <% checkout.consents.forEach(function (consent) { %>
+          <label class="flex cursor-pointer items-start gap-3 rounded-md border <%= fieldError(consent.key) ? 'border-danger' : 'border-border' %> px-5 py-4">
+            <input type="checkbox" name="consents[<%= consent.key %>]" value="1" class="mt-0.5" />
+            <span class="text-sm text-body"><%- consent.html %></span>
+          </label>
+          <% if (fieldError(consent.key)) { %><p class="text-sm text-danger"><%= fieldError(consent.key) %></p><% } %>
+          <% }) %>
+        </div>
+
+        <button type="submit" data-checkout-submit data-busy-label="Processing…" class="mt-6 flex h-11 w-full items-center justify-center rounded-sm bg-primary px-5 text-base font-medium text-primary-foreground transition-colors hover:bg-primary-hover">
+          Pay Now
+        </button>
+      </form>
+
+      <%
+      /*
+        `[10.6]`-adjacent: HTML has no nested forms. Each of these used to sit inline, physically
+        inside the checkout `<form>` above (the plan selector's, right after the dosage radios; the
+        promo/promo-remove pair, right after the discount-code box; one bump form per line, right
+        next to its own "Add" button). A `<form>` opened while another is already open is dropped
+        by the parser entirely, and this file had exactly that: `plan-form`'s closing `</form>` tag
+        had nothing of its own to close, so it silently closed the *outer* checkout form instead --
+        orphaning everything after it, including the card fields, every consent checkbox, and the
+        Pay Now button itself. Confirmed live: for any product with a plan/dose selector (this
+        page's `checkout.plans` branch), Pay Now produced zero network activity at all -- the
+        button was never inside any form to submit. Every one of these already used `form="<id>"` on
+        its own inputs/buttons rather than relying on physical nesting (see the plan radios and the
+        discount box above), so moving the `<form>` tags themselves out here changes nothing about
+        how they're triggered — it only stops them from truncating the one that matters.
+      */
+      %>
+      <% if (checkout.planChoices.length > 0) { %>
+      <% /* Each radio already names its own prescription via `plan[<slug>]` (see the picker above),
+             so this form carries nothing beyond the token — unlike a single-plan form, it cannot
+             hardcode which line a submission is about. */ %>
+      <form id="plan-form" method="post" action="<%= url('/checkout/plan') %>" class="hidden">
+        <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
+      </form>
+      <% } %>
+
+      <% checkout.bumps.forEach(function (bump) { %>
+      <form id="bump-form-<%= bump.key %>" method="post" action="<%= url('/checkout/bump') %>" class="hidden">
+        <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
+        <input type="hidden" name="bump_slug" value="<%= bump.slug %>" />
+        <input type="hidden" name="first_name" value="<%= prefill.first_name || '' %>" />
+        <input type="hidden" name="last_name" value="<%= prefill.last_name || '' %>" />
+        <input type="hidden" name="email" value="<%= prefill.email || '' %>" />
+        <input type="hidden" name="phone" value="<%= prefill.phone || '' %>" />
+        <input type="hidden" name="address_line" value="<%= prefill.address_line || '' %>" />
+        <input type="hidden" name="city" value="<%= prefill.city || '' %>" />
+        <input type="hidden" name="territory" value="<%= prefill.territory || '' %>" />
+        <input type="hidden" name="postal_code" value="<%= prefill.postal_code || '' %>" />
+      </form>
+      <% }) %>
+
+      <% if (checkout.capabilities.supportsPromotions) { %>
+      <form id="promo-form" method="post" action="<%= url('/checkout/promo') %>" class="hidden"><% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %></form>
+      <form id="promo-remove-form" method="post" action="<%= url('/checkout/promo/remove') %>" class="hidden"><% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %></form>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- ==================== ORDER SUMMARY ==================== -->
+  <div class="border-border bg-background-2 px-6 py-10 sm:px-10 lg:border-l lg:px-12 lg:py-14">
+    <div class="mx-auto max-w-[410px] lg:mx-0 lg:sticky lg:top-10">
+      <h2 class="font-heading text-base font-bold sm:text-lg text-heading">Order Summary</h2>
+
+      <div class="mt-6 flex flex-col gap-4">
+        <% checkout.lines.forEach(function (line) { %>
+        <div class="flex items-center gap-3">
+          <div class="relative shrink-0">
+            <% if (line.image) { %><img src="<%= line.image %>" alt="<%= line.name %>" class="size-14 rounded-sm object-cover" />
+            <% } else { %><span class="flex size-14 items-center justify-center rounded-sm bg-surface"><i data-lucide="pill" class="size-6 text-icon-muted"></i></span><% } %>
+            <span class="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-heading text-xs font-medium text-background"><%= line.quantity %></span>
+          </div>
+          <div class="flex-1">
+            <p class="text-sm text-heading"><%= line.name %></p>
+            <% if (line.variant_name) { %><p class="mt-0.5 text-sm text-muted"><%= line.variant_name %></p><% } %>
+          </div>
+          <p class="shrink-0 text-base font-medium text-heading"><%= line.is_free ? 'Free' : money(line.line_total_cents) %></p>
+        </div>
+        <% }) %>
+      </div>
+
+      <div class="mt-6 flex flex-col gap-2 border-t border-border pt-6 text-[14px] text-heading">
+        <div class="flex items-center justify-between">
+          <span>Subtotal &bull; <%= checkout.itemCount %> item<%= checkout.itemCount === 1 ? '' : 's' %></span>
+          <span><%= money(checkout.totals.subtotalCents) %></span>
+        </div>
+        <% if (checkout.totals.discountCents > 0) { %>
+        <div class="flex items-center justify-between text-primary">
+          <span>Discount</span>
+          <span>&minus;<%= money(checkout.totals.discountCents) %></span>
+        </div>
+        <% } %>
+      </div>
+      <div class="mt-4 flex items-center justify-between border-t border-border pt-4">
+        <span class="text-base font-medium sm:text-lg text-heading">Total</span>
+        <span class="text-base font-medium sm:text-lg text-heading"><span class="mr-1 text-sm font-normal text-muted align-middle"><%= checkout.currency %></span><%= money(checkout.totals.totalCents) %></span>
+      </div>
+
+      <% if (checkout.capabilities.supportsAuthorizeCapture) { %>
+      <div class="mt-6 flex items-start gap-3 rounded-sm border border-primary bg-primary-light px-4 py-4">
+        <i data-lucide="info" class="mt-0.5 size-5 shrink-0 text-primary"></i>
+        <p class="text-sm leading-relaxed text-heading">Payment authorization will be held; you will only be charged if approved and prescribed by a doctor.</p>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<%- include('../partials/footer-compliance') %>
+<%- include('../partials/foot', { scripts }) %>

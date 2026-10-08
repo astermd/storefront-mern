@@ -1,0 +1,23 @@
+<%
+/* Ported from storefront-lamp/theme/templates/partials/cart-quantity-stepper.twig. Expects `line`
+   in scope. Two forms (decrement/increment) computing the target quantity server-side, so the
+   stepper degrades without JS. Decrement's aria-label changes to "Remove" when qty <= 1. */
+const decrementLabel = line.quantity <= 1 ? `Remove last ${line.name} from cart` : `Decrease ${line.name} quantity`;
+%>
+<div class="inline-flex items-center gap-2">
+  <form method="post" action="<%= url('/cart/quantity') %>">
+    <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+    <input type="hidden" name="slug" value="<%= line.slug %>" />
+    <input type="hidden" name="return_to" value="<%= current_path %>" />
+    <input type="hidden" name="quantity" value="<%= line.quantity - 1 %>" />
+    <button type="submit" class="flex size-6 items-center justify-center rounded border border-border text-body hover:bg-surface" aria-label="<%= decrementLabel %>">−</button>
+  </form>
+  <span class="w-4 text-center text-sm"><%= line.quantity %></span>
+  <form method="post" action="<%= url('/cart/quantity') %>">
+    <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+    <input type="hidden" name="slug" value="<%= line.slug %>" />
+    <input type="hidden" name="return_to" value="<%= current_path %>" />
+    <input type="hidden" name="quantity" value="<%= line.quantity + 1 %>" />
+    <button type="submit" class="flex size-6 items-center justify-center rounded border border-border text-body hover:bg-surface" aria-label="Increase <%= line.name %> quantity">+</button>
+  </form>
+</div>

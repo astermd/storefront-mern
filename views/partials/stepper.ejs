@@ -1,0 +1,50 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/partials/stepper.twig. `steps` is `ProgressSteps.
+  from()`'s output — one `{label, icon}` per step, already resolved (authored form-progress items,
+  or one label per page). No icons are ever actually supplied (see ProgressSteps's doc comment),
+  so a step always falls back to drawing its own 1-based number. `active` is 1-based. `progress`
+  (optional, `{after, fill_id, label_id, percent}`) draws a fill-bar connector after step
+  `progress.after` instead of the plain checkmark variant — not currently passed by any controller
+  in this port, ported for parity since a future caller may need it.
+
+  The three visual states (done/active/upcoming) share one lookup table rather than being written
+  out three times, because `public/js/intake.js`'s `updateStepper()` re-points this exact markup as
+  the visitor moves between pages — there must be exactly one shape for it to know about, matching
+  the class strings in its own `STEP_CIRCLE`/`STEP_LABEL` tables verbatim.
+*/
+const circleClasses = { done: 'bg-secondary text-secondary-foreground', active: 'bg-primary text-primary-foreground', upcoming: 'bg-divider text-muted' };
+const labelClasses = { done: 'font-medium text-heading', active: 'font-medium text-primary', upcoming: 'text-muted' };
+const resolvedProgress = typeof progress !== 'undefined' ? progress : null;
+%>
+<div class="mx-auto max-w-[660px] px-6 pb-10 pt-10" data-funnel-stepper>
+  <div class="flex items-center">
+    <% steps.forEach(function (step, index) { %>
+    <% const i = index + 1; %>
+    <% const state = i < active ? 'done' : (i === active ? 'active' : 'upcoming'); %>
+    <div class="relative shrink-0" data-stepper-step="<%= i %>">
+      <span data-stepper-circle class="flex size-12 items-center justify-center rounded-full <%= circleClasses[state] %>">
+        <% if (step.icon) { %>
+        <i data-lucide="<%= step.icon %>" class="size-5"></i>
+        <% } else { %>
+        <span class="text-base font-semibold"><%= i %></span>
+        <% } %>
+      </span>
+      <span data-stepper-label class="absolute left-1/2 top-full mt-2 w-20 -translate-x-1/2 text-center text-sm leading-tight <%= labelClasses[state] %>"><%= step.label %></span>
+    </div>
+
+    <% if (i < steps.length) { %>
+      <% if (resolvedProgress && resolvedProgress.after === i) { %>
+      <div class="relative mx-2 h-0.5 flex-1 bg-border" data-stepper-connector="<%= i %>">
+        <div id="<%= resolvedProgress.fill_id %>" class="absolute inset-y-0 left-0 bg-primary" style="width: <%= resolvedProgress.percent %>%"></div>
+        <span id="<%= resolvedProgress.label_id %>" class="absolute inset-x-0 -top-6 text-center text-xs font-medium text-primary"><%= resolvedProgress.percent %>%</span>
+      </div>
+      <% } else { %>
+      <div class="relative mx-2 h-0.5 flex-1 <%= i < active ? 'bg-secondary' : 'bg-border' %>" data-stepper-connector="<%= i %>">
+        <span data-stepper-tick class="absolute inset-x-0 -top-6 text-center text-sm text-heading<%= i < active ? '' : ' hidden' %>">&#10003;</span>
+      </div>
+      <% } %>
+    <% } %>
+    <% }) %>
+  </div>
+</div>

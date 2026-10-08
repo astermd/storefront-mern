@@ -1,0 +1,34 @@
+<%
+/*
+  Ported from storefront-lamp/theme/templates/pages/intake/form-unavailable.twig. Rendered whenever
+  a teleform definition can be neither fetched nor served from cache (`FormUnavailable`) — the
+  honest alternative to an empty or half-drawn form (`[10.3]`). Says plainly that the fault is
+  ours, that nothing typed so far is lost (answers are persisted before anything else can fail —
+  see IntakeSession's doc comment), and offers a retry and a way back to the store.
+*/
+const page_title = 'Questionnaire unavailable';
+%>
+<%- include('../../partials/head', { page_title, noindex }) %>
+<%- include('../../partials/header') %>
+
+  <section class="mx-auto max-w-[660px] px-6 py-16 lg:py-24">
+    <div class="text-center">
+      <span class="mx-auto flex size-14 items-center justify-center rounded-full border-2 border-danger">
+        <i data-lucide="triangle-alert" class="size-7 text-danger"></i>
+      </span>
+      <h1 class="font-heading mt-6 text-[24px] font-bold leading-tight sm:text-[28px] text-heading">We can't load your questionnaire right now</h1>
+      <p class="mt-4 text-base text-body">This is a fault on our side, not yours — nothing you've already entered has been lost. Please try again in a moment.</p>
+    </div>
+
+    <div class="mx-auto mt-8 flex max-w-[420px] flex-col gap-3">
+      <a href="<%= current_path %>" class="flex h-12 w-full items-center justify-center gap-2 rounded-sm bg-primary text-base font-medium text-primary-foreground hover:bg-primary-hover">
+        Try Again
+      </a>
+      <a href="<%= url('/') %>" class="flex h-12 w-full items-center justify-center gap-2 rounded-sm border border-border text-base font-medium text-body hover:bg-surface">
+        Back to Home
+      </a>
+    </div>
+  </section>
+
+<%- include('../../partials/footer') %>
+<%- include('../../partials/foot') %>
