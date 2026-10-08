@@ -1,6 +1,6 @@
 {
   "name": "storefront-mern",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "description": "AsterMD telehealth storefront — NestJS port of storefront-lamp",
   "engines": {

@@ -34,3 +34,5 @@ storage/database/*.sqlite3-wal
 .DS_Store
 .vscode/
 ignored/
+__MACOSX/
+ignored/
