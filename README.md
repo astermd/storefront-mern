@@ -211,3 +211,5 @@ docs/            architecture, operations, middleware, journey notes
 ## Version
 
 **1.0.0** — first release. `package.json` and the release tag should always agree.
+
+<!-- push test: harmless README change, safe to revert -->
