@@ -95,10 +95,10 @@ export class Definition {
    * message an operator reads names the field they will find first when they open the form
    * (`[10.13]`).
    */
-  unsupportedTypes(): string[] {
+  unsupportedTypes(collectsFiles = true): string[] {
     const unsupported: string[] = [];
     for (const field of this.flattened) {
-      if (!field.isSupported() && !unsupported.includes(field.type)) {
+      if (!field.isSupported(collectsFiles) && !unsupported.includes(field.type)) {
         unsupported.push(field.type);
       }
     }

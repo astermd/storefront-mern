@@ -105,12 +105,102 @@ describe('CheckoutChampAdapter.place', () => {
 });
 
 describe('CheckoutChampAdapter.quotePromotion / searchOrders', () => {
-  it('always rejects a promotion quote, with no endpoint to call', async () => {
-    const transport = new FakeCheckoutChampTransport([]);
-    const quote = await adapterWith(transport).quotePromotion(order(), 'SAVE10');
+  const coupon = (message: unknown, result = 'SUCCESS') => envelope({ result, message });
+
+  it('declares promotion support so the control is shown', () => {
+    expect(adapterWith(new FakeCheckoutChampTransport([])).capabilities().supportsPromotions).toBe(true);
+  });
+
+  it('quotes a code against the same numbered lines the billing call sends, with the shipping country and state', async () => {
+    const transport = new FakeCheckoutChampTransport([coupon({ priceDiscount: 36, shipDiscount: 0 })]);
+    const lines = [new OrderLine('a', 'A', 'camp-1', 'item-1', 12000, 1), new OrderLine('b', 'B', 'camp-1', 'item-2', 9000, 2)];
+
+    await adapterWith(transport).quotePromotion(order(lines), ' SAVE30 ');
+
+    expect(transport.pathOf(0)).toBe('/order/coupon/');
+    expect(transport.paramsOf(0)).toMatchObject({
+      campaignId: 'camp-1',
+      couponCode: 'SAVE30',
+      shipCountry: 'US',
+      shipState: 'NY',
+      product1_id: 'item-1',
+      product1_price: '120.00',
+      product2_id: 'item-2',
+      product2_qty: '2',
+      product2_price: '90.00',
+    });
+  });
+
+  it('quotes a price discount in dollars as cents', async () => {
+    const quote = await adapterWith(new FakeCheckoutChampTransport([coupon({ priceDiscount: 0.08, shipDiscount: 0 })])).quotePromotion(order(), 'COUPON30');
+
+    expect(quote.accepted).toBe(true);
+    expect(quote.code).toBe('COUPON30');
+    expect(quote.discountCents).toBe(8);
+  });
+
+  it('refuses a zero discount as invalid, because an unknown code answers exactly that, with no notice', async () => {
+    const quote = await adapterWith(new FakeCheckoutChampTransport([coupon({ priceDiscount: 0, shipDiscount: 0 })])).quotePromotion(order(), 'NOSUCHCODE');
+
     expect(quote.accepted).toBe(false);
-    expect(quote.reason).toBe('unsupported');
+    expect(quote.reason).toBe('invalid');
+    expect(quote.notice).toBeNull();
+  });
+
+  it('does not count a shipping discount towards the quote', async () => {
+    const quote = await adapterWith(new FakeCheckoutChampTransport([coupon({ priceDiscount: 5, shipDiscount: 2.5 })])).quotePromotion(order(), 'SAVE5');
+
+    expect(quote.discountCents).toBe(500);
+  });
+
+  it('passes on the provider\'s own reason when it names the coupon', async () => {
+    const quote = await adapterWith(new FakeCheckoutChampTransport([coupon('Coupon is expired', 'ERROR')])).quotePromotion(order(), 'OLDCODE');
+
+    expect(quote.accepted).toBe(false);
+    expect(quote.reason).toBe('invalid');
+    expect(quote.notice).toBe('Coupon is expired');
+  });
+
+  it('keeps a refusal about the request itself away from the buyer', async () => {
+    const quote = await adapterWith(new FakeCheckoutChampTransport([coupon('No products exist in the order', 'ERROR')])).quotePromotion(order(), 'SAVE10');
+
+    expect(quote.reason).toBe('invalid');
+    expect(quote.notice).toBeNull();
+  });
+
+  it('degrades to a rejected code, never a throw, when the provider cannot be reached', async () => {
+    const quote = await adapterWith(new FakeCheckoutChampTransport([])).quotePromotion(order(), 'SAVE10');
+
+    expect(quote.accepted).toBe(false);
+    expect(quote.reason).toBe('unavailable');
+  });
+
+  it('never reaches the provider for an empty code or a cart with no single campaign', async () => {
+    const transport = new FakeCheckoutChampTransport([]);
+    const adapter = adapterWith(transport);
+
+    expect((await adapter.quotePromotion(order(), '  ')).reason).toBe('empty');
+    expect((await adapter.quotePromotion(order([new OrderLine('a', 'A', 'camp-1', 'item-1', 5000, 1), new OrderLine('b', 'B', 'camp-2', 'item-2', 2000, 1)]), 'SAVE10')).reason).toBe('no_offers');
     expect(transport.requests).toHaveLength(0);
+  });
+
+  it('sends the quoted code on the billing call, and no coupon parameter without one', async () => {
+    const withCode = new FakeCheckoutChampTransport([LEAD_OK, ORDER_OK]);
+    const discounted = new OrderEnvelope([chargeableLine()], buyer(), 12000, 1200, 10800, 'USD', 'SAVE10', {}, null, null, null, 'idem-1', 'semaglutide', SettlementMode.Capture);
+    await adapterWith(withCode).place(discounted, cardCredential());
+    expect(withCode.paramsOf(1).couponCode).toBe('SAVE10');
+
+    const without = new FakeCheckoutChampTransport([LEAD_OK, ORDER_OK]);
+    await adapterWith(without).place(order(), cardCredential());
+    expect(without.paramsOf(1).couponCode).toBeUndefined();
+  });
+
+  it('sends a channel-mapped free add-on as its own line at 0.00 on the same campaign', async () => {
+    const transport = new FakeCheckoutChampTransport([LEAD_OK, ORDER_OK]);
+
+    await adapterWith(transport).place(order([chargeableLine(), new OrderLine('syringe', 'Syringe', 'camp-1', 'item-9', 0, 1)]), cardCredential());
+
+    expect(transport.paramsOf(1)).toMatchObject({ campaignId: 'camp-1', product2_id: 'item-9', product2_qty: '1', product2_price: '0.00' });
   });
 
   it('always reports order search as unsupported, deliberately, despite orderQuery existing', async () => {
@@ -153,6 +243,17 @@ describe('CheckoutChampAdapter.capture', () => {
     expect(outcome.isCaptured()).toBe(true);
     expect(transport.pathOf(0)).toBe('/order/import/');
     expect(transport.paramsOf(0)).toMatchObject({ orderId: 'ref-1', campaignId: 'camp-1', product1_id: 'item-1' });
+  });
+
+  it('resends the coupon code with the lines on a Preauth settle, and omits it when there is none', async () => {
+    const transport = new FakeCheckoutChampTransport([envelope({ result: 'SUCCESS', message: { orderStatus: 'COMPLETE' } }), envelope({ result: 'SUCCESS', message: { orderStatus: 'COMPLETE' } })]);
+    const adapter = adapterWith(transport, CheckoutChampAuthorizeMode.Preauth);
+
+    await adapter.capture(new CaptureRequest('ref-1', [chargeableLine()], 'SAVE10'));
+    await adapter.capture(new CaptureRequest('ref-1', [chargeableLine()]));
+
+    expect(transport.paramsOf(0).couponCode).toBe('SAVE10');
+    expect(transport.paramsOf(1).couponCode).toBeUndefined();
   });
 
   it('never reports a refused capture as settled', async () => {

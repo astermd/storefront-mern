@@ -9,6 +9,8 @@ export class CaptureRequest {
   constructor(
     public readonly reference: string,
     public readonly lines: OrderLine[] = [],
+    /** Resent so a settling call that re-prices the lines keeps the discount; an adapter settling from the reference alone ignores it. */
+    public readonly promotionCode: string | null = null,
   ) {}
 
   chargeableLines(): OrderLine[] {

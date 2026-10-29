@@ -17,13 +17,4 @@ export interface IntakeGateway {
     data: EncodedAnswer[],
     progress: { page: number; total: number } | null,
   ): Promise<boolean>;
-
-  /**
-   * Stores one file for a `file-upload` answer, before the answer that names it is recorded.
-   * No PHP equivalent — see `field-types.ts`'s doc comment on `file-upload`.
-   *
-   * @returns The stored file's reference, to place as that field's answer value on the next
-   *   `record()` call, or `null` if the upload failed.
-   */
-  uploadFile(session: string, fileName: string, mimeType: string, buffer: Buffer): Promise<string | null>;
 }

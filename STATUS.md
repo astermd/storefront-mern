@@ -64,8 +64,11 @@ credentials were made available (`storefront-lamp/.env`).
 `config.app.session.analytics`, except where noted):
 - `SESSION_GATEWAY` → `EmrSessionGateway` (mints/looks up analytics sessions)
 - `CART_GATEWAY` → `EmrCartGateway` (mirrors cart contents)
-- `EMR_VERIFICATION_GATEWAY` → `EmrVerificationGateway` (email/address checks, gated on
-  `config.app.features.emrVerification`)
+- `EMR_VERIFICATION_GATEWAY` → `EmrVerificationGateway` (email/address checks, each gated on its own
+  `config.app.features.emrVerifyEmail`/`emrVerifyAddress`; `EMR_VERIFICATION` still sets both)
+- `ADDRESS_AUTOFILL` → `EmrAddressAutofill` (checkout address suggestions from the EMR when there is no
+  Google key; Null only under `NODE_ENV=test`)
+- `INTAKE_UPLOADS` → `EmrIntakeUploads` (file-upload answers, whole or multipart; on `session.analytics`)
 - `TELEFORM_GATEWAY` → `EmrTeleformGateway` (teleform metadata + definition fetch)
 - `INTAKE_GATEWAY` → `EmrIntakeGateway`, wrapped in `RecordingIntakeGateway` (always writes a
   local `events` audit row regardless of which gateway is inside)
@@ -902,7 +905,10 @@ exercised by anything that reached this deep into a real, populated questionnair
    `req.body` to fall back from), and `IntakeController`'s `save()`/`submit()`/`capture()` handlers
    gained `@UseInterceptors(AnyFilesInterceptor())` so `req.body`'s ordinary fields actually get
    parsed out of the multipart body at all. Neither fix alone was sufficient.
-4. **Real file-upload support, built for the first time.** Rameltion's real questionnaire has three
+4. **Real file-upload support, built for the first time** (superseded in lamp 0.0.6's port: the
+   `IntakeGateway.uploadFile()`/single `POST /intake/upload` described below were replaced by
+   `IntakeUploads` + `IntakeUploadController` — five routes, `FileRules`, `FileReference`, session-owned
+   references, multipart for video/large files, signature pad; see `src/forms/intake-uploads.ts`). Rameltion's real questionnaire has three
    `file-upload` fields (photo/document follow-ups on medication, injury, and B-12 questions) — a
    type PHP's own `FieldTypes.php` has no equivalent for at all (confirmed: PHP never wired this up,
    this isn't a port gap). `@astermd-hq/sdk` genuinely supports it

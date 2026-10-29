@@ -1,0 +1,23 @@
+<%
+/* Ported from storefront-lamp/theme/templates/partials/get-started.twig. A product card's primary
+   action: add the product's first plan to the cart and start buying it. The plan can be changed
+   at checkout.
+
+   A prescription goes on with the assessment intent, which is what the product page's "Start
+   Assessment" does, so the buyer lands on the questionnaire. Anything else has no questionnaire,
+   so it goes straight to checkout. "Learn More", beside it, is the way to the product page.
+
+   `product` is required; `icon_class` sizes the arrow to the card it sits in. */
+const iconClass = typeof icon_class !== 'undefined' && icon_class ? icon_class : 'size-[17px]';
+const firstVariantId = product.variants && product.variants.length ? product.variants[0].id : '';
+%>
+<form method="post" action="<%= url('/cart/add') %>" class="contents">
+  <input type="hidden" name="_csrf" value="<%= csrf_token %>" />
+  <input type="hidden" name="slug" value="<%= product.slug %>" />
+  <input type="hidden" name="variant_id" value="<%= firstVariantId %>" />
+  <input type="hidden" name="return_to" value="<%= current_path %>" />
+  <button type="submit" name="intent" value="<%= product.kind === 'rx' ? 'assessment' : 'checkout' %>" class="inline-flex items-center justify-center gap-2 rounded-sm bg-primary h-[41px] px-5 text-base font-medium sm:h-auto sm:py-3 text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-hover">
+    Get Started
+    <i data-lucide="arrow-right" class="<%= iconClass %>"></i>
+  </button>
+</form>

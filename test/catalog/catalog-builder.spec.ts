@@ -178,6 +178,61 @@ describe('CatalogBuilder', () => {
     expect(lab?.variants?.[0].provider).toBeNull();
   });
 
+  it('resolves an add-on provider from its own product_mappings, leaving the parent on its own', () => {
+    const mapping = (variantId: string, offer: string, product: string) => ({ variant_id: variantId, mapping: { offer_id: offer, product_id: product } });
+    const catalog = CatalogBuilder.build({
+      products: [
+        entry(
+          { product_mappings: [mapping('parent01', '338', '9001')], add_ons: [{ _id: 'addon001', name: 'Mapped Addon', single: [{ default_price: 5 }], variants: [], product_mappings: [mapping('addon001', '340', '2846')] }] },
+          { _id: 'parent01', name: 'Parent Product' },
+        ),
+      ],
+    });
+
+    const addon = Object.values(catalog.products).find((p) => p.slug.endsWith('mapped-addon'));
+    const parent = Object.values(catalog.products).find((p) => p.slug.endsWith('parent-product'));
+    expect(addon?.variants?.[0].provider).toEqual({ offer_id: '340', product_id: '2846' });
+    expect(parent?.variants?.[0].provider).toEqual({ offer_id: '338', product_id: '9001' });
+  });
+
+  it('never lets an add-on inherit its parent\'s mappings, even one keyed by the add-on\'s own id', () => {
+    const catalog = CatalogBuilder.build({
+      products: [
+        entry(
+          { product_mappings: [{ variant_id: 'addon001', mapping: { offer_id: '338', product_id: '9001' } }], add_ons: [{ _id: 'addon001', name: 'Unmapped Addon', single: [{ default_price: 5 }], variants: [] }] },
+        ),
+      ],
+    });
+
+    const addon = Object.values(catalog.products).find((p) => p.slug.endsWith('unmapped-addon'));
+    expect(addon?.variants?.[0].provider).toBeNull();
+  });
+
+  it('keeps an add-on with no price a free-addon', () => {
+    const catalog = CatalogBuilder.build({ products: [entry({ add_ons: [{ _id: 'addon001', name: 'Free Addon', variants: [] }] })] });
+
+    expect(Object.values(catalog.products).find((p) => p.slug.endsWith('free-addon'))?.kind).toBe('free-addon');
+  });
+
+  it('turns an add-on the channel prices above zero into a priced-addon that keeps its price and stays attached', () => {
+    const catalog = CatalogBuilder.build({
+      products: [entry({ add_ons: [{ _id: 'addon001', name: 'Paid Addon', single: [{ default_price: 25 }], variants: [] }] }, { _id: 'parent01', name: 'Parent Product' })],
+    });
+
+    const addon = Object.values(catalog.products).find((p) => p.slug.endsWith('paid-addon'));
+    expect(addon?.kind).toBe('priced-addon');
+    expect(addon?.variants?.[0].price_cents).toBe(2500);
+    expect(Object.values(catalog.products).find((p) => p.slug.endsWith('parent-product'))?.attachments).toEqual([addon?.slug]);
+  });
+
+  it('keeps a lab\'s kind whatever it costs', () => {
+    const catalog = CatalogBuilder.build({
+      products: [entry({}, { labtest: [{ _id: 'lab001', name: 'Panel', single: [{ default_price: 40 }], variants: [] }] })],
+    });
+
+    expect(Object.values(catalog.products).find((p) => p.slug.endsWith('panel'))?.kind).toBe('lab');
+  });
+
   it('extracts names from {_id, name} category objects and skips entries with no name', () => {
     const catalog = CatalogBuilder.build({
       products: [entry({}, { categories: [{ _id: 'c1', name: 'Weight Loss' }, { _id: 'c2' }] })],

@@ -89,12 +89,26 @@ export class TemplateGlobalsMiddleware implements NestMiddleware {
     res.locals.app_env = this.config.app.env;
     res.locals.csrf_token = (req as { csrfToken?: string }).csrfToken ?? null;
     res.locals.maps_api_key = this.config.app.features.googleMapsApiKey;
+    res.locals.address_autocomplete = this.addressAutocomplete();
     res.locals.portal_url = this.config.app.portal.url;
     res.locals.footer_products = this.footerProducts();
     res.locals.current_path = path;
     res.locals.cart = this.cartViewModel(path);
 
     next();
+  }
+
+  /**
+   * Where the checkout's address suggestions come from: `google` when the deployment has its own
+   * Maps key, `emr` otherwise, and null only when neither is available — which is the test suite,
+   * never a deployment.
+   */
+  private addressAutocomplete(): 'google' | 'emr' | null {
+    const key = this.config.app.features.googleMapsApiKey;
+
+    if (typeof key === 'string' && key.trim() !== '') return 'google';
+
+    return this.config.app.features.addressAutofill ? 'emr' : null;
   }
 
   /** Name/slug pairs for the footer's "Treatments" column, capped at `MAX_FOOTER_PRODUCTS`. */

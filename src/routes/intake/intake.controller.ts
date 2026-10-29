@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Inject, Post, Req, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { AnyFilesInterceptor, FileInterceptor } from '@nestjs/platform-express';
+import { Body, Controller, Get, Inject, Post, Req, Res, UseInterceptors } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import type { Request, Response } from 'express';
-import { memoryStorage } from 'multer';
-import { PRODUCT_CATALOG } from '../../core/tokens';
 import { Cart } from '../../domain/cart';
 import { StepRouter } from '../../domain/step-router';
-import { STEP_ROUTER } from '../../core/tokens';
+import { PRODUCT_CATALOG, STEP_ROUTER } from '../../core/tokens';
 import { ProductCatalog } from '../../domain/product-catalog';
 import { Field } from '../../forms/field';
 import { FieldViewModel } from '../../forms/field-view-model';
@@ -22,11 +20,9 @@ import { JourneyStoreFactory } from '../../journey/journey-store-factory';
 import { ConfigService } from '../../support/config';
 import { OperatorLog } from '../../support/operator-log';
 import { RateLimiter } from '../../support/rate-limiter';
+import { FileRules } from '../../forms/file-rules';
 
 const UNRECORDED_COMPLETIONS = '_intake_unrecorded_completions';
-
-/** A photo of an ID or a PDF — the sizes `@astermd-hq/sdk`'s single-shot `uploadFile()` documents itself for. */
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 /** How many completed submits may fail forward before the visitor is told plainly that the questionnaire cannot be recorded. */
 const FAIL_FORWARD_ATTEMPTS = 2;
@@ -193,29 +189,6 @@ export class IntakeController {
     }
   }
 
-  /**
-   * Stores one file for a `file-upload` field, ahead of the answer that names it. No PHP
-   * equivalent — see `field-types.ts`'s doc comment on `file-upload`.
-   *
-   * `intake.js`'s upload handler calls this the moment a file is chosen, then places the returned
-   * reference in a hidden input the field's own answer is read from on the next save/submit — the
-   * same two-step shape `@astermd-hq/sdk`'s `uploadFile()` itself documents (upload, then name the
-   * reference as the field's value).
-   */
-  @Post('intake/upload')
-  @UseInterceptors(FileInterceptor('file', { storage: memoryStorage(), limits: { fileSize: MAX_UPLOAD_BYTES } }))
-  async upload(@UploadedFile() file: Express.Multer.File | undefined, @Res() res: Response): Promise<void> {
-    res.status(200);
-
-    if (!file) {
-      res.json({ reference: null });
-      return;
-    }
-
-    const reference = await this.intake.uploadFile(file.originalname, file.mimetype, file.buffer);
-    res.json({ reference });
-  }
-
   private async render(req: Request, res: Response, step: string, errors: Record<string, string> = {}): Promise<void> {
     // Drawing the questionnaire is the commonest way a visitor comes back through an outage, so
     // it is where the tally has to be forgotten.
@@ -267,6 +240,9 @@ export class IntakeController {
       initial_values_json: Object.keys(answers).length === 0 ? '{}' : JSON.stringify(answers),
       rules_json: JSON.stringify(rules),
       form_errors: errors,
+      // The most the page may send this server in one request, so a file goes up whole or in parts
+      // this server can take.
+      upload_request_bytes: FileRules.requestBytes(),
     };
 
     if (renderer === 'js-engine') return payload;

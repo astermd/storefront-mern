@@ -16,7 +16,8 @@
 const errors = checkout.errors || {};
 const prefill = checkout.prefill || {};
 function fieldError(name) { return errors[name] || null; }
-const scripts = '<script src="' + asset('checkout.js') + '" defer></script>';
+const addressAutocomplete = typeof address_autocomplete === 'undefined' ? null : address_autocomplete;
+const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + (addressAutocomplete ? '<script src="' + asset('address-autocomplete.js') + '" defer></script>' : '');
 %>
 <%- include('../partials/head', { page_title: 'Checkout', page_description: null, noindex: true }) %>
 
@@ -70,9 +71,13 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>';
             </div>
           </div>
 
-          <div>
+          <%# Suggestions are an enhancement `address-autocomplete.js` adds: from Google when the deployment has a Maps key, from the storefront's own endpoint otherwise. Picking one fills city, state and ZIP as well. With the script absent this is a plain text field. %>
+          <div class="relative">
             <label for="checkout-address" class="mb-1 block text-sm text-muted">Address</label>
-            <input type="text" id="checkout-address" name="address_line" value="<%= prefill.address_line || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('address_line') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+            <input type="text" id="checkout-address" name="address_line" value="<%= prefill.address_line || '' %>" class="h-12 w-full rounded-sm border <%= fieldError('address_line') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading"<% if (addressAutocomplete) { %> data-address-autocomplete="<%= addressAutocomplete %>" data-suggest-url="<%= url('/checkout/address/suggest') %>" data-resolve-url="<%= url('/checkout/address/resolve') %>"<% if (addressAutocomplete === 'google') { %> data-maps-key="<%= maps_api_key %>"<% } %><% } %> />
+            <% if (addressAutocomplete) { %>
+            <ul id="checkout-address-suggestions" role="listbox" aria-label="Address suggestions" hidden class="absolute inset-x-0 top-[4.5rem] z-20 mt-1 max-h-72 overflow-y-auto rounded-sm border border-border bg-background py-1 shadow-lg"></ul>
+            <% } %>
             <% if (fieldError('address_line')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('address_line') %></p><% } %>
           </div>
 

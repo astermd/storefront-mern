@@ -12,6 +12,11 @@
  * `hidden` sits in the value set rather than the display set on purpose (`[10.11]`): it is not
  * displayed but it does carry a value, which is how a computed answer like a BMI score reaches the
  * record.
+ *
+ * A file upload and a signature are supported only where the browser can reach the storefront's
+ * upload endpoints, which is the server renderer. The hosted engine keeps a picked file's name and
+ * size and never its bytes, and draws no signature pad at all, so under that renderer both stay
+ * unsupported and block the form exactly as an unknown type does.
  */
 export class FieldTypes {
   /**
@@ -20,20 +25,29 @@ export class FieldTypes {
    */
   static readonly PICKER_DATE = 'picker-date';
 
+  /** A question answered with one or more files, uploaded to the EMR as they are picked. */
+  static readonly FILE_UPLOAD = 'file-upload';
+
+  /** A drawn signature, carried in the answer itself as a PNG data URL. */
+  static readonly SIGNATURE = 'signature';
+
   /**
-   * Types that hold a submitted answer.
-   *
-   * `file-upload` is a deliberate divergence from the PHP original's own `FieldTypes.php`, which
-   * has no equivalent — the PHP codebase never wired one up. `@astermd-hq/sdk`'s
-   * `intakeSubmissions().uploadFile()` genuinely supports it, and a real live teleform (Rameltion's)
-   * turned out to need it, so this port implements it for real rather than refusing every
-   * questionnaire that asks for a document. See `IntakeGateway.uploadFile()`/`field-file-upload.ejs`.
+   * The type the intake-submission API files both of the above under. It collapses the builder's
+   * types into a small set, and these two are the ones whose answer is not plain text, so a reader
+   * of the submission has to be told.
    */
+  static readonly SUBMITTED_FILE_TYPE = 'file';
+
+  /** Types that hold a submitted answer. */
   static readonly VALUE_TYPES = [
-    'text', 'textarea', 'email', 'phone', 'number', 'password', 'file-upload',
+    'text', 'textarea', 'email', 'phone', 'number', 'password',
     FieldTypes.PICKER_DATE, 'choice-single', 'choice-multi', 'dropdown',
     'checkbox', 'toggle', 'terms', 'agreement', 'bmi', 'hidden',
+    FieldTypes.FILE_UPLOAD, FieldTypes.SIGNATURE,
   ]; // prettier-ignore
+
+  /** Value types only a renderer that can upload files is able to collect. */
+  static readonly FILE_TYPES = [FieldTypes.FILE_UPLOAD, FieldTypes.SIGNATURE];
 
   /**
    * Structural and display-only elements. They render, and they carry no submitted value — so
@@ -50,7 +64,13 @@ export class FieldTypes {
   /** Types whose answer is a boolean rather than a string. */
   static readonly BOOLEAN_TYPES = ['checkbox', 'toggle', 'terms', 'agreement'];
 
-  static supported(type: string): boolean {
+  /**
+   * @param collectsFiles whether the renderer in use can collect a file or a signature; false under
+   *   the hosted engine
+   */
+  static supported(type: string, collectsFiles = true): boolean {
+    if (!collectsFiles && FieldTypes.FILE_TYPES.includes(type)) return false;
+
     return FieldTypes.VALUE_TYPES.includes(type) || FieldTypes.DISPLAY_TYPES.includes(type);
   }
 

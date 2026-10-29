@@ -64,6 +64,7 @@ export class CheckoutChampPayload {
       ...CheckoutChampPayload.shipping(order),
       ...CheckoutChampPayload.lines(order),
       ...CheckoutChampPayload.paymentFor(credential),
+      ...CheckoutChampPayload.coupon(order.promotionCode),
     };
 
     if (holdForReview) body.forceQA = 1;
@@ -75,9 +76,37 @@ export class CheckoutChampPayload {
     return { orderId: reference, action: CheckoutChampPayload.QA_APPROVE };
   }
 
-  /** POST /order/import/ again, to SETTLE a preauthorized order — lines resent, no card, no shipping. */
-  static forCapture(reference: string, lines: OrderLine[], campaignId: string): Record<string, unknown> {
-    return { campaignId, orderId: reference, ...CheckoutChampPayload.numbered(lines) };
+  /**
+   * POST /order/import/ again, to SETTLE a preauthorized order — lines resent, no card, no
+   * shipping. The coupon is resent too: this call prices the lines afresh, so a settle without the
+   * code bills the undiscounted figure for an order the buyer was quoted a discount on.
+   */
+  static forCapture(reference: string, lines: OrderLine[], campaignId: string, promotionCode: string | null = null): Record<string, unknown> {
+    return { campaignId, orderId: reference, ...CheckoutChampPayload.numbered(lines), ...CheckoutChampPayload.coupon(promotionCode) };
+  }
+
+  /**
+   * POST /order/coupon/ — price a code against the cart without placing anything. Lines are
+   * numbered exactly as the billing call numbers them, so the discount quoted is the one billing
+   * computes. The shipping country is sent because a coupon can be scoped to one (a country-scoped
+   * code priced without it answers a zero discount, not a refusal); the state only when held.
+   */
+  static forCoupon(order: OrderEnvelope, code: string): Record<string, unknown> {
+    const body: Record<string, unknown> = {
+      campaignId: String(CheckoutChampPayload.campaignFor(order)),
+      couponCode: code,
+      shipCountry: order.buyer.country,
+    };
+
+    if (order.buyer.territory !== '') body.shipState = order.buyer.territory;
+
+    return { ...body, ...CheckoutChampPayload.lines(order) };
+  }
+
+  /** The coupon parameter, or nothing when there is no code — an empty `couponCode` is not documented as "none", so it is not sent. */
+  private static coupon(promotionCode: string | null | undefined): Record<string, string> {
+    const code = (promotionCode ?? '').trim();
+    return code === '' ? {} : { couponCode: code };
   }
 
   private static shipping(order: OrderEnvelope): Record<string, unknown> {

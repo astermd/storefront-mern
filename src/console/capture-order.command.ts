@@ -84,7 +84,7 @@ export class CaptureOrderCommand extends CommandRunner {
       (line) => new OrderLine(line.slug, line.name, CaptureOrderCommand.nullableText(line.providerOffer), CaptureOrderCommand.nullableText(line.providerItem), line.unitPriceCents, line.quantity, line.kind),
     );
 
-    const outcome = await this.adapter.capture(new CaptureRequest(reference, lines));
+    const outcome = await this.adapter.capture(new CaptureRequest(reference, lines, CaptureOrderCommand.nullableText(row.promotionCode)));
 
     if (outcome.isCaptured()) {
       console.log(`Captured order ${reference}.`);

@@ -26,6 +26,7 @@ export class EmrLeadGateway implements LeadGateway {
     } catch (e) {
       this.log.warning('intake.lead_request_failed', {
         operation: 'create',
+        reason: e instanceof ApiError ? (e.envelope().error ?? e.envelope().message ?? null) : null,
         fields: Object.keys(payload),
         exception: (e as Error).constructor.name,
         status: e instanceof ApiError ? e.statusCode() : null,

@@ -54,6 +54,13 @@ export function loadPaymentConfig(env: NodeJS.ProcessEnv): PaymentConfig {
     rateLimits: {
       'checkout.submit': { limit: 8, windowSeconds: 300 },
       'checkout.promo': { limit: 20, windowSeconds: 300 },
+      // Address suggestions, one per pause in typing. An address is a dozen of them, so this is
+      // several honest attempts and stops a script that would spend the EMR's quota.
+      'checkout.address': { limit: 120, windowSeconds: 300 },
+      // Intake file uploads, one per request to the EMR. A 200 MB video is about twenty parts plus
+      // a start and a finish, so this is several large files and stops a script filling the EMR's
+      // storage.
+      'intake.upload': { limit: 200, windowSeconds: 600 },
       'upsell.accept': { limit: 6, windowSeconds: 300 },
     },
     attemptStaleAfterSeconds: 120,

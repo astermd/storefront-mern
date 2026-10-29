@@ -1,6 +1,6 @@
 import { CatalogProduct } from '../domain/product-catalog';
 
-const ALLOWED_KINDS = ['rx', 'otc', 'lab', 'free-addon'];
+const ALLOWED_KINDS = ['rx', 'otc', 'lab', 'free-addon', 'priced-addon'];
 
 export interface CatalogValidation {
   errors: string[];
@@ -11,7 +11,8 @@ export interface CatalogValidation {
  * Ported from storefront-lamp/core/Catalog/CatalogValidator.php. Pure structural pass over a
  * merged catalog (the shape `CatalogBuilder`/`CatalogMerger` produce). No I/O — `validate()` is a
  * deterministic function of its argument. The live EMR-resolution pass (`--live`) belongs to
- * `config:validate` instead, since it needs a real client — not ported here.
+ * `config:validate` instead, since it needs a real client — not ported here (it exempts `lab`,
+ * `free-addon` and `priced-addon` products, which are not sold as standalone EMR products).
  *
  * Two input shapes are tolerated on purpose: a full sync catalog (`{channel, products}`, the shape
  * `CatalogBuilder.build()` emits) and the legacy example-seed shape (`{products}` only, individual

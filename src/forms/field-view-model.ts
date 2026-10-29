@@ -1,5 +1,7 @@
 import { Field } from './field';
 import { FieldState } from './field-state';
+import { FileReference } from './file-reference';
+import { FileRules } from './file-rules';
 
 /**
  * The text-family types and the `type` attribute each one wants, so the device offers an email
@@ -93,18 +95,21 @@ export class FieldViewModel {
       alert_text: FieldViewModel.optionalText(field.properties.alertText),
       category: field.type === 'bmi' ? FieldViewModel.optionalText(composite[`${field.name}_category`]) : null,
       image_url: field.type === 'image' ? FieldViewModel.imageUrl(field) : null,
-      button_action: field.type === 'button' ? (FieldViewModel.optionalText(field.properties.buttonAction) ?? 'next_page') : null,
+      button_action: field.type === 'button' ? FieldViewModel.buttonAction(field.properties.buttonAction, field.label) : null,
       // A two-button field ([`buttonCount: 2`]) — a real, live-authored pattern (a "Back"/"Next"
       // pair sharing one field slot) that PHP's own FieldViewModel.php never reads either (only
       // `buttonAction`/the generic `label`), silently rendering one button and dropping the other.
       // This port renders both rather than reproducing that gap. No PHP template to port from for
       // the secondary slot — see field-button.ejs's own doc comment.
       secondary_label: field.type === 'button' && field.properties.buttonCount === 2 ? FieldViewModel.optionalText(field.properties.secondaryButtonLabel) : null,
-      secondary_action: field.type === 'button' && field.properties.buttonCount === 2 ? (FieldViewModel.optionalText(field.properties.secondaryButtonAction) ?? 'next_page') : null,
+      secondary_action: field.type === 'button' && field.properties.buttonCount === 2 ? FieldViewModel.buttonAction(field.properties.secondaryButtonAction, FieldViewModel.optionalText(field.properties.secondaryButtonLabel) ?? '') : null,
       max_length: FieldViewModel.constraint(field, 'maxLength'),
       min_value: FieldViewModel.constraint(field, 'minValue'),
       max_value: FieldViewModel.constraint(field, 'maxValue'),
       subfields: FieldViewModel.subfields(field, composite),
+      files: field.isFileUpload() ? FieldViewModel.files(own) : [],
+      upload: field.isFileUpload() ? FieldViewModel.upload(field) : null,
+      signature: field.isSignature() ? FieldViewModel.signaturePad(field) : null,
       // The field's own conditions, for the stepper to re-evaluate as answers change.
       conditions_json: field.conditions.length === 0 ? null : JSON.stringify(field.conditions),
     };
@@ -211,6 +216,56 @@ export class FieldViewModel {
     return models;
   }
 
+  /**
+   * The files already attached, each with the JSON its hidden input posts back and the name to
+   * show.
+   *
+   * The EMR stores a file under its own name with a UUID before the extension, so the name shown is
+   * that one with the UUID taken out — near enough to what the patient picked to recognise it.
+   */
+  private static files(answer: unknown): Array<{ label: string; json: string }> {
+    const files: Array<{ label: string; json: string }> = [];
+    for (const entry of Array.isArray(answer) ? answer : []) {
+      const reference = FileReference.fromArray(entry);
+      if (reference === null) continue;
+
+      files.push({
+        label: reference.name.replace(/-[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}(?=\.[^.]*$|$)/i, ''),
+        json: JSON.stringify(reference.toArray()),
+      });
+    }
+
+    return files;
+  }
+
+  private static upload(field: Field): { max_files: number | null; max_bytes: number; max_label: string; accept: string; drag_drop: boolean } {
+    const rules = FileRules.for(field);
+
+    return {
+      max_files: rules.maxFiles,
+      max_bytes: rules.maxBytes,
+      max_label: FileRules.megabytes(rules.maxBytes),
+      accept: rules.accept(),
+      drag_drop: rules.dragDrop,
+    };
+  }
+
+  /**
+   * The pad's drawing size as authored, within reason: the builder's default is 320 by 220, and
+   * the pad is scaled down to fit a narrow screen whatever is set here.
+   */
+  private static signaturePad(field: Field): { width: number; height: number } {
+    return {
+      width: FieldViewModel.clampedSize(field.properties.signatureCanvasWidth, 160, 800, 320),
+      height: FieldViewModel.clampedSize(field.properties.signatureCanvasHeight, 80, 400, 220),
+    };
+  }
+
+  private static clampedSize(raw: unknown, min: number, max: number, fallback: number): number {
+    const numeric = typeof raw === 'number' || (typeof raw === 'string' && raw.trim() !== '') ? Number(raw) : Number.NaN;
+    return Number.isFinite(numeric) ? Math.max(min, Math.min(max, Math.trunc(numeric))) : fallback;
+  }
+
   private static alertType(field: Field): string {
     return FieldViewModel.optionalText(field.properties.alertType) ?? 'info';
   }
@@ -231,6 +286,18 @@ export class FieldViewModel {
     }
     const text = FieldViewModel.scalarText(value);
     return text === null ? [] : [text];
+  }
+
+  /**
+   * `intake.js` only wires `next_page`/`previous_page`/`submit`; any other authored value (a live
+   * form authors `none` on both buttons of a Back/Next pair) renders a button that does nothing.
+   * An unrecognised action is inferred from the label instead, so the visitor is never stranded.
+   */
+  private static buttonAction(raw: unknown, label: string): string {
+    const action = FieldViewModel.optionalText(raw);
+    if (action === null) return 'next_page';
+    if (['next_page', 'previous_page', 'submit'].includes(action)) return action;
+    return /\b(back|previous)\b/i.test(label) ? 'previous_page' : 'next_page';
   }
 
   private static optionalText(value: unknown): string | null {

@@ -11,7 +11,9 @@ import { CatalogProduct, ProductCatalog, ProductVariant } from './product-catalo
  * entirely (`[8.0c]`: removing a view must never remove a rule).
  *
  * Two rules here are the ones that cost money when they are wrong. A `free-addon` line is priced at
- * zero whatever the catalog says its standalone price is (`[7.14a]`). And an attachment that cannot
+ * zero whatever the catalog says its standalone price is (`[7.14a]`). A `priced-addon` is the
+ * opposite case: the channel put a price on it, so it rides along with its parent as its own
+ * charged line at that price. And an attachment that cannot
  * be added blocks its parent with a stated reason rather than dropping quietly (`[7.20]`) —
  * shipping an injectable with no syringe is the failure this rule exists to prevent.
  *

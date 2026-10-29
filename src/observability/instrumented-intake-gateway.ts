@@ -27,14 +27,4 @@ export class InstrumentedIntakeGateway implements IntakeGateway {
       { operation: String(event), session, teleform: teleformId, fields: data.length, page: progress?.page ?? null },
     );
   }
-
-  /** No PHP equivalent — see `field-types.ts`'s doc comment on `file-upload`. Never the file name or its bytes, only whether it landed. */
-  async uploadFile(session: string, fileName: string, mimeType: string, buffer: Buffer): Promise<string | null> {
-    return this.timer.measure(
-      Boundary.FormUpload,
-      () => this.inner.uploadFile(session, fileName, mimeType, buffer),
-      (reference) => ({ outcome: reference !== null ? 'stored' : 'failed' }),
-      { session, mime_type: mimeType, bytes: buffer.length },
-    );
-  }
 }

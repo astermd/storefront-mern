@@ -20,11 +20,17 @@ const WEIGHT_TARGET = /(^|\.)weight(\.value)?$/;
 
 /**
  * Targets the record stores as a list even though the form collects them as one free-text answer.
- * The EMR rejects `clinical.medications` and `clinical.allergies` written as a bare string;
+ * The EMR rejects `clinical.medications` and `clinical.allergies` written as a bare string, and silently drops `clinical.medical_conditions` written as one;
  * wrapping the whole answer in a single-element list is the safe conversion, because splitting it
  * on commas would guess at a delimiter the visitor never agreed to.
  */
-const LIST_TARGET = /(^|\.)(medications|allergies)$/;
+const LIST_TARGET = /(^|\.)(medications|allergies|medical_conditions)$/;
+
+/**
+ * The EMR only accepts `male | female | other | unknown` for the record's gender, in lowercase,
+ * while a form authors its dropdown options as display labels ("Male", "Female").
+ */
+const GENDER_TARGET = /(^|\.)gender$/;
 
 const INCHES_TO_CENTIMETRES = 2.54;
 const POUNDS_TO_KILOGRAMS = 0.45359237;
@@ -136,6 +142,10 @@ export class RecordMapper {
     // A date is recognised by the field's own type rather than by its target path.
     if (field?.type === FieldTypes.PICKER_DATE && RecordMapper.isScalar(value)) {
       return DateAnswer.iso(String(value)) ?? value;
+    }
+
+    if (GENDER_TARGET.test(target) && RecordMapper.isScalar(value)) {
+      return String(value).trim().toLowerCase();
     }
 
     if (LIST_TARGET.test(target)) {

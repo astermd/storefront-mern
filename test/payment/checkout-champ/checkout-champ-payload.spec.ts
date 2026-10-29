@@ -52,6 +52,14 @@ describe('CheckoutChampPayload numbering', () => {
     expect(CheckoutChampPayload.forOrder(order(lines), credential, 'ref-1', true).forceQA).toBe(1);
     expect(CheckoutChampPayload.forOrder(order(lines), credential, 'ref-1', false).forceQA).toBeUndefined();
   });
+
+  it('adds couponCode to a settle only when a non-blank code is given', () => {
+    const lines = [new OrderLine('a', 'A', 'camp-1', 'item-1', 5000, 1)];
+
+    expect(CheckoutChampPayload.forCapture('ref-1', lines, 'camp-1', ' SAVE10 ').couponCode).toBe('SAVE10');
+    expect(CheckoutChampPayload.forCapture('ref-1', lines, 'camp-1', '  ')).not.toHaveProperty('couponCode');
+    expect(CheckoutChampPayload.forCapture('ref-1', lines, 'camp-1')).not.toHaveProperty('couponCode');
+  });
 });
 
 describe('CheckoutChampPayload.paymentFor', () => {

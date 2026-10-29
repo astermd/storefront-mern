@@ -21,6 +21,18 @@ const injected = injected_css ? '<style>' + injected_css + '</style>' : '';
 <main class="mx-auto max-w-[760px] px-6 py-10 lg:py-16">
   <%- include('../../partials/stepper', { steps: stepper_steps, active: stepper_active }) %>
 
+  <% if (unsupported_types && unsupported_types.length > 0) { %>
+  <%# Said before the visitor starts rather than only when the submit is refused (`[10.13]`). This includes a file upload and a signature: the engine keeps a picked file's name and never its bytes, and draws no signature pad, so neither can be collected here. %>
+  <div role="alert" class="mt-6 mb-10 rounded-sm border-2 border-danger bg-danger-light px-5 py-4">
+    <p class="text-sm font-semibold text-danger">This form cannot be completed here.</p>
+    <p class="mt-2 text-sm leading-relaxed text-heading">
+      It contains <%= unsupported_types.length > 1 ? 'question types' : 'a question type' %>
+      this storefront cannot collect (<%= unsupported_types.join(', ') %>). Please contact us and we will
+      complete it with you.
+    </p>
+  </div>
+  <% } %>
+
   <% if (termination_message) { %>
   <div class="mt-6 rounded-sm border border-danger bg-danger/5 p-4">
     <p class="text-sm text-danger"><%= termination_message %></p>

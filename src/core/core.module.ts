@@ -16,6 +16,8 @@ import { CartMirror } from '../emr/cart-mirror';
 import { EmrClientFactory } from '../emr/client-factory';
 import { EmrCartGateway } from '../emr/emr-cart-gateway';
 import { EmrSessionGateway } from '../emr/emr-session-gateway';
+import { EmrAddressAutofill } from '../emr/emr-address-autofill';
+import { NullAddressAutofill } from '../emr/null-address-autofill';
 import { EmrVerificationGateway } from '../emr/emr-verification-gateway';
 import { NullCartGateway } from '../emr/null-cart-gateway';
 import { NullSessionGateway } from '../emr/null-session-gateway';
@@ -24,6 +26,8 @@ import { AnswerValidator } from '../forms/answer-validator';
 import { DefinitionCache } from '../forms/definition-cache';
 import { Disqualification } from '../forms/disqualification';
 import { EmrIntakeGateway } from '../forms/emr-intake-gateway';
+import { EmrIntakeUploads } from '../forms/emr-intake-uploads';
+import { NullIntakeUploads } from '../forms/null-intake-uploads';
 import { EmrLeadGateway } from '../forms/emr-lead-gateway';
 import { EmrTeleformGateway } from '../forms/emr-teleform-gateway';
 import { IntakeSession } from '../forms/intake-session';
@@ -88,12 +92,14 @@ import { OperationalCounts } from '../observability/operational-counts';
 import { ForwardReconciliation } from '../reconciliation/forward-reconciliation';
 import { ReverseReconciliation } from '../reconciliation/reverse-reconciliation';
 import {
+  ADDRESS_AUTOFILL,
   CART_GATEWAY,
   CHECKOUT_EVENT_REPORTER,
   DATABASE_CONNECTION,
   EMR_VERIFICATION_GATEWAY,
   IDENTITY_GATEWAY,
   INTAKE_GATEWAY,
+  INTAKE_UPLOADS,
   LEAD_GATEWAY,
   ORDER_RECORDER,
   PAYMENT_ADAPTER,
@@ -126,7 +132,7 @@ class DatabaseLifecycle implements OnModuleDestroy {
  *
  * `SESSION_GATEWAY`/`CART_GATEWAY` switch between their real (`Emr*Gateway`, backed by
  * `@astermd-hq/sdk`) and Null implementations on `config.app.session.analytics` —
- * `EMR_VERIFICATION_GATEWAY` switches on `config.app.features.emrVerification` — matching
+ * `EMR_VERIFICATION_GATEWAY` switches on `config.app.features.emrVerifyEmail`/`emrVerifyAddress` (each check under its own switch) — matching
  * storefront-lamp's own `AppFactory` ternaries exactly. `NODE_ENV=test` forces both flags false
  * (see `config/app.ts`), so the test suite never reaches the network. `PRODUCT_CATALOG` is bound
  * to `CatalogProvider` (Phase 5) — replacing Phase 4's `EmptyProductCatalog` placeholder now that
@@ -163,8 +169,26 @@ class DatabaseLifecycle implements OnModuleDestroy {
     },
     {
       provide: EMR_VERIFICATION_GATEWAY,
+      useFactory: (config: ConfigService, clients: EmrClientFactory, log: OperatorLog) => {
+        const email = config.app.features.emrVerifyEmail;
+        const address = config.app.features.emrVerifyAddress;
+
+        return email || address ? new EmrVerificationGateway(clients, log, email, address) : new NullVerificationGateway();
+      },
+      inject: [ConfigService, EmrClientFactory, OperatorLog],
+    },
+    {
+      provide: ADDRESS_AUTOFILL,
       useFactory: (config: ConfigService, clients: EmrClientFactory, log: OperatorLog) =>
-        config.app.features.emrVerification ? new EmrVerificationGateway(clients, log) : new NullVerificationGateway(),
+        config.app.features.addressAutofill ? new EmrAddressAutofill(clients, log) : new NullAddressAutofill(),
+      inject: [ConfigService, EmrClientFactory, OperatorLog],
+    },
+    {
+      // A file answer reaches the clinician only inside the intake submission, so uploads follow the
+      // same switch the submission does: with analytics off nothing would ever name the stored file.
+      provide: INTAKE_UPLOADS,
+      useFactory: (config: ConfigService, clients: EmrClientFactory, log: OperatorLog) =>
+        config.app.session.analytics ? new EmrIntakeUploads(clients, log) : new NullIntakeUploads(),
       inject: [ConfigService, EmrClientFactory, OperatorLog],
     },
     {
@@ -397,6 +421,8 @@ class DatabaseLifecycle implements OnModuleDestroy {
     EMR_VERIFICATION_GATEWAY,
     TELEFORM_GATEWAY,
     INTAKE_GATEWAY,
+    INTAKE_UPLOADS,
+    ADDRESS_AUTOFILL,
     LEAD_GATEWAY,
     IDENTITY_GATEWAY,
     DefinitionCache,

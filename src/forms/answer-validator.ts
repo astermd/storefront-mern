@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AnswerSet } from './answer-set';
 import { Definition } from './definition';
 import { Field } from './field';
+import { FileRules } from './file-rules';
 import { RuleEvaluator } from './rule-evaluator';
 
 /** The shape the hosted engine accepts, kept deliberately loose. */
@@ -92,7 +93,7 @@ export class AnswerValidator {
   /** Whether a required field has actually been answered. */
   private static answered(field: Field, value: unknown): boolean {
     if (field.isBoolean()) return value === true;
-    if (field.isMultiValue()) return Array.isArray(value) && value.length > 0;
+    if (field.isMultiValue() || field.isFileUpload()) return Array.isArray(value) && value.length > 0;
     return AnswerValidator.isScalar(value) && String(value).trim() !== '';
   }
 
@@ -105,6 +106,20 @@ export class AnswerValidator {
   private constraintFailure(field: Field, value: unknown): string | null {
     const validation = field.validation;
     const label = AnswerValidator.label(field);
+
+    // A file question's only constraint is how many files it takes; the size and kind of each were
+    // checked before it was uploaded, and the text constraints below would read a list of files as
+    // an empty string.
+    if (field.isFileUpload()) {
+      const maxFiles = FileRules.for(field).maxFiles;
+
+      return maxFiles !== null && Array.isArray(value) && value.length > maxFiles
+        ? this.message(field, 'maxFiles', `${label} takes at most ${maxFiles} file${maxFiles === 1 ? '' : 's'}.`)
+        : null;
+    }
+
+    if (field.isSignature()) return null;
+
     const text = AnswerValidator.isScalar(value) ? String(value) : '';
     const length = [...text].length;
 

@@ -91,8 +91,8 @@ it is meant to be read: settings carry doc comments explaining not just what the
 | `ASTERMD_BASE_HOST`, `ASTERMD_CHANNEL_ID` | which EMR host and sales channel this storefront sells |
 | `AMD_TRACKING_KEY` (+ `_PREVIOUS`) | affiliate-link payload key, issued to you; leave empty if unused |
 | `PATIENT_PORTAL_URL` | optional "manage your care" links |
-| `GOOGLE_MAPS_API_KEY` | optional receipt map |
-| `EMR_VERIFICATION`, `VERIFICATION_ENABLED` | optional verification features, both off by default |
+| `GOOGLE_MAPS_API_KEY` | optional: checkout address suggestions come from Google Places when set, from the EMR otherwise; also the receipt map |
+| `EMR_VERIFY_EMAIL`, `EMR_VERIFY_ADDRESS`, `VERIFICATION_ENABLED` | optional verification features, all off by default (`EMR_VERIFICATION`, the older single switch, still sets both EMR checks when neither is given) |
 | `WIRE_LOG` | logs every EMR/provider call **unredacted**. Never enable on a real deployment. |
 
 Real credentials live only in `.env`, which is gitignored. With the EMR credentials blank, the

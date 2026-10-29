@@ -3,6 +3,7 @@ import { Event } from '@astermd-hq/sdk';
 import { INTAKE_GATEWAY } from '../core/tokens';
 import { FurthestStep } from '../funnel/furthest-step';
 import { JourneyStoreFactory } from '../journey/journey-store-factory';
+import { ConfigService } from '../support/config';
 import { OperatorLog } from '../support/operator-log';
 import { AnswerEncoder } from './answer-encoder';
 import { AnswerSet } from './answer-set';
@@ -10,6 +11,8 @@ import { AnswerValidator } from './answer-validator';
 import { Definition } from './definition';
 import { Disqualification } from './disqualification';
 import { DisqualificationOutcome } from './disqualification-outcome';
+import { FileReference, StoredFile } from './file-reference';
+import { FileRules } from './file-rules';
 import { FormUnavailable } from './form-unavailable';
 import { IntakeGateway } from './intake-gateway';
 import { IntakeResult } from './intake-result';
@@ -40,6 +43,8 @@ export class IntakeSession {
   static readonly STEP_PREQUALIFICATION = STEP_PREQUALIFICATION;
   static readonly STEP_INTAKE = STEP_INTAKE;
 
+  private readonly collectsFiles: boolean;
+
   constructor(
     private readonly source: TeleformSource,
     private readonly journeyStoreFactory: JourneyStoreFactory,
@@ -49,7 +54,12 @@ export class IntakeSession {
     private readonly leads: LeadWriter,
     private readonly mapper: RecordMapper,
     private readonly log: OperatorLog,
-  ) {}
+    config: ConfigService,
+  ) {
+    // The hosted engine keeps a picked file's name and never its bytes, so under it a file or a
+    // signature cannot be collected.
+    this.collectsFiles = config.intake.renderer !== 'js-engine';
+  }
 
   /** @throws {FormUnavailable} when the definition can be neither fetched nor served from cache */
   async open(teleformId: string, step: string): Promise<IntakeView> {
@@ -82,7 +92,7 @@ export class IntakeSession {
       answers,
       {},
       this.standingTermination(teleformId, definition),
-      definition.unsupportedTypes(),
+      definition.unsupportedTypes(this.collectsFiles),
       this.disqualification.rulesFor(teleformId, definition),
     );
   }
@@ -127,7 +137,7 @@ export class IntakeSession {
     const definition = await this.definition(teleformId);
     const answers = await this.store(teleformId, definition, posted);
 
-    const unsupported = definition.unsupportedTypes();
+    const unsupported = definition.unsupportedTypes(this.collectsFiles);
     if (unsupported.length > 0) {
       // Refusing here rather than accepting a form with missing answers is the whole point of
       // `[10.13]`: a clinician must never read an intake that silently dropped a question.
@@ -187,20 +197,18 @@ export class IntakeSession {
   }
 
   /**
-   * Stores one uploaded file, ahead of the `file-upload` answer that names it. No PHP
-   * equivalent — see `field-types.ts`'s doc comment on `file-upload`.
+   * The rules for one file-upload question on this form, or null when the form asks no such
+   * question by that name — which is what stops the upload endpoints relaying a file for a
+   * question that is not there.
    *
-   * @returns The stored file's reference, or `null` if there is no session to attach it to or the
-   *   upload itself failed.
+   * @throws {FormUnavailable}
    */
-  async uploadFile(fileName: string, mimeType: string, buffer: Buffer): Promise<string | null> {
-    const session = this.journeyStoreFactory.get().sessionUuid();
-    if (session === null) {
-      this.log.warning('intake.upload_without_session', { file_name: fileName });
-      return null;
-    }
+  async fileRulesFor(teleformId: string, fieldName: string): Promise<FileRules | null> {
+    if (!this.collectsFiles) return null;
 
-    return this.submissions.uploadFile(session, fileName, mimeType, buffer);
+    const field = (await this.definition(teleformId)).field(fieldName);
+
+    return field !== null && field.isFileUpload() ? FileRules.for(field) : null;
   }
 
   /** The definition exactly as it was authored, for the renderer that hands it to the hosted engine. */
@@ -218,13 +226,48 @@ export class IntakeSession {
     const state = this.journeyStoreFactory.get().currentState();
     const stored = state === null ? {} : state.answersFor(teleformId);
 
-    const answers = (await this.answers(teleformId, definition)).merge(posted, definition).withDerived(definition);
+    const answers = (await this.answers(teleformId, definition)).merge(this.ownFiles(posted, definition), definition).withDerived(definition);
 
     // Answers to questions the form no longer asks are carried through rather than dropped — a
     // republished form that removes a question must not destroy what was already answered.
     state?.storeAnswers(teleformId, { ...IntakeSession.orphans(stored, definition), ...answers.all() });
 
     return answers;
+  }
+
+  /**
+   * The posted answers with every file reference that is not this visitor's taken out of them.
+   *
+   * The page posts what the upload endpoints answered, and nothing stops a request posting another
+   * path instead. A reference is kept only when the EMR filed it under this journey's session,
+   * which no other visitor's upload can be (`FileReference.belongsTo()`). A journey with no session
+   * keeps none, since none of its uploads could have been made.
+   */
+  private ownFiles(posted: Record<string, unknown>, definition: Definition): Record<string, unknown> {
+    const session = this.journeyStoreFactory.get().sessionUuid() ?? '';
+    const own = { ...posted };
+
+    for (const [name, value] of Object.entries(posted)) {
+      const field = definition.field(name);
+      if (field === null || !field.isFileUpload()) continue;
+
+      const kept: StoredFile[] = [];
+      for (const entry of Array.isArray(value) ? value : [value]) {
+        const reference = FileReference.fromPosted(entry);
+        if (reference === null) continue;
+
+        if (session === '' || !reference.belongsTo(session)) {
+          this.log.warning('intake.foreign_file_refused', { field: field.name });
+          continue;
+        }
+
+        kept.push(reference.toArray());
+      }
+
+      own[name] = kept;
+    }
+
+    return own;
   }
 
   /** The stored answers, filtered to what the form still asks (`[9.12]`). */

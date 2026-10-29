@@ -11,9 +11,10 @@ const EMAIL_INVALID = 'invalid';
  * Ported from storefront-lamp/core/Emr/EmrVerificationGateway.php. {@link VerificationGateway}
  * over the SDK's `verification()` resource.
  *
- * Bound only when `features.emrVerification` is on. Every failure here is an **info** line rather
- * than a warning — a refusal is the expected state on a credential without this grant, and an
- * alert an operator is told to expect is an alert they learn to ignore. Every exception is caught:
+ * Bound when `features.emrVerifyEmail` or `features.emrVerifyAddress` is on, and each check runs
+ * only under its own switch; the other answers "could not determine". Every failure here is an
+ * **info** line rather than a warning — an organisation without the grant answers 403 to every
+ * call, and an alert an operator is told to expect is an alert they learn to ignore. Every exception is caught:
  * a verification outage must degrade the form, never the order.
  *
  * Nothing about the buyer reaches the log — only the exception class and status code, never the
@@ -31,9 +32,13 @@ export class EmrVerificationGateway implements VerificationGateway {
   constructor(
     private readonly clients: EmrClientFactory,
     private readonly log: OperatorLog,
+    private readonly checksEmail = true,
+    private readonly checksAddress = true,
   ) {}
 
   async emailIsDeliverable(email: string): Promise<boolean | null> {
+    if (!this.checksEmail) return null;
+
     if (this.emailVerdicts.has(email)) {
       return this.emailVerdicts.get(email) ?? null;
     }
@@ -58,6 +63,8 @@ export class EmrVerificationGateway implements VerificationGateway {
   }
 
   async normaliseAddress(address: string): Promise<Record<string, string> | null> {
+    if (!this.checksAddress) return null;
+
     let data: Record<string, unknown>;
     try {
       const response = await this.clients.create().verification().verifyAddress(address);
@@ -76,7 +83,7 @@ export class EmrVerificationGateway implements VerificationGateway {
   }
 
   isEnabled(): boolean {
-    return true;
+    return this.checksEmail || this.checksAddress;
   }
 
   /** Records a check that could not be run, naming which one and why, and never what was checked. */

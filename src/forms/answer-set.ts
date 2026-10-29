@@ -1,11 +1,19 @@
 import { Bmi } from './bmi';
 import { Definition } from './definition';
 import { Field } from './field';
+import { FileReference, StoredFile } from './file-reference';
 
 const COMPOSITE_BMI = 'bmi';
 
 /** Scalars a checkbox-like field accepts as "checked"; everything else is unchecked. */
 const TRUTHY = ['true', '1', 'on'];
+
+/**
+ * A drawn signature: a PNG and nothing else, as a base64 data URL. The pad draws a few kilobytes;
+ * the cap is there so the answer cannot be used to park megabytes in the journey.
+ */
+const SIGNATURE_SHAPE = /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/;
+const SIGNATURE_MAX_LENGTH = 1024 * 1024;
 
 /**
  * Ported from storefront-lamp/core/Forms/AnswerSet.php. The answers a visitor has given so far,
@@ -53,7 +61,7 @@ export class AnswerSet {
 
       // An array posted for a single-value field is malformed rather than empty, so the answer
       // already on file is left alone.
-      if (Array.isArray(value) && !field.isMultiValue()) continue;
+      if (Array.isArray(value) && !field.isMultiValue() && !field.isFileUpload()) continue;
 
       values[field.name] = AnswerSet.coerce(field, value);
     }
@@ -107,9 +115,33 @@ export class AnswerSet {
    * would replace what the visitor typed with our idea of it.
    */
   private static coerce(field: Field, value: unknown): unknown {
+    if (field.isFileUpload()) return AnswerSet.toFiles(value);
+
+    if (field.isSignature()) {
+      return typeof value === 'string' && value.length <= SIGNATURE_MAX_LENGTH && SIGNATURE_SHAPE.test(value) ? value : '';
+    }
+
     if (field.isMultiValue()) return AnswerSet.toList(value);
     if (field.isBoolean()) return AnswerSet.toBool(value);
     return AnswerSet.isScalar(value) ? String(value) : '';
+  }
+
+  /**
+   * The files attached to a file-upload question, as stored references.
+   *
+   * The page posts one JSON reference per attached file beside an empty entry, so a question whose
+   * last file was removed still arrives, as a list with nothing in it, rather than not at all and
+   * leaving the removed file on file. Whose files they are is not decided here: the journey's
+   * session is checked before anything is merged (`IntakeSession.ownFiles()`).
+   */
+  private static toFiles(value: unknown): StoredFile[] {
+    const files = new Map<string, StoredFile>();
+    for (const entry of Array.isArray(value) ? value : [value]) {
+      const reference = FileReference.fromPosted(entry);
+      if (reference !== null) files.set(reference.path, reference.toArray());
+    }
+
+    return [...files.values()];
   }
 
   private static toList(value: unknown): string[] {

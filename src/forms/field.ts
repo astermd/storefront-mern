@@ -113,8 +113,16 @@ export class Field {
     return FieldTypes.isBoolean(this.type);
   }
 
-  isSupported(): boolean {
-    return FieldTypes.supported(this.type);
+  isSupported(collectsFiles = true): boolean {
+    return FieldTypes.supported(this.type, collectsFiles);
+  }
+
+  isFileUpload(): boolean {
+    return this.type === FieldTypes.FILE_UPLOAD;
+  }
+
+  isSignature(): boolean {
+    return this.type === FieldTypes.SIGNATURE;
   }
 
   /** The authored column span that drives layout (`[25.7]`), never narrower than one column. */

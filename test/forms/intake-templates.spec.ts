@@ -37,7 +37,8 @@ describe('intake templates render for every field type', () => {
     { fieldId: 'img1', name: 'img1', type: 'image', label: 'Logo', order: 6, properties: { imageUrl: '/assets/build/logo.png' } },
     { fieldId: 'first_name', name: 'first_name', type: 'text', label: 'First name', order: 7, required: true },
     { fieldId: 'notes', name: 'notes', type: 'textarea', label: 'Additional notes', order: 7.5 },
-    { fieldId: 'id_photo', name: 'id_photo', type: 'file-upload', label: 'Photo ID', order: 7.6 },
+    { fieldId: 'id_photo', name: 'id_photo', type: 'file-upload', label: 'Photo ID', order: 7.6, properties: { allowMultipleFiles: true, maxFiles: 2, maxFileSizeMb: 5, fileTypes: 'pdf,png' } },
+    { fieldId: 'consent_sig', name: 'consent_sig', type: 'signature', label: 'Sign here', order: 7.7 },
     { fieldId: 'email', name: 'email', type: 'email', label: 'Email', order: 8, required: true },
     { fieldId: 'phone', name: 'phone', type: 'phone', label: 'Phone', order: 9 },
     { fieldId: 'dob', name: 'dob', type: 'picker-date', label: 'Date of birth', order: 10 },
@@ -127,6 +128,7 @@ describe('intake templates render for every field type', () => {
     definition_json: '{}',
     initial_values_json: '{}',
     rules_json: '[]',
+    upload_request_bytes: 10 * 1024 * 1024 - 64 * 1024,
     form_errors: {},
     fields: [fieldsForPage],
     definition_has_buttons: true,
@@ -158,8 +160,16 @@ describe('intake templates render for every field type', () => {
     // `file-upload` has no PHP equivalent (see field-types.ts) — a real live teleform (Rameltion's)
     // turned out to need three of them, which this port now supports for real.
     expect(html).toContain('type="file"');
-    expect(html).toContain('data-intake-file-upload');
+    expect(html).toContain('data-intake-upload');
     expect(html).toContain('Photo ID');
+    // The limits the page and the server hold the question to (lamp 0.0.6's
+    // `testTheFormDrawsAFileQuestionWithTheLimitsItWillBeHeldTo`), and the signature pad.
+    expect(html).toContain('accept=".pdf,.png"');
+    expect(html).toContain('data-max-files="2"');
+    expect(html).toContain('up to 5 MB each');
+    expect(html).toContain('data-intake-signature-pad');
+    expect(html).toContain('data-upload-url="/intake/upload"');
+    expect(html).toContain('data-upload-start-url="/intake/upload/start"');
     expect(html).not.toContain('(file-upload)');
     // field-button.ejs emitted `data-button-action` instead of `data-intake-action` — a real,
     // previously-invisible bug, since intake.js's click handler only ever queries the latter, so

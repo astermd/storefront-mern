@@ -49,6 +49,14 @@
     var wrapper = wrapperFor(name);
     if (!wrapper) return null;
 
+    // A file question's answer is its attached files, one hidden input each
+    // (public/js/intake-files.js).
+    if (wrapper.querySelector('[data-intake-upload]')) {
+      return Array.prototype.map.call(wrapper.querySelectorAll('[data-intake-file-ref]'), function (ref) {
+        return ref.value;
+      });
+    }
+
     var checkboxes = wrapper.querySelectorAll('input[type="checkbox"][name$="[]"]');
     if (checkboxes.length) {
       return Array.prototype.filter.call(checkboxes, function (box) { return box.checked; })
@@ -207,8 +215,12 @@
       });
 
       wrapper.hidden = !visible;
+      wrapper.setAttribute('data-intake-required-now', required ? '1' : '0');
       Array.prototype.forEach.call(wrapper.querySelectorAll('input, select, textarea'), function (control) {
         control.disabled = disabled;
+        // A file picker is empty once its file has gone up, so it is never what says whether the
+        // question is answered; fileProblem() asks the field instead.
+        if (control.hasAttribute('data-intake-file-input')) return;
         // The required marker has to track visibility ([10.19]): a required
         // control on a hidden branch is unfocusable, and native validation
         // would block the submit with nothing on screen to explain it.
@@ -294,6 +306,31 @@
       .filter(function (wrapper) { return !wrapper.hidden; });
   }
 
+  /**
+   * A file or signature question's own check, or null for any other field. Their answers sit in
+   * hidden inputs, which the browser never validates. '' means fine; anything else is the message.
+   */
+  function fileProblem(wrapper) {
+    var upload = wrapper.querySelector('[data-intake-upload]');
+    var signature = wrapper.querySelector('[data-intake-signature]');
+    if (!upload && !signature) return null;
+
+    if (upload && wrapper.getAttribute('data-intake-busy') === '1') return 'Please wait for your file to finish uploading.';
+    if (upload && wrapper.getAttribute('data-intake-failed') === '1') return 'A file did not upload. Retry it or remove it.';
+
+    var now = wrapper.getAttribute('data-intake-required-now');
+    var required = (now === null ? wrapper.getAttribute('data-intake-required') : now) === '1';
+    var disabled = !!wrapper.querySelector('input[type="hidden"]:disabled');
+    if (!required || disabled) return '';
+
+    if (upload) {
+      return wrapper.querySelector('[data-intake-file-ref]') ? '' : 'Please attach a file.';
+    }
+
+    var drawn = wrapper.querySelector('[data-intake-signature-value]');
+    return drawn && drawn.value ? '' : 'Please sign in the box.';
+  }
+
   // A `type="hidden"` control is exempt from constraint validation by spec -- `checkValidity()`
   // always reports it valid, `required` or not. `field-file-upload.ejs`'s real answer lives in
   // exactly such a hidden input (the visible <input type="file"> submits nothing itself), so a
@@ -317,6 +354,9 @@
   // controls -- confirmed live on a real teleform's "Do you have any of the following symptoms?"
   // question.
   function isWrapperAnswered(wrapper) {
+    var problem = fileProblem(wrapper);
+    if (problem !== null) return problem === '';
+
     if (wrapper.getAttribute('data-intake-required') !== '1') return true;
 
     var checkboxes = wrapper.querySelectorAll('input[type="checkbox"]');
@@ -342,8 +382,9 @@
         clearError(wrapper);
         return;
       }
+      var problem = fileProblem(wrapper);
       var control = wrapper.querySelector('[required]');
-      showError(wrapper, (control && control.validationMessage) || 'This is required.');
+      showError(wrapper, problem || (control && control.validationMessage) || 'This is required.');
       ok = false;
     });
     return ok;
@@ -587,61 +628,6 @@
     }).catch(function () { captured = false; });
   }
 
-  // ---- file uploads --------------------------------------------------------
-  // No PHP equivalent (see src/forms/field-types.ts's doc comment on `file-upload`). The visible
-  // <input type="file"> never submits anything itself -- the bytes already left the browser the
-  // moment a file was chosen -- so this uploads immediately on change and writes the server's
-  // returned reference into the hidden input the field's real answer is read from.
-
-  function uploadUrl() {
-    return form.getAttribute('data-upload-url') || '/intake/upload';
-  }
-
-  Array.prototype.forEach.call(form.querySelectorAll('[data-intake-file-upload]'), function (container) {
-    var input = container.querySelector('[data-intake-file-input]');
-    var reference = container.querySelector('[data-intake-file-reference]');
-    var status = container.querySelector('[data-intake-file-status]');
-    if (!input || !reference) return;
-
-    var wrapper = container.closest('[data-intake-field]');
-
-    input.addEventListener('change', function () {
-      var file = input.files && input.files[0];
-      if (!file) return;
-
-      reference.value = '';
-      if (status) status.textContent = 'Uploading ' + file.name + '…';
-      if (wrapper) clearError(wrapper);
-      input.disabled = true;
-
-      var data = new FormData();
-      data.set('file', file);
-
-      fetch(uploadUrl(), {
-        method: 'POST',
-        body: data,
-        headers: { 'X-Requested-With': 'fetch', 'X-CSRF-Token': csrfToken() },
-        credentials: 'same-origin'
-      }).then(function (response) {
-        return response.ok ? response.json() : null;
-      }).then(function (body) {
-        input.disabled = false;
-        if (body && body.reference) {
-          reference.value = body.reference;
-          if (status) status.textContent = 'Uploaded ' + file.name + '.';
-          applyConditions();
-          return;
-        }
-        if (status) status.textContent = '';
-        if (wrapper) showError(wrapper, 'That file could not be uploaded. Please try again.');
-      }).catch(function () {
-        input.disabled = false;
-        if (status) status.textContent = '';
-        if (wrapper) showError(wrapper, 'That file could not be uploaded. Please try again.');
-      });
-    });
-  });
-
   // Next/Submit disables silently the moment a field is unanswered or invalid ([pageAnswered()]),
   // with no message anywhere -- fine for a field nobody has touched yet, but a real dead end for
   // one the visitor DID answer with something the server-side-authored min/max or format rejects:
@@ -656,6 +642,17 @@
     if (!target || !target.closest) return;
     var wrapper = target.closest('[data-intake-field]');
     if (!wrapper) return;
+
+    // A file or signature question re-checks itself as it changes, so its message goes away once a
+    // file is attached or a signature drawn rather than staying until the next Continue -- but says
+    // nothing before it has been shown one, like every other untouched field.
+    var fileIssue = fileProblem(wrapper);
+    if (fileIssue !== null) {
+      if (!wrapper.querySelector('[data-intake-error]:not(.hidden)')) return;
+      if (fileIssue === '') clearError(wrapper);
+      else showError(wrapper, fileIssue);
+      return;
+    }
 
     if (isWrapperAnswered(wrapper)) {
       clearError(wrapper);

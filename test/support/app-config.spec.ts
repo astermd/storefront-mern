@@ -14,18 +14,41 @@ describe('loadAppConfig — NODE_ENV=test forces every network-touching flag off
     expect(config.session.analytics).toBe(false);
   });
 
-  it('forces features.emrVerification false under NODE_ENV=test, even with EMR_VERIFICATION=true set', () => {
-    const config = loadAppConfig({ NODE_ENV: 'test', EMR_VERIFICATION: 'true' });
-    expect(config.features.emrVerification).toBe(false);
+  it('forces both EMR verification switches and address autofill off under NODE_ENV=test', () => {
+    const config = loadAppConfig({ NODE_ENV: 'test', EMR_VERIFICATION: 'true', EMR_VERIFY_EMAIL: 'true', EMR_VERIFY_ADDRESS: 'true' });
+    expect(config.features.emrVerifyEmail).toBe(false);
+    expect(config.features.emrVerifyAddress).toBe(false);
+    expect(config.features.addressAutofill).toBe(false);
   });
 
-  it('leaves session.analytics true, and emrVerification following its own env var, outside of test', () => {
-    const production = loadAppConfig({ NODE_ENV: 'production', EMR_VERIFICATION: 'true' });
+  it('leaves session.analytics true outside of test, and address autofill on', () => {
+    const production = loadAppConfig({ NODE_ENV: 'production' });
     expect(production.session.analytics).toBe(true);
-    expect(production.features.emrVerification).toBe(true);
+    expect(production.features.addressAutofill).toBe(true);
+  });
 
-    const productionWithoutFlag = loadAppConfig({ NODE_ENV: 'production' });
-    expect(productionWithoutFlag.features.emrVerification).toBe(false);
+  it('EMR_VERIFY_EMAIL and EMR_VERIFY_ADDRESS switch each check on its own', () => {
+    const emailOnly = loadAppConfig({ NODE_ENV: 'production', EMR_VERIFY_EMAIL: 'true' });
+    expect(emailOnly.features.emrVerifyEmail).toBe(true);
+    expect(emailOnly.features.emrVerifyAddress).toBe(false);
+
+    const addressOnly = loadAppConfig({ NODE_ENV: 'production', EMR_VERIFY_ADDRESS: 'true' });
+    expect(addressOnly.features.emrVerifyEmail).toBe(false);
+    expect(addressOnly.features.emrVerifyAddress).toBe(true);
+  });
+
+  it('the older EMR_VERIFICATION still sets both when neither is given, and loses to an explicit one', () => {
+    const legacy = loadAppConfig({ NODE_ENV: 'production', EMR_VERIFICATION: 'true' });
+    expect(legacy.features.emrVerifyEmail).toBe(true);
+    expect(legacy.features.emrVerifyAddress).toBe(true);
+
+    const mixed = loadAppConfig({ NODE_ENV: 'production', EMR_VERIFICATION: 'true', EMR_VERIFY_ADDRESS: 'false' });
+    expect(mixed.features.emrVerifyEmail).toBe(true);
+    expect(mixed.features.emrVerifyAddress).toBe(false);
+
+    const off = loadAppConfig({ NODE_ENV: 'production' });
+    expect(off.features.emrVerifyEmail).toBe(false);
+    expect(off.features.emrVerifyAddress).toBe(false);
   });
 
   it('also discourages indexing in every non-production environment, not only test', () => {

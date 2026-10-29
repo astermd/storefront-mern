@@ -16,7 +16,6 @@ export type BoundaryValue =
   | 'emr.cart_mirror'
   | 'emr.form_definition'
   | 'emr.form_save'
-  | 'emr.form_upload'
   | 'emr.opportunity_write'
   | 'emr.treatment_sync'
   | 'emr.checkout_event'
@@ -34,8 +33,6 @@ export class Boundary {
   static readonly FormDefinition: BoundaryValue = 'emr.form_definition';
   /** One progressive save of a visitor's answers (`[10.24]`). */
   static readonly FormSave: BoundaryValue = 'emr.form_save';
-  /** Storing one uploaded file for a `file-upload` answer. No PHP equivalent — see `field-types.ts`'s doc comment on `file-upload`. */
-  static readonly FormUpload: BoundaryValue = 'emr.form_upload';
   /** Creating or amending the opportunity a lead becomes (`[9.7]`). */
   static readonly OpportunityWrite: BoundaryValue = 'emr.opportunity_write';
   /** Telling the EMR about orders the provider has already charged (`[17.2]`). */

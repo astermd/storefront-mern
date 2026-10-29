@@ -3,6 +3,7 @@ import { DateAnswer } from './date-answer';
 import { Definition } from './definition';
 import { Field } from './field';
 import { FieldTypes } from './field-types';
+import { FileReference } from './file-reference';
 
 export interface EncodedAnswer {
   id: string;
@@ -23,6 +24,12 @@ export interface EncodedAnswer {
  * Choice answers carry their option **label** beside the stored value for the same reason: `value`
  * is a slug the form author chose and `label` is the sentence the visitor actually read.
  *
+ * A file-upload answer is one entry per file, each holding the `{path, name, mime_type}` the upload
+ * returned, and a signature is one entry holding its PNG data URL. Both are sent with the type
+ * `file`: the submission API files them under that one type, and a reader of the submission needs
+ * to know the value is a stored object or an image rather than text. Every other field keeps its
+ * authored type.
+ *
  * Two exclusions, both `[10.12]`: a display-only element has no answer to send, and an unanswered
  * field is left out entirely rather than sent as an empty string.
  *
@@ -42,7 +49,7 @@ export class AnswerEncoder {
       const values = AnswerEncoder.values(field, answers.value(field.name));
       if (values.length === 0) continue;
 
-      encoded.push({ id: field.id, name: field.name, label: field.label, type: field.type, value: values });
+      encoded.push({ id: field.id, name: field.name, label: field.label, type: field.isFileUpload() || field.isSignature() ? FieldTypes.SUBMITTED_FILE_TYPE : field.type, value: values });
     }
 
     return encoded;
@@ -55,6 +62,15 @@ export class AnswerEncoder {
    * acknowledgement the visitor declined is a real answer.
    */
   private static values(field: Field, answer: unknown): Record<string, unknown>[] {
+    if (field.isFileUpload()) {
+      const files: Record<string, unknown>[] = [];
+      for (const entry of Array.isArray(answer) ? answer : []) {
+        const reference = FileReference.fromArray(entry);
+        if (reference !== null) files.push({ value: reference.toArray() });
+      }
+      return files;
+    }
+
     if (Array.isArray(answer)) {
       const values: Record<string, unknown>[] = [];
       for (const entry of answer) {

@@ -44,7 +44,7 @@ export class CatalogProvider implements ProductCatalog {
     return Object.values(this.merged);
   }
 
-  /** `[6.1]`: only `rx`/`otc` — the surfaces a lab or free-addon product must never appear on. */
+  /** `[6.1]`: only `rx`/`otc` — the surfaces a lab, free-addon or priced-addon product must never appear on. */
   listedProducts(): CatalogProduct[] {
     return this.products().filter((p) => p.kind === 'rx' || p.kind === 'otc');
   }

@@ -150,6 +150,20 @@
   // hunting for a way to retry.
   var RELEASE_AFTER_MS = 30000;
 
+  // Applying an empty discount box has nothing to send. The promo controls sit in their own form
+  // (`#promo-form`, associated by the `form` attribute), so this is a separate listener from the
+  // checkout form's. Staying put keeps the buyer where they were instead of reloading the page.
+  var promoForm = document.getElementById('promo-form');
+  var discountBox = document.getElementById('checkout-discount');
+  if (promoForm && discountBox) {
+    promoForm.addEventListener('submit', function (event) {
+      if (discountBox.value.trim() === '') {
+        event.preventDefault();
+        discountBox.focus();
+      }
+    });
+  }
+
   form.addEventListener('submit', function (event) {
     // Which button was pressed is the whole question here, and `submitter` is
     // the only thing that answers it. Where it is missing the guard sits out

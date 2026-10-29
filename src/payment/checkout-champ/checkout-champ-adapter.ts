@@ -41,7 +41,7 @@ export class CheckoutChampAdapter implements PaymentAdapter {
   capabilities(): AdapterCapabilities {
     return new AdapterCapabilities(
       'checkout_champ',
-      false,
+      true,
       SCOPE_ORDER_LEVEL,
       STRATEGY_ORDER_REFERENCE,
       SURFACE_THEME_FIELDS,
@@ -142,9 +142,74 @@ export class CheckoutChampAdapter implements PaymentAdapter {
     return reference;
   }
 
-  /** No endpoint exists on this provider for a standalone discount quote. */
-  async quotePromotion(_order: OrderEnvelope, code: string): Promise<PromotionQuote> {
-    return PromotionQuote.rejected(code, 'unsupported');
+  /**
+   * Price a code against the cart: `POST /order/coupon/`.
+   *
+   * A zero discount is refused as `invalid`: the provider answers an unknown code exactly as it
+   * answers a real code worth nothing on these lines (SUCCESS, both amounts zero), so a zero is no
+   * evidence the code exists. A code it recognises and refuses (expired, say) answers ERROR with a
+   * sentence, which is logged and also `invalid`. Only `priceDiscount` counts — the storefront
+   * charges no shipping line, so a `shipDiscount` is logged rather than added. Failing to reach the
+   * provider degrades to a rejected code rather than an error (`[13.14]`).
+   */
+  async quotePromotion(order: OrderEnvelope, code: string): Promise<PromotionQuote> {
+    code = code.trim();
+    if (code === '') return PromotionQuote.rejected(code, 'empty');
+
+    if (order.chargeableLines().length === 0 || CheckoutChampPayload.campaignFor(order) === null) {
+      return PromotionQuote.rejected(code, 'no_offers');
+    }
+
+    let response: Envelope | null;
+    try {
+      const result = await this.apiFactory.create(this.credentials).orderCoupon(CheckoutChampPayload.forCoupon(order, code)).getInObject();
+      response = asRecord(result.response);
+    } catch (e) {
+      this.log.warning('payment.promotion_threw', { reason: CardScrubber.scrub(e instanceof Error ? e.message : String(e)) });
+      return PromotionQuote.rejected(code, 'unavailable');
+    }
+
+    if (response === null || response.curlError !== undefined) {
+      return PromotionQuote.rejected(code, 'unavailable');
+    }
+
+    const message = asRecord(response.message);
+    if (response.result !== 'SUCCESS' || message === null) {
+      this.log.info('payment.promotion_refused', { response: CardScrubber.scrub(response) });
+      return PromotionQuote.rejected(code, 'invalid', CheckoutChampAdapter.couponNotice(response.message));
+    }
+
+    const priceDiscount = message.priceDiscount;
+    const cents = CheckoutChampAdapter.isNumeric(priceDiscount) ? Math.round(Number(priceDiscount) * 100) : 0;
+
+    const shipDiscount = message.shipDiscount;
+    if (CheckoutChampAdapter.isNumeric(shipDiscount) && Number(shipDiscount) > 0) {
+      this.log.info('payment.promotion_ship_discount_ignored', { ship_discount: String(shipDiscount) });
+    }
+
+    if (cents <= 0) return PromotionQuote.rejected(code, 'invalid');
+
+    return PromotionQuote.accepted(code, cents);
+  }
+
+  /**
+   * The refusal's own text, when it is about the code and so worth showing the buyer ("This coupon
+   * has already been redeemed", "Coupon is expired"). The same ERROR result also carries faults in
+   * the request itself ("No products exist in the order", a refused login), which say nothing a
+   * buyer can act on, so only a message that names the coupon is passed on.
+   */
+  private static couponNotice(message: unknown): string | null {
+    if (typeof message !== 'string') return null;
+
+    const text = message.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
+    if (text === '' || text.length > 200 || !text.toLowerCase().includes('coupon')) return null;
+
+    return text;
+  }
+
+  private static isNumeric(value: unknown): boolean {
+    return (typeof value === 'number' && Number.isFinite(value)) || (typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value)));
   }
 
   /** Deliberately unsupported, even though `orderQuery` exists — an unverified projection would produce false confidence in the reverse-reconciliation sweep. */
@@ -173,7 +238,7 @@ export class CheckoutChampAdapter implements PaymentAdapter {
 
     let envelope: Envelope;
     try {
-      const { response } = await this.apiFactory.create(this.credentials).importOrder(CheckoutChampPayload.forCapture(reference, lines, campaignId)).getInObject();
+      const { response } = await this.apiFactory.create(this.credentials).importOrder(CheckoutChampPayload.forCapture(reference, lines, campaignId, request.promotionCode)).getInObject();
       envelope = asRecord(response) ?? {};
     } catch (e) {
       this.log.error('payment.capture_threw', { reference, exception: e instanceof Error ? e.constructor.name : 'unknown' });

@@ -135,6 +135,7 @@ A few things worth knowing before reading:
 - **`[7.12]`** — Mirroring failure is logged and swallowed.
 - **`[7.13]`** — **Quantity increment bypasses the geo gate and the bundle rules.** Adding a product a second time only increments; it does not re-evaluate whether the shipping territory is still permitted, nor whether newly-required bundles should come along.
 - **`[7.14a]`** — **A `free-addon` line is always priced at zero on add**, regardless of what the catalog says its standalone price is.
+- **`[7.14a-priced]`** — A `priced-addon` (a free-addon whose channel variant price is above zero, set by `CatalogBuilder`) is the opposite case: it rides with its parent as its own charged line at its configured price.
 - **`[7.14b]`** — **This is the line that separates the two attachment kinds**, which are otherwise identical in behaviour (`[7.18]`): free-addon; mandatory_bundle.
 - **`[7.15]`** — There is no quantity ceiling, no stock concept, and no way to decrement a quantity — only add and remove-entirely.
 - **`[7.16]`** — The cart must expose an explicit quantity-set operation, bounded by a per-product maximum, and re-running the geo and bundle rules on every change.

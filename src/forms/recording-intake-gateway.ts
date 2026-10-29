@@ -44,9 +44,4 @@ export class RecordingIntakeGateway implements IntakeGateway {
 
     return accepted;
   }
-
-  /** Passed straight through — the local audit trail records the lifecycle events `record()` reports, not each file upload attempt. */
-  async uploadFile(session: string, fileName: string, mimeType: string, buffer: Buffer): Promise<string | null> {
-    return this.inner.uploadFile(session, fileName, mimeType, buffer);
-  }
 }

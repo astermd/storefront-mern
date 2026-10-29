@@ -375,6 +375,13 @@ export class CheckoutService {
 
   /** Prices a discount code against the current cart and stores what the provider said (`[13.11]`, `[13.13]`). */
   async applyPromotion(code: string, context: RequestContext | null = null): Promise<CartOutcome> {
+    // Nothing to apply, and nothing to say about it. Pressing Enter in any checkout field arrives
+    // here too (the page's first submit button is the promo one, so no keystroke can place an
+    // order), and a buyer who pressed it in the email box must not be told a code failed.
+    if (code.trim() === '') {
+      return CartOutcome.accepted();
+    }
+
     if (!this.adapter.capabilities().supportsPromotions) {
       return CartOutcome.rejected('Discount codes are not available.');
     }
@@ -387,10 +394,10 @@ export class CheckoutService {
     const journeyStore = this.journeyStoreFactory.get();
     const cart = cartStore.currentCart();
     const state = journeyStore.currentState();
-    const promotion = await this.quoteAgainst(cart, state, code);
+    const [promotion, refusal] = await this.quoteAgainst(cart, state, code);
 
     if (promotion === null) {
-      return CartOutcome.rejected('That discount code could not be applied.');
+      return CartOutcome.rejected(refusal ?? 'That discount code could not be applied.');
     }
 
     this.storePromotion(state, cart, promotion);
@@ -654,7 +661,7 @@ export class CheckoutService {
       return [stored, null];
     }
 
-    const fresh = await this.quoteAgainst(cart, state, stored.code);
+    const [fresh] = await this.quoteAgainst(cart, state, stored.code);
 
     if (fresh === null) {
       this.storePromotion(state, cart, null);
@@ -673,23 +680,26 @@ export class CheckoutService {
     return [fresh, CheckoutService.PROMOTION_REPRICED_NOTICE];
   }
 
-  /** One read-only quote of a code against one cart, or null when the code does not price against it. */
-  private async quoteAgainst(cart: Cart, state: JourneyState | null, code: string): Promise<Promotion | null> {
-    if (!this.adapter.capabilities().supportsPromotions) return null;
+  /**
+   * One read-only quote of a code against one cart: the promotion, or null with the provider's own
+   * reason for the refusal when it gave one fit to show the buyer.
+   */
+  private async quoteAgainst(cart: Cart, state: JourneyState | null, code: string): Promise<[Promotion | null, string | null]> {
+    if (!this.adapter.capabilities().supportsPromotions) return [null, null];
 
     const quote = await this.adapter.quotePromotion(this.quoteEnvelope(cart, state), code);
 
     if (!quote.accepted) {
       this.log.info('checkout.promotion_rejected', { reason: quote.reason });
-      return null;
+      return [null, quote.notice];
     }
 
     if (quote.discountCents > cart.subtotalCents()) {
       this.log.warning('checkout.promotion_exceeds_cart', { code: quote.code, discount_cents: quote.discountCents, subtotal_cents: cart.subtotalCents() });
-      return null;
+      return [null, null];
     }
 
-    return new Promotion(quote.code, quote.discountCents);
+    return [new Promotion(quote.code, quote.discountCents), null];
   }
 
   /** Stores a promotion together with the cart it is an answer about, or clears both. */

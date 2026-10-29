@@ -50,8 +50,9 @@ export class CatalogBuilder {
         if (lab && typeof lab === 'object') bundles.push(CatalogBuilder.addNestedProduct(products, lab as RawRecord, 'lab'));
       }
 
-      // Rule 7 [2.13]: every add_ons entry becomes a standalone `free-addon` product, recorded in
-      // the parent's `attachments`. Note `add_ons` is a sibling of `product` on the wrapper entry,
+      // Rule 7 [2.13]: every add_ons entry becomes a standalone product, recorded in
+      // the parent's `attachments`: a `free-addon` unless the channel prices it, then a `priced-addon`
+      // (see addNestedProduct). Note `add_ons` is a sibling of `product` on the wrapper entry,
       // not nested inside `product` the way `labtest` is.
       const attachments: string[] = [];
       for (const addOn of Array.isArray(entry.add_ons) ? entry.add_ons : []) {
@@ -107,17 +108,27 @@ export class CatalogBuilder {
   /**
    * Builds a nested labtest/add_ons entry into a standalone product and registers it in the
    * shared `products` map, deduping by slug (a deterministic function of the source `_id` + name,
-   * so the same entity referenced twice always maps to the same slug) [2.14]. Nested entities have
-   * no `product_mappings` of their own, so every one of their variants gets `provider: null`.
+   * so the same entity referenced twice always maps to the same slug) [2.14]. A nested entry
+   * carries its own `product_mappings`, independent of its parent's: an add-on is a separate line
+   * item at the provider, so it resolves against its own mappings and never inherits the parent's
+   * offer. An entry without the key gets `provider: null` on every variant, and validation reports
+   * the gap ([2.18]).
    */
-  private static addNestedProduct(products: Record<string, CatalogProduct>, item: RawRecord, kind: string): string {
+  private static addNestedProduct(products: Record<string, CatalogProduct>, item: RawRecord, nestedKind: string): string {
     const slug = CatalogBuilder.makeSlug(String(item._id), String(item.name));
 
     if (products[slug]) {
       return slug;
     }
 
-    const variants = CatalogBuilder.buildVariants(Array.isArray(item.variants) ? item.variants : [], item, [], null);
+    let kind = nestedKind;
+    const mappings = Array.isArray(item.product_mappings) ? (item.product_mappings as RawRecord[]) : [];
+    const variants = CatalogBuilder.buildVariants(Array.isArray(item.variants) ? item.variants : [], item, mappings, null);
+
+    // An add-on the channel gives a price is sold at that price, attached to its parent like a free
+    // one: `free-addon` is the kind the cart forces to zero, so a priced add-on must not carry it.
+    // Labs keep their kind whatever they cost.
+    if (kind === 'free-addon' && (variants[0]?.price_cents ?? 0) > 0) kind = 'priced-addon';
 
     products[slug] = {
       slug,

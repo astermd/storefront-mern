@@ -81,9 +81,9 @@ describe('CaptureOrderCommand', () => {
     process.exitCode = undefined;
   });
 
-  async function insertOrder(reference: string, settlement: 'authorize' | 'capture'): Promise<void> {
+  async function insertOrder(reference: string, settlement: 'authorize' | 'capture', promotionCode: string | null = null): Promise<void> {
     await orders.insert(
-      { provider_reference: reference, anchor_slug: 'semaglutide', amount_cents: 5000, currency: 'USD', status: 'placed', settlement },
+      { provider_reference: reference, anchor_slug: 'semaglutide', amount_cents: 5000, currency: 'USD', status: 'placed', settlement, promotion_code: promotionCode },
       [{ slug: 'semaglutide', name: 'Semaglutide', provider_offer: 'offer-1', provider_item: 'item-1', unit_price_cents: 5000, quantity: 1 }],
       [],
     );
@@ -145,6 +145,19 @@ describe('CaptureOrderCommand', () => {
     expect(adapter.capturedRequest?.lines).toHaveLength(1);
     expect(adapter.capturedRequest?.lines[0].providerOffer).toBe('offer-1');
     expect(adapter.capturedRequest?.lines[0].providerItem).toBe('item-1');
+  });
+
+  it('hands the order\'s recorded promotion code to the adapter, and null when it had none', async () => {
+    await insertOrder('ref-with-code', 'authorize', 'SAVE10');
+    await insertOrder('ref-no-code', 'authorize');
+    const adapter = new StubAdapter();
+    const command = new CaptureOrderCommand(adapter, orders);
+
+    await command.run(['ref-with-code']);
+    expect(adapter.capturedRequest?.promotionCode).toBe('SAVE10');
+
+    await command.run(['ref-no-code']);
+    expect(adapter.capturedRequest?.promotionCode).toBeNull();
   });
 
   it('exits 1 when the provider refuses the capture', async () => {

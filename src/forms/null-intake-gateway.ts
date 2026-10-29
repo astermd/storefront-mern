@@ -11,9 +11,4 @@ export class NullIntakeGateway implements IntakeGateway {
   async record(): Promise<boolean> {
     return true;
   }
-
-  /** `null` — no file was actually stored, unlike `record()`'s look-like-success rule; there is no reference to hand back. */
-  async uploadFile(): Promise<string | null> {
-    return null;
-  }
 }

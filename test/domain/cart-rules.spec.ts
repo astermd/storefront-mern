@@ -88,6 +88,22 @@ describe('CartRules', () => {
       expect(syringe?.unitPriceCents).toBe(0);
     });
 
+    it('brings a priced-addon along with its parent as its own line at its configured price', () => {
+      const catalog = new FakeCatalog([
+        { slug: 'organizer', name: 'Organizer', kind: 'otc', attachments: ['vitamin'], variants: [{ id: 'o-1', name: 'Standard', price_cents: 499 }] },
+        { slug: 'vitamin', name: 'Multivitamin', kind: 'priced-addon', variants: [{ id: 'vit-1', name: 'Multivitamin', price_cents: 2500 }] },
+      ]);
+      const cart = new Cart();
+
+      new CartRules(catalog).add(cart, 'organizer');
+
+      const vitamin = cart.line('vitamin');
+      expect(vitamin?.parentSlug).toBe('organizer');
+      expect(vitamin?.unitPriceCents).toBe(2500);
+      expect(cart.subtotalCents()).toBe(499 + 2500);
+      expect(cart.itemCount()).toBe(1);
+    });
+
     it('blocks the parent when a required child is unavailable in the territory (`[7.20]`)', () => {
       const catalog = new FakeCatalog([
         { slug: 'injectable', name: 'Injectable', kind: 'otc', bundles: ['syringe'] },

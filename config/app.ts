@@ -75,8 +75,20 @@ export interface AppConfig {
     shippingSelector: boolean;
     wallets: boolean;
     googleMapsApiKey: string | null;
-    /** Gates EmrVerificationGateway (email/address aid) — distinct from `verification.enabled`. */
-    emrVerification: boolean;
+    /**
+     * The checkout-time email-deliverability check against the EMR, switched on its own — distinct
+     * from `verification.enabled`. `EMR_VERIFICATION`, the single switch this replaced, still sets
+     * it when `EMR_VERIFY_EMAIL` is not given.
+     */
+    emrVerifyEmail: boolean;
+    /** The checkout-time address check against the EMR; same fallback to `EMR_VERIFICATION` as `emrVerifyEmail`. */
+    emrVerifyAddress: boolean;
+    /**
+     * Checkout's address suggestions. Not a switch a deployment sets: with `GOOGLE_MAPS_API_KEY`
+     * the browser asks Google, and without one the storefront asks the EMR. Off only under the test
+     * suite, so no test run can reach the EMR.
+     */
+    addressAutofill: boolean;
   };
   debug: {
     /** Never true in a deployment taking real payments — see storefront-lamp's config/app.php. */
@@ -170,7 +182,9 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
       shippingSelector: false,
       wallets: false,
       googleMapsApiKey: env.GOOGLE_MAPS_API_KEY ?? null,
-      emrVerification: !isTest && bool(env.EMR_VERIFICATION, false),
+      emrVerifyEmail: !isTest && bool(env.EMR_VERIFY_EMAIL ?? env.EMR_VERIFICATION, false),
+      emrVerifyAddress: !isTest && bool(env.EMR_VERIFY_ADDRESS ?? env.EMR_VERIFICATION, false),
+      addressAutofill: !isTest,
     },
 
     debug: {

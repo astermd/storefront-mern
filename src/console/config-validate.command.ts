@@ -24,7 +24,9 @@ const KNOWN_IDENTITY_CHECKS: readonly string[] = Object.values(IdentityCheck);
  * table; this port's route table isn't introspectable outside a booted HTTP server, and a check that
  * can only ever pass would be worse than no check); structured-data/SEO-URL `problems()` sweeps and
  * the `--live` EMR product-resolution pass (no equivalent exists yet on `StructuredData`/
- * `MetaResolver`/`RobotsPolicy` in this port).
+ * `MetaResolver`/`RobotsPolicy` in this port). When it is ported it resolves every `rx`/`otc`
+ * product's `emr_product_id` against the live EMR; `lab`, `free-addon` and `priced-addon` products
+ * are exempt, since they are not sold as standalone EMR products.
  *
  * **What is checked — the cross-file references and env-derived values a type checker cannot see:**
  * `app.debug.wireLog` left on (a live PCI/PHI violation while it runs, per `[15.8]`/`[22.21]`);

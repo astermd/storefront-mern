@@ -34,7 +34,7 @@ describe('CatalogValidator', () => {
 
   it('errors when kind is not one of the allowed values', () => {
     const result = validator.validate({ channel: {}, products: { p1: product({ kind: 'subscription' }) } });
-    expect(result.errors).toContainEqual(expect.stringContaining('is not one of rx, otc, lab, free-addon'));
+    expect(result.errors).toContainEqual(expect.stringContaining('is not one of rx, otc, lab, free-addon, priced-addon'));
   });
 
   it('errors when a bundle/attachment slug resolves to no product', () => {
