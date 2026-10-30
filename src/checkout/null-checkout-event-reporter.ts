@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PaymentDescriptor } from '../payment/payment-descriptor';
+import { SyncedPayment } from './checkout-event-reporter';
 import { CheckoutEventReporter } from './checkout-event-reporter';
 import { Totals } from './totals';
 
@@ -48,5 +49,5 @@ export class NullCheckoutEventReporter implements CheckoutEventReporter {
     _opportunityId: string | null,
   ): Promise<void> {}
 
-  async treatmentsSynced(_sessionUuid: string | null, _references: string[], _payment: PaymentDescriptor | null = null): Promise<void> {}
+  async treatmentsSynced(_sessionUuid: string | null, _references: string[], _payment: SyncedPayment | null = null): Promise<void> {}
 }

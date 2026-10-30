@@ -1,4 +1,7 @@
 import { PaymentDescriptor } from '../payment/payment-descriptor';
+
+/** The payment a treatments sync reports: a live descriptor, or its stored `toArray()` form. */
+export type SyncedPayment = PaymentDescriptor | Record<string, unknown>;
 import { Totals } from './totals';
 
 /**
@@ -32,5 +35,5 @@ export interface CheckoutEventReporter {
     opportunityId: string | null,
   ): Promise<void>;
   /** `[17.2]`: tells the EMR which of this journey's orders to sync as treatments. */
-  treatmentsSynced(sessionUuid: string | null, references: string[], payment?: PaymentDescriptor | null): Promise<void>;
+  treatmentsSynced(sessionUuid: string | null, references: string[], payment?: SyncedPayment | null): Promise<void>;
 }

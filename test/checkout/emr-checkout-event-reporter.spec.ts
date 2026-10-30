@@ -45,6 +45,14 @@ describe('EmrCheckoutEventReporter treatmentsSynced', () => {
     expect(t.options().userAgent).toBe('Mozilla/5.0 (test)');
   });
 
+  it('sends a stored payment array as it is, for the receipt-time sync that has no live descriptor', async () => {
+    const t = build();
+    const stored = { type: 'credit_card', pre_auth: false, card: { last4: '1111', exp: '12/30', type: 'visa' } };
+    await t.reporter.treatmentsSynced(SESSION, ['34660'], stored);
+
+    expect(t.options().payment).toEqual(stored);
+  });
+
   it('sends no payment key when there is none', async () => {
     const t = build();
     await t.reporter.treatmentsSynced(SESSION, ['34660']);

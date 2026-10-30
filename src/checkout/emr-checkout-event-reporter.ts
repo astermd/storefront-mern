@@ -9,7 +9,7 @@ import { OrderRepository } from '../repository/order-repository';
 import { CardScrubber } from '../support/card-scrubber';
 import { ConfigService } from '../support/config';
 import { OperatorLog } from '../support/operator-log';
-import { CheckoutEventReporter } from './checkout-event-reporter';
+import { CheckoutEventReporter, SyncedPayment } from './checkout-event-reporter';
 import { PaymentDescriptor } from '../payment/payment-descriptor';
 import { Totals } from './totals';
 import { VerificationGateway } from '../emr/verification-gateway';
@@ -209,7 +209,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
    * whose `treatment_reference` stays null — exactly what `ForwardReconciliation`'s sweep looks
    * for, so a failure here is recoverable later rather than silently lost.
    */
-  async treatmentsSynced(sessionUuid: string | null, references: string[], payment: PaymentDescriptor | null = null): Promise<void> {
+  async treatmentsSynced(sessionUuid: string | null, references: string[], payment: SyncedPayment | null = null): Promise<void> {
     if (sessionUuid === null || !this.reportToEmr() || references.length === 0) return;
 
     let response: AsterMDResponse<Record<string, unknown>[]>;
@@ -220,7 +220,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
         orderIds: references,
         utmSource: this.utmSource() ?? undefined,
         userAgent: await this.userAgentFor(references),
-        ...(payment === null ? {} : { payment: payment.toArray() }),
+        ...(payment === null ? {} : { payment: payment instanceof PaymentDescriptor ? payment.toArray() : payment }),
         ...(verification === null ? {} : { verification }),
       };
       response = await this.clients.create().treatments().sync<Record<string, unknown>[]>(options);

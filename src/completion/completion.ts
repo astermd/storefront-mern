@@ -103,7 +103,7 @@ export class Completion {
     );
 
     if (placed.length > 0) {
-      await this.guard.run('completion.treatment_sync', reference, () => this.events.treatmentsSynced(sessionUuid, placed));
+      await this.guard.run('completion.treatment_sync', reference, () => this.events.treatmentsSynced(sessionUuid, placed, state.paymentSummary));
     }
 
     state.receipt = receipt.toArray();

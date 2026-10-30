@@ -581,6 +581,7 @@ export class CheckoutService {
     const reference = outcome.reference ?? '';
     const cartStore = this.cartStoreFactory.get();
     const journeyStore = this.journeyStoreFactory.get();
+    const payment = CheckoutService.paymentDescriptor(credential, outcome.settlement, outcome, totals, true);
 
     // 2. Cleared in both the working copy and the durable one.
     await this.postCharge.run('clear_cart', reference, () => cartStore.save(new Cart()));
@@ -607,6 +608,9 @@ export class CheckoutService {
 
       // 6. The server-side half of the "order placed" signal.
       state.recordPlacedOrder(reference);
+      // Kept for the receipt-time treatments sync, which re-reports these orders and would
+      // otherwise overwrite the EMR's record of how they were paid with one that has no payment.
+      state.paymentSummary = payment.toArray();
 
       // 7. `[21.7]`: paying for checkout is what completes it.
       FurthestStep.advance(state, CheckoutService.CHECKOUT_STEP);
@@ -614,7 +618,7 @@ export class CheckoutService {
 
     await this.postCharge.run('record_order', reference, () => this.orders.record(envelope, outcome, credential, consents, this.adapter.capabilities().providerCategory));
     await this.postCharge.run('report_order_placed', reference, () =>
-      this.events.orderPlaced(journeyStore.sessionUuid(), totals, CheckoutService.PAYMENT_METHOD, [reference], CheckoutService.paymentDescriptor(credential, outcome.settlement, outcome, totals, true)),
+      this.events.orderPlaced(journeyStore.sessionUuid(), totals, CheckoutService.PAYMENT_METHOD, [reference], payment),
     );
 
     this.log.info('checkout.order_placed', { reference, anchor: envelope.anchorSlug });

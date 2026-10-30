@@ -1,6 +1,7 @@
 import { CheckoutEventReporter } from '../checkout/checkout-event-reporter';
 import { Totals } from '../checkout/totals';
 import { PaymentDescriptor } from '../payment/payment-descriptor';
+import { SyncedPayment } from '../checkout/checkout-event-reporter';
 import { Boundary, BoundaryValue } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
@@ -82,7 +83,7 @@ export class InstrumentedCheckoutEventReporter implements CheckoutEventReporter 
     );
   }
 
-  async treatmentsSynced(sessionUuid: string | null, references: string[], payment: PaymentDescriptor | null = null): Promise<void> {
+  async treatmentsSynced(sessionUuid: string | null, references: string[], payment: SyncedPayment | null = null): Promise<void> {
     await this.report(Boundary.TreatmentSync, 'treatments_synced', sessionUuid, { orders: references.length }, () => this.inner.treatmentsSynced(sessionUuid, references, payment));
   }
 

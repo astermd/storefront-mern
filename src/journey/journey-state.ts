@@ -63,6 +63,8 @@ export interface JourneyStateData {
   disqualifiedTeleform: string | null;
   verification: VerificationRecord | null;
   placedOrders: string[];
+  /** `PaymentDescriptor.toArray()` of the checkout payment — what the receipt-time treatments sync reports. */
+  paymentSummary: Record<string, unknown> | null;
   answers: Record<string, Record<string, unknown>>;
   emrEvents: string[];
   /**
@@ -141,6 +143,7 @@ export class JourneyState {
   disqualifiedTeleform: string | null = null;
   verification: VerificationRecord | null = null;
   placedOrders: string[] = [];
+  paymentSummary: Record<string, unknown> | null = null;
   answers: Record<string, Record<string, unknown>> = {};
   emrEvents: string[] = [];
   buyer: Record<string, string> = {};
@@ -176,6 +179,7 @@ export class JourneyState {
     state.disqualifiedTeleform = journeyState.disqualifiedTeleform ?? null;
     state.verification = journeyState.verification ?? null;
     state.placedOrders = journeyState.placedOrders ?? [];
+    state.paymentSummary = journeyState.paymentSummary ?? null;
     state.answers = journeyState.answers ?? {};
     state.emrEvents = journeyState.emrEvents ?? [];
     state.buyer = journeyState.buyer ?? {};
@@ -211,6 +215,7 @@ export class JourneyState {
       disqualifiedTeleform: this.disqualifiedTeleform,
       verification: this.verification,
       placedOrders: this.placedOrders,
+      paymentSummary: this.paymentSummary,
       answers: this.answers,
       emrEvents: this.emrEvents,
       buyer: this.buyer,
@@ -345,5 +350,6 @@ export class JourneyState {
   wipeForCompletion(): void {
     this.attribution = null;
     this.buyer = {};
+    this.paymentSummary = null;
   }
 }
