@@ -22,6 +22,10 @@ export class OrderEnvelope {
     public readonly idempotencyKey: string,
     public readonly anchorSlug: string,
     public readonly settlement: SettlementModeValue = SettlementMode.Capture,
+    /** The pricing system's own id for `promotionCode` (`PromotionQuote.reference`), for a provider whose order names the discount by id. */
+    public readonly promotionReference: string | null = null,
+    /** Marks an order taken after the main one on the same journey — an upsell — for a provider whose order says so. */
+    public readonly followOn: boolean = false,
   ) {}
 
   chargeableLines(): OrderLine[] {

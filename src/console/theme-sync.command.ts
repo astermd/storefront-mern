@@ -5,6 +5,7 @@ import { BuiltCatalog, CatalogBuilder } from '../catalog/catalog-builder';
 import { CatalogValidator } from '../catalog/catalog-validator';
 import { GeneratedConfigWriter } from '../catalog/generated-config-writer';
 import { MediaLocalizer } from '../catalog/media-localizer';
+import { PlanRow, SubscriptionPlans } from '../catalog/subscription-plans';
 import { EmrClientFactory } from '../emr/client-factory';
 import { ConfigService } from '../support/config';
 
@@ -41,6 +42,9 @@ interface ThemeSyncOptions {
  */
 @Command({ name: 'theme:sync', description: 'Sync the generated catalog and channel config from the configured EMR channel' })
 export class ThemeSyncCommand extends CommandRunner {
+  /** Providers whose payment the storefront creates and names its plan in — the EMR's storefront gateways. */
+  static readonly PLAN_PROVIDERS: readonly string[] = ['stripe'];
+
   constructor(
     private readonly clients: EmrClientFactory,
     private readonly config: ConfigService,
@@ -83,7 +87,7 @@ export class ThemeSyncCommand extends CommandRunner {
     }
 
     const currency = options.currency ?? 'USD';
-    let catalog = CatalogBuilder.build(data, currency);
+    let catalog = CatalogBuilder.build(data, currency, ThemeSyncCommand.sellablePlans(data));
     // Computed on the built (pre-localization) catalog: media localization only rewrites
     // image/gallery fields, never variants, so this count is identical whether taken before or
     // after localize() — computing it here keeps dry-run and apply reporting on the same basis.
@@ -129,6 +133,23 @@ export class ThemeSyncCommand extends CommandRunner {
       for (const error of result.errors) console.error(`validation error: ${error}`);
       process.exitCode = 2;
     }
+  }
+
+  /**
+   * The subscription plans this channel sells, each naming the product and variant it sells and its
+   * first payment.
+   *
+   * The EMR lists them with the channel itself (`subscriptions`: the plans assigned to the channel
+   * that can be sold), so they come from the same response as the catalog. Only for a provider
+   * whose payment carries its plan back to the EMR — a gateway the storefront creates the payment
+   * on (Stripe). A CRM's orders name no plan, so on its channel every product is sold one-off,
+   * which is what this catalog meant before plans existed.
+   */
+  static sellablePlans(data: Record<string, unknown>): PlanRow[] {
+    const processor = data.payment_processor && typeof data.payment_processor === 'object' ? (data.payment_processor as Record<string, unknown>) : {};
+    if (typeof processor.provider_category !== 'string' || !ThemeSyncCommand.PLAN_PROVIDERS.includes(processor.provider_category)) return [];
+
+    return SubscriptionPlans.fromChannelDetails(data);
   }
 
   private resolveChannelId(options: ThemeSyncOptions): string | null {

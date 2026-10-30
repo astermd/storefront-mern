@@ -17,7 +17,18 @@ const errors = checkout.errors || {};
 const prefill = checkout.prefill || {};
 function fieldError(name) { return errors[name] || null; }
 const addressAutocomplete = typeof address_autocomplete === 'undefined' ? null : address_autocomplete;
-const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + (addressAutocomplete ? '<script src="' + asset('address-autocomplete.js') + '" defer></script>' : '');
+function esc(value) { return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+const clientConfig = checkout.capabilities.clientConfig || {};
+const providerHosted = !checkout.capabilities.rendersOwnCardFields();
+// A provider that hosts its own card fields declares its script, which has to come from the provider;
+// `payment-<provider>.js` is this theme's glue between that script and the form. Deferred like
+// everything else here, so the three run in this order.
+let providerScripts = '';
+if (providerHosted && Object.keys(clientConfig).length > 0) {
+  if (clientConfig.script) { providerScripts += '<script src="' + esc(clientConfig.script) + '" defer></script>'; }
+  providerScripts += '<script src="' + esc(asset('payment-' + checkout.capabilities.providerCategory + '.js')) + '" defer></script>';
+}
+const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + providerScripts + (addressAutocomplete ? '<script src="' + asset('address-autocomplete.js') + '" defer></script>' : '');
 %>
 <%- include('../partials/head', { page_title: 'Checkout', page_description: null, noindex: true }) %>
 
@@ -179,6 +190,32 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + (
               <input type="text" id="checkout-card-cvc" name="card_cvc" inputmode="numeric" autocomplete="cc-csc" maxlength="4" class="h-12 w-full rounded-sm border border-border bg-background px-4 text-sm text-heading" />
             </div>
           </div>
+        </div>
+        <% } else { %>
+        <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Payment</h2>
+        <p class="mt-1 text-sm text-muted">All transactions are secure and encrypted.</p>
+        <div class="mt-3.5 overflow-hidden rounded-md border border-border bg-background p-5" data-payment-surface>
+          <%# The provider hosts its own card fields. Nothing of the card is ours to render, to name, or to see.
+              The provider's script mounts them here from the public configuration the adapter declares, and
+              posts back a token in `payment_token` instead of a card ([15.1], [15.4c]).
+              `data-challenge` is present only while the buyer's bank is waiting for them to verify the payment
+              ([14.22]); it is what the provider's script needs to run that step, so it is rendered into this
+              page and nowhere else. %>
+          <div id="payment-provider-surface"
+            data-provider="<%= checkout.capabilities.providerCategory %>"
+            data-client-config="<%= JSON.stringify(clientConfig) %>"
+            data-amount="<%= checkout.totals.totalCents %>"
+            data-currency="<%= String(checkout.currency).toLowerCase() %>"
+            data-confirm-url="<%= url('/checkout/confirm/') %>"
+            <% if (checkout.paymentChallenge) { %>data-challenge="<%= checkout.paymentChallenge %>"<% } %>></div>
+          <input type="hidden" name="payment_token" value="" data-payment-token />
+          <p data-payment-error role="alert" class="mt-3 hidden text-sm font-medium text-danger"></p>
+          <% if (checkout.paymentChallenge) { %>
+          <p class="mt-3 text-sm text-muted">Verification window not showing? <a href="<%= url('/checkout/confirm/') %>" class="font-medium text-primary underline">Check the payment again</a>.</p>
+          <% } %>
+          <noscript>
+            <p class="text-sm text-muted">Your payment provider's secure card form needs JavaScript to load.</p>
+          </noscript>
         </div>
         <% } %>
 

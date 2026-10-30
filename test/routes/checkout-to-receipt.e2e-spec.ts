@@ -38,6 +38,10 @@ class StubPlacingAdapter implements PaymentAdapter {
     return PlacementOutcome.placed(`stub-ref-${reference}`);
   }
 
+  async resume(reference: string): Promise<PlacementOutcome> {
+    return PlacementOutcome.declined(reference, 'Test double; resume is not exercised here.', 'unsupported');
+  }
+
   async quotePromotion(_order: OrderEnvelope, code: string): Promise<PromotionQuote> {
     return PromotionQuote.rejected(code, 'unsupported');
   }

@@ -53,6 +53,8 @@ export class CheckoutChampAdapter implements PaymentAdapter {
       false,
       true,
       [],
+      {},
+      false,
     );
   }
 
@@ -140,6 +142,11 @@ export class CheckoutChampAdapter implements PaymentAdapter {
       this.log.error('payment.lead_not_created', { anchor: order.anchorSlug, response: CardScrubber.scrub(envelope) });
     }
     return reference;
+  }
+
+  /** Not supported: this provider never answers a pending outcome, so it declares no client action and nothing asks it to resume one. */
+  async resume(reference: string): Promise<PlacementOutcome> {
+    return PlacementOutcome.declined(reference, CheckoutChampOutcome.GENERIC_DECLINE, 'resume_unsupported');
   }
 
   /**

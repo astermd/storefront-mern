@@ -14,6 +14,10 @@ import { Totals } from './totals';
  * `refusedBecause` is the one thing the outcome cannot express: the storefront refused before the
  * provider was reached, for a reason the buyer cannot fix by editing the form — it lets the HTTP
  * layer answer 429 to a flood and 200 to a decline without pattern-matching on a message string.
+ *
+ * `paymentChallenge` is set only when the payment is waiting on the buyer to verify it with their
+ * bank (`[14.22]`): it is what the provider's script on the page needs to run that step, and it is
+ * rendered into that one response and kept nowhere.
  */
 export class CheckoutResult {
   /** Too many submissions from this address inside the window (`[13.8]`). */
@@ -30,6 +34,7 @@ export class CheckoutResult {
     public readonly notice: string | null = null,
     public readonly redirectTo: string | null = null,
     public readonly refusedBecause: string | null = null,
+    public readonly paymentChallenge: string | null = null,
   ) {}
 
   placed(): boolean {

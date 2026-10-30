@@ -38,7 +38,35 @@ export class CheckoutController {
 
   @Get()
   async show(@Req() req: Request, @Res() res: Response): Promise<void> {
+    // A payment waiting on the buyer's bank is finished on the confirm step, so a reload or a back
+    // button lands there rather than on a form that would only be refused (`[14.22]`).
+    if (this.checkout.hasPendingPayment()) {
+      res.redirect(303, CheckoutService.CONFIRM_PATH);
+      return;
+    }
+
     await this.render(res, await this.checkout.view());
+  }
+
+  /**
+   * `[14.22]`: finishes a payment a verification step left pending.
+   *
+   * A GET because the provider's redirect back from the bank is a browser navigation, and the page's
+   * own script arrives the same way once the in-page step closes. Nothing it carries is read — the
+   * service decides from journey state alone — so a forged visit can at most finish the visitor's own
+   * payment, which the bank has already ruled on. Only reached by an adapter that declares
+   * `supportsClientAction`; for any other there is never a pending payment, so it redirects away.
+   */
+  @Get('confirm')
+  async confirm(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const result = await this.checkout.resume(RequestContext.fromRequest(req));
+
+    if (result.redirectTo !== null) {
+      res.redirect(303, result.redirectTo);
+      return;
+    }
+
+    await this.render(res, await this.checkout.view(null, result.errors, result.notice, result.paymentChallenge));
   }
 
   /** `[13.5]`, `[13.30]`, `[13.32]`, `[13.37]`. */
@@ -134,6 +162,14 @@ export class CheckoutController {
    * length.
    */
   private static credentialFrom(body: SubmitCheckoutDto): PaymentCredential {
+    // `[15.1]`: a deployment whose provider hosts the card fields posts a token the provider's own
+    // script minted, and no card at all. The field name is the storefront's, not the provider's, so
+    // the template and this method stay provider-neutral.
+    const token = (body.payment_token ?? '').toString().trim();
+    if (token !== '') {
+      return PaymentCredential.token(token);
+    }
+
     const [month, year] = CheckoutController.expiry((body.card_expiry ?? '').toString());
     return PaymentCredential.card((body.card_number ?? '').toString(), month, year, (body.card_cvc ?? '').toString());
   }

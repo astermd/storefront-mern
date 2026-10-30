@@ -17,6 +17,10 @@ export interface ProductVariant {
   name: string;
   price_cents: number;
   provider?: { offer_id: string; product_id: string } | null;
+  /** The variant's own price before a plan's first payment replaced `price_cents` (set only with `plan`). */
+  list_price_cents?: number;
+  /** The EMR subscription plan this variant is sold on, when it is (`OrderLine.planId`). */
+  plan?: { id: string; name?: string; first_payment_cents?: number; allow_coupons?: boolean } | null;
 }
 
 export interface ProductBadge {

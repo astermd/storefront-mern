@@ -86,6 +86,27 @@ export class CheckoutService {
   static readonly PROMOTION_DROPPED_NOTICE = 'Your discount code no longer applies to your order, so it has been removed. Please review your total.';
   static readonly PROMOTION_REPRICED_NOTICE = 'Your order changed, so your discount has been recalculated. Please review your total before paying.';
   static readonly UNAVAILABLE_LINE = 'One of the items in your order is not available for purchase right now. Please remove it and try again.';
+  /**
+   * Where a payment waiting on the buyer's bank is finished (`[14.22]`). Also the address the
+   * provider sends the buyer back to after a redirect-style verification, which is why it is a GET:
+   * that return is a browser navigation, and the page it lands on decides from journey state alone,
+   * never from what the URL carries.
+   */
+  static readonly CONFIRM_PATH = '/checkout/confirm/';
+  /** Shown over the provider's verification step while it runs. */
+  static readonly VERIFY_NOTICE = 'Your bank asked to verify this payment. Please complete the verification to finish your order.';
+  /** The verification step ended without the payment: nothing was charged. */
+  static readonly VERIFICATION_FAILED_NOTICE = 'Your bank could not verify this payment, so nothing was charged. Please try again or use a different card.';
+  /**
+   * A sub-action arrived while a payment is waiting on verification. Refused rather than applied:
+   * the payment the bank is verifying is for the order as it stood, and changing the order under it
+   * would finish a payment for a cart that no longer exists.
+   */
+  static readonly PAYMENT_PENDING_NOTICE = 'Please finish verifying your payment before changing your order.';
+  /**
+   * A challenge from an adapter that cannot finish one on the page (it declares no client action,
+   * `[14.22]`) must never be reported as a placed order.
+   */
   static readonly PENDING_ACTION_NOTICE =
     'Your payment could not be completed: your bank asked for an extra verification step this checkout cannot yet handle. Please try a different card, or contact support quoting reference %s.';
 
@@ -124,9 +145,16 @@ export class CheckoutService {
   /**
    * Everything the page renders. `submitted`, when present, **overrides prefill entirely** rather
    * than merging under it (`[13.30]`) — an intake answer winning over a correction typed at checkout
-   * would silently undo the correction the buyer is retrying with.
+   * would silently undo the correction the buyer is retrying with. `paymentChallenge` is what the
+   * provider's script needs to run a verification step the payment is waiting on (`[14.22]`); never
+   * stored.
    */
-  async view(submitted: BuyerDetails | null = null, errors: Record<string, string> = {}, notice: string | null = null): Promise<CheckoutViewModel> {
+  async view(
+    submitted: BuyerDetails | null = null,
+    errors: Record<string, string> = {},
+    notice: string | null = null,
+    paymentChallenge: string | null = null,
+  ): Promise<CheckoutViewModel> {
     const cartStore = this.cartStoreFactory.get();
     const journeyStore = this.journeyStoreFactory.get();
     const cart = cartStore.currentCart();
@@ -164,6 +192,7 @@ export class CheckoutService {
       cart.itemCount(),
       plans,
       cart.rxLines().length > 1,
+      paymentChallenge,
     );
   }
 
@@ -180,6 +209,13 @@ export class CheckoutService {
     if (!(await this.limiter.allow('checkout.submit', this.rateLimitIdentity(context)))) {
       this.log.info('checkout.rate_limited', {});
       return this.refusal(totals, CheckoutResult.REFUSED_RATE_LIMITED, CheckoutService.RATE_LIMITED_NOTICE);
+    }
+
+    // A payment this journey already sent is waiting on the buyer's bank (`[14.22]`). Another submit
+    // cannot be a new attempt — the cart and buyer are the ones being verified — so the buyer is sent
+    // back to finish the verification instead.
+    if (state !== null && state.pendingPayment !== null) {
+      return new CheckoutResult(PlacementOutcome.pendingAction(state.pendingPayment.reference, '', 'awaiting_verification'), totals, {}, null, CheckoutService.CONFIRM_PATH);
     }
 
     // The submission that arrives after the order it is for was already placed.
@@ -259,22 +295,7 @@ export class CheckoutService {
       );
     }
 
-    const envelope = new OrderEnvelope(
-      lines,
-      buyer.toBuyer(),
-      totals.subtotalCents,
-      totals.discountCents,
-      totals.totalCents,
-      this.currency(),
-      promotion?.code ?? null,
-      state?.attribution?.params ?? {},
-      journeyStore.sessionUuid(),
-      context?.clientIp ?? null,
-      context?.userAgent ?? null,
-      key,
-      CheckoutService.anchorSlug(cart),
-      this.settlement.forSlugs(...cart.lines().map((line) => line.slug)),
-    );
+    const envelope = this.envelopeFor(cart, state, buyer, totals, promotion, key, context, lines);
 
     // 6b. The provider has to be able to honour the settlement mode this order resolved to.
     if (SettlementMode.isAuthorize(envelope.settlement) && !this.adapter.capabilities().supportsAuthorizeCapture) {
@@ -313,8 +334,21 @@ export class CheckoutService {
     const outcome = await this.adapter.place(envelope, credential);
     await this.settleAttempt(key, claimedAt, outcome, totals);
 
+    if (outcome.state === PlacementOutcome.PENDING_ACTION && state !== null && outcome.reference !== null && this.adapter.capabilities().supportsClientAction) {
+      // 9a. `[14.22]`: the provider can finish this on the page. The buyer is sent to the confirm
+      //     step, which asks the provider for the challenge and renders it; the key stays claimed
+      //     (settleAttempt kept it) so nothing can place this cart again while the bank is deciding.
+      //     Only identifiers are kept — the client action is a secret and the confirm step asks for
+      //     it again rather than reading it from anywhere.
+      state.pendingPayment = { reference: outcome.reference, idempotency_key: key, claimed_at: claimedAt };
+      state.wipePaymentCredential();
+      this.log.info('checkout.payment_challenged', { reference: outcome.reference });
+
+      return new CheckoutResult(outcome, totals, {}, null, CheckoutService.CONFIRM_PATH);
+    }
+
     if (outcome.state === PlacementOutcome.PENDING_ACTION) {
-      // 9. The key is deliberately NOT released — the provider has already created an order.
+      // 9b. The key is deliberately NOT released — the provider has already created an order.
       return this.stopped(
         state,
         totals,
@@ -326,10 +360,97 @@ export class CheckoutService {
 
     if (!outcome.isPlaced()) {
       // 10. `[13.30]`: cart intact, buyer on checkout, the provider's own reason shown verbatim.
+      //
+      //     A provider that prices the discount code again at payment and finds it changed refuses
+      //     with step 1b's raw status. The stored code is dropped, so the page shows the real total
+      //     and the buyer applies the code again, rather than resubmitting a discount that will be
+      //     refused the same way.
+      if (outcome.rawStatus === 'promotion_repriced') {
+        this.storePromotion(state, cart, null);
+      }
+
       return this.stopped(state, totals, outcome, outcome.reason, CheckoutService.paymentDescriptor(credential, envelope.settlement, outcome, totals, false));
     }
 
     return this.placed(state, cart, envelope, outcome, credential, totals, recorded.records);
+  }
+
+  /** Whether this journey has a payment waiting on the buyer's bank (`[14.22]`). */
+  hasPendingPayment(): boolean {
+    return (this.journeyStoreFactory.get().currentState()?.pendingPayment ?? null) !== null;
+  }
+
+  /**
+   * Finishes a payment a challenge left pending, once the buyer has answered it (`[14.22]`).
+   *
+   * The provider decides, not the request: the reference comes from journey state, and
+   * `PaymentAdapter.resume()` reads what became of it. Three answers, as at placement. Still waiting
+   * is the challenge again, for the page to run. A decline took no money, so the key goes back and
+   * the buyer is on checkout with the cart intact, exactly as after a decline at submit. A placement
+   * runs the same post-charge sequence a submit runs (`placed()`).
+   *
+   * Nothing here re-prices or re-validates: the buyer was validated, their consents recorded and the
+   * discount priced before the payment was sent. The one thing worth checking is that the cart is
+   * still the one that was sent, and a cart that changed is recorded as charged anyway and logged for
+   * a human, because the payment stands either way.
+   */
+  async resume(context: RequestContext | null = null): Promise<CheckoutResult> {
+    const cartStore = this.cartStoreFactory.get();
+    const journeyStore = this.journeyStoreFactory.get();
+    const cart = cartStore.currentCart();
+    const state = journeyStore.currentState();
+    const promotion = Promotion.fromArray(state?.promotion ?? null);
+    const totals = Totals.of(cart.subtotalCents(), promotion);
+    const pending = state?.pendingPayment ?? null;
+
+    if (state === null || pending === null) {
+      // Nothing to finish: a reload after the order completed, or a provider redirect that arrived
+      // after the page already finished it. The buyer goes where their journey says they belong.
+      const placedAny = (state?.placedOrders ?? []).length > 0;
+
+      return new CheckoutResult(
+        PlacementOutcome.declined(null, '', 'nothing_pending'),
+        totals,
+        {},
+        null,
+        placedAny && cart.isEmpty() ? this.onwardPath() : this.flow.pathFor(CheckoutService.CHECKOUT_STEP),
+      );
+    }
+
+    const outcome = await this.adapter.resume(pending.reference);
+
+    if (outcome.state === PlacementOutcome.PENDING_ACTION) {
+      return new CheckoutResult(outcome, totals, {}, CheckoutService.VERIFY_NOTICE, null, null, outcome.clientAction);
+    }
+
+    const key = pending.idempotency_key;
+    const claimedAt = pending.claimed_at;
+    state.pendingPayment = null;
+
+    const buyer = new BuyerDetails(CheckoutService.buyerArguments(state.buyer));
+    const envelope = this.envelopeFor(cart, state, buyer, totals, promotion, key, context);
+    const credential = PaymentCredential.token(pending.reference);
+
+    if (!outcome.isPlaced()) {
+      // The bank refused, or the buyer abandoned the step: the provider took no money, so the key
+      // goes back for a retry with another card, as a decline at placement does.
+      await this.releaseQuietly(key, claimedAt);
+
+      return this.stopped(state, totals, outcome, CheckoutService.VERIFICATION_FAILED_NOTICE, CheckoutService.paymentDescriptor(credential, envelope.settlement, outcome, totals, false));
+    }
+
+    await this.postCharge.run('record_outcome', outcome.reference, () => this.attempts.resolvePending(key, claimedAt, CheckoutAttempt.encodeOutcome(outcome)));
+
+    if (IdempotencyKey.forSubmit(journeyStore.sessionUuid(), this.sessionKey(), cart, buyer.toArray()) !== key) {
+      this.log.error('checkout.resume_cart_changed', {
+        ...this.reconcilable(key, totals, outcome.reference, CheckoutAttemptRepository.STATE_COMPLETE),
+        reason: 'the cart or buyer changed while the payment was being verified; the order is recorded against the cart as it is now',
+      });
+    }
+
+    const consents = state.consents.map((stored) => ConsentRecord.fromArray(stored)).filter((record): record is ConsentRecord => record !== null);
+
+    return this.placed(state, cart, envelope, outcome, credential, totals, consents);
   }
 
   /** Accepts or withdraws one order bump (`[27.1]`, `[27.11]`). */
@@ -338,6 +459,10 @@ export class CheckoutService {
     const journeyStore = this.journeyStoreFactory.get();
     const cart = cartStore.currentCart();
     const state = journeyStore.currentState();
+
+    if ((state?.pendingPayment ?? null) !== null) {
+      return CartOutcome.rejected(CheckoutService.PAYMENT_PENDING_NOTICE);
+    }
 
     if ((state?.acceptedBumps ?? []).includes(slug) && cart.has(slug)) {
       const outcome = this.rules.remove(cart, slug);
@@ -386,6 +511,10 @@ export class CheckoutService {
       return CartOutcome.rejected('Discount codes are not available.');
     }
 
+    if (this.hasPendingPayment()) {
+      return CartOutcome.rejected(CheckoutService.PAYMENT_PENDING_NOTICE);
+    }
+
     if (!(await this.limiter.allow('checkout.promo', this.rateLimitIdentity(context)))) {
       return CartOutcome.rejected(CheckoutService.RATE_LIMITED_NOTICE);
     }
@@ -407,11 +536,18 @@ export class CheckoutService {
 
   /** `[13.13]`: removing the code removes the discount, and nothing else. */
   removePromotion(): void {
+    // The discount is part of the payment the bank is verifying.
+    if (this.hasPendingPayment()) return;
+
     this.storePromotion(this.journeyStoreFactory.get().currentState(), null, null);
   }
 
   /** `[12.4]`, `[12.7]`: choosing a plan is what gives an Rx line a price. */
   choosePlan(slug: string, variantId: string): CartOutcome {
+    if (this.hasPendingPayment()) {
+      return CartOutcome.rejected(CheckoutService.PAYMENT_PENDING_NOTICE);
+    }
+
     const cartStore = this.cartStoreFactory.get();
     const cart = cartStore.currentCart();
     const outcome = this.rules.chooseVariant(cart, slug, variantId);
@@ -425,6 +561,10 @@ export class CheckoutService {
 
   /** Keeps what the buyer has typed, so a sub-action does not cost them the form (`[27.10]`). */
   rememberBuyer(buyer: BuyerDetails): void {
+    // The stored buyer is the one the pending payment was sent for, and the order is finished
+    // against it (`[14.22]`).
+    if (this.hasPendingPayment()) return;
+
     this.journeyStoreFactory.get().currentState()?.storeBuyer(buyer.toArray());
   }
 
@@ -505,7 +645,7 @@ export class CheckoutService {
       authorize,
       outcome.preAuthQa,
       held && authorize ? totals.totalCents : null,
-      CardDescriptor.fromCredential(credential, outcome.providerCardBrand),
+      CardDescriptor.fromCredential(credential, outcome.providerCardBrand, outcome.providerCardExpiry),
     );
   }
 
@@ -628,14 +768,29 @@ export class CheckoutService {
   /** The cart as provider-neutral order lines. */
   private orderLines(cart: Cart): OrderLine[] {
     return cart.lines().map((line) => {
-      const provider = this.providerIdentifiers(line);
-      return new OrderLine(line.slug, line.name, provider.offer_id ?? null, provider.product_id ?? null, line.unitPriceCents, line.quantity, line.kind);
+      const variant = this.variantFor(line.slug, line.variantId);
+      const provider: { offer_id?: string; product_id?: string } = variant?.provider ?? {};
+      return new OrderLine(
+        line.slug,
+        line.name,
+        provider.offer_id ?? null,
+        provider.product_id ?? null,
+        line.unitPriceCents,
+        line.quantity,
+        line.kind,
+        // The EMR's own ids, from the line and the catalog variant it was priced from. A variant's id
+        // is the product's own for a product without variants, which is how the EMR names one.
+        line.emrProductId,
+        CheckoutService.text(variant?.id) ?? line.variantId,
+        // The catalog's plan for the variant, when it is sold on one — where the line's price came from.
+        CheckoutService.text(variant?.plan?.id),
+      );
     });
   }
 
-  private providerIdentifiers(line: CartLine): { offer_id?: string; product_id?: string } {
-    const variant = this.variantFor(line.slug, line.variantId);
-    return variant?.provider ?? {};
+  /** A non-empty string, or null. */
+  private static text(value: unknown): string | null {
+    return typeof value === 'string' && value !== '' ? value : null;
   }
 
   /** The chosen variant, or the first one when nothing was chosen. */
@@ -699,7 +854,7 @@ export class CheckoutService {
       return [null, null];
     }
 
-    return [new Promotion(quote.code, quote.discountCents), null];
+    return [new Promotion(quote.code, quote.discountCents, quote.reference), null];
   }
 
   /** Stores a promotion together with the cart it is an answer about, or clears both. */
@@ -712,8 +867,51 @@ export class CheckoutService {
 
   /** A digest of exactly what a quote is computed from. */
   private static promotionScope(lines: OrderLine[]): string {
-    const material = lines.filter((line) => line.isChargeable()).map((line) => [line.providerOffer, line.providerItem, line.unitPriceCents, line.quantity]);
+    const material = lines
+      .filter((line) => line.isChargeable())
+      .map((line) => {
+        const entry: Array<string | number | null> = [line.providerOffer, line.providerItem, line.unitPriceCents, line.quantity];
+        // A line sold on a plan is quoted by its plan, so a re-sync that moves the variant to another
+        // plan has to invalidate the quote. Appended only when present, so a deployment that sells no
+        // plans keeps the digests it already stored.
+        if (line.planId !== null) entry.push(line.planId);
+        return entry;
+      });
     return createHash('sha256').update(JSON.stringify(material)).digest('hex');
+  }
+
+  /**
+   * `[13.19]`–`[13.23]`: one envelope for the whole cart. Shared by the submit that charges the cart
+   * and by the request that finishes a payment a challenge left pending (`resume()`), so the order
+   * recorded for a verified payment is assembled exactly as the one that was sent for verification.
+   */
+  private envelopeFor(
+    cart: Cart,
+    state: JourneyState | null,
+    buyer: BuyerDetails,
+    totals: Totals,
+    promotion: Promotion | null,
+    key: string,
+    context: RequestContext | null,
+    lines: OrderLine[] = this.orderLines(cart),
+  ): OrderEnvelope {
+    return new OrderEnvelope(
+      lines,
+      buyer.toBuyer(),
+      totals.subtotalCents,
+      totals.discountCents,
+      totals.totalCents,
+      this.currency(),
+      promotion?.code ?? null,
+      state?.attribution?.params ?? {},
+      this.journeyStoreFactory.get().sessionUuid(),
+      context?.clientIp ?? null,
+      context?.userAgent ?? null,
+      key,
+      CheckoutService.anchorSlug(cart),
+      this.settlement.forSlugs(...cart.lines().map((line) => line.slug)),
+      promotion?.reference ?? null,
+    );
   }
 
   /** A cheap envelope for pricing a discount code. */

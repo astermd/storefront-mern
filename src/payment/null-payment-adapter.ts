@@ -40,6 +40,8 @@ export class NullPaymentAdapter implements PaymentAdapter {
       false,
       false,
       [],
+      {},
+      false,
     );
   }
 
@@ -47,6 +49,10 @@ export class NullPaymentAdapter implements PaymentAdapter {
     // `no_provider_configured` is the one rawStatus `CheckoutAttempt.UNRESOLVED_STATUSES`
     // deliberately excludes, so this decline's idempotency key IS released.
     return PlacementOutcome.declined(null, DECLINE_MESSAGE, 'no_provider_configured');
+  }
+
+  async resume(reference: string): Promise<PlacementOutcome> {
+    return PlacementOutcome.declined(reference, DECLINE_MESSAGE, 'no_provider_configured');
   }
 
   async quotePromotion(_order: OrderEnvelope, code: string): Promise<PromotionQuote> {

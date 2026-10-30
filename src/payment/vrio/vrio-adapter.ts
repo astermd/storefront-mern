@@ -59,6 +59,9 @@ export class VrioAdapter implements PaymentAdapter {
       true,
       true,
       ['shipping_profile_id'],
+      {},
+      // `[14.22]`: the challenge is a redirect with no return route here, so it stops the checkout.
+      false,
     );
   }
 
@@ -113,6 +116,11 @@ export class VrioAdapter implements PaymentAdapter {
     }
 
     return outcome;
+  }
+
+  /** Not supported: this provider's challenge is a redirect the storefront has no return route for, so it declares no client action and its pending outcome stops the checkout instead of reaching here. */
+  async resume(reference: string): Promise<PlacementOutcome> {
+    return PlacementOutcome.declined(reference, VrioOutcome.GENERIC_DECLINE, 'resume_unsupported');
   }
 
   async quotePromotion(order: OrderEnvelope, code: string): Promise<PromotionQuote> {

@@ -20,6 +20,7 @@ export const TELEFORM_GATEWAY = Symbol('TeleformGateway');
 export const INTAKE_GATEWAY = Symbol('IntakeGateway');
 export const INTAKE_UPLOADS = Symbol('IntakeUploads');
 export const ADDRESS_AUTOFILL = Symbol('AddressAutofill');
+export const COUPON_GATEWAY = Symbol('CouponGateway');
 export const LEAD_GATEWAY = Symbol('LeadGateway');
 export const IDENTITY_GATEWAY = Symbol('IdentityGateway');
 export const PAYMENT_ADAPTER = Symbol('PaymentAdapter');

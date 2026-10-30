@@ -194,3 +194,18 @@ describe('VrioAdapter.ping', () => {
     expect(result.detail).toBe('Invalid API key');
   });
 });
+
+describe('VrioAdapter client action (`[14.22]`)', () => {
+  it('declares no client action, so its challenge stops the checkout', () => {
+    expect(adapterWith(new FakeVrioTransport([])).capabilities().supportsClientAction).toBe(false);
+  });
+
+  it('answers resume() with a decline rather than throwing, and reaches nothing', async () => {
+    const transport = new FakeVrioTransport([]);
+    const outcome = await adapterWith(transport).resume('ref-1');
+
+    expect(outcome.state).toBe('declined');
+    expect(outcome.reference).toBe('ref-1');
+    expect(outcome.rawStatus).toBe('resume_unsupported');
+  });
+});

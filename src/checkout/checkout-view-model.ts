@@ -51,6 +51,10 @@ export interface CheckoutPlanViewModel {
  * `postCheckoutSteps` is true when the cart holds two or more prescriptions, whose assessments are
  * completed from the patient portal after the order (`[8.0i]`); the page mentions it without making
  * it sound like a condition of paying.
+ *
+ * `paymentChallenge` is present only while the payment is waiting on the buyer's bank (`[14.22]`):
+ * the value the provider's script on the page needs to run the verification step. It is a secret for
+ * at least one provider, so it is rendered into this one response and never stored anywhere.
  */
 export class CheckoutViewModel {
   constructor(
@@ -70,5 +74,6 @@ export class CheckoutViewModel {
     /** Every Rx line's variant selector, in cart order (`[8.0f]`). */
     public readonly planChoices: CheckoutPlanViewModel[] = [],
     public readonly postCheckoutSteps: boolean = false,
+    public readonly paymentChallenge: string | null = null,
   ) {}
 }

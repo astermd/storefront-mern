@@ -75,8 +75,16 @@ export interface JourneyStateData {
   buyer: Record<string, string>;
 
   /** Phase 7: the discount code applied against this cart, and the digest it was quoted against — see `CheckoutService.repricePromotion()`. */
-  promotion: { code: string; discount_cents: number } | null;
+  promotion: { code: string; discount_cents: number; reference?: string } | null;
   promotionQuotedAgainst: string | null;
+  /**
+   * The checkout payment the provider is waiting on the buyer to verify (`[14.22]`), or null when
+   * nothing is pending. Durable because the challenge spans requests. Identifiers only: the
+   * provider's reference, and the idempotency key with the claim time that owns its
+   * `checkout_attempts` row. The client action that runs the challenge is a secret and is never
+   * stored. The reference comes from here and never from a request.
+   */
+  pendingPayment: PendingPayment | null;
   /** Phase 7: order-bump product slugs the buyer has accepted on the checkout page (`[27.1]`). */
   acceptedBumps: string[];
   /** Phase 7: what the buyer agreed to at checkout, one record per configured consent (`[26.6]`). */
@@ -99,6 +107,12 @@ export interface JourneyStateData {
   receipt: Record<string, unknown> | null;
   /** Phase 8: when `Completion.complete()` ran — `isComplete()`'s backing field, `[17.1]`'s fire-once guard. */
   completedAt: string | null;
+}
+
+export interface PendingPayment {
+  reference: string;
+  idempotency_key: string;
+  claimed_at: string;
 }
 
 export const FORM_IN_PROGRESS = 'in_progress';
@@ -130,10 +144,11 @@ export class JourneyState {
   answers: Record<string, Record<string, unknown>> = {};
   emrEvents: string[] = [];
   buyer: Record<string, string> = {};
-  promotion: { code: string; discount_cents: number } | null = null;
+  promotion: { code: string; discount_cents: number; reference?: string } | null = null;
   promotionQuotedAgainst: string | null = null;
   acceptedBumps: string[] = [];
   consents: Array<{ key: string; granted: boolean; copy_version: string; copy_shown: string; at: string }> = [];
+  pendingPayment: PendingPayment | null = null;
   reusableCredentialData: { kind: string; handle: Record<string, string> } | null = null;
   upsellQueue: string[] = [];
   upsellCursor = 0;
@@ -168,6 +183,7 @@ export class JourneyState {
     state.promotionQuotedAgainst = journeyState.promotionQuotedAgainst ?? null;
     state.acceptedBumps = journeyState.acceptedBumps ?? [];
     state.consents = journeyState.consents ?? [];
+    state.pendingPayment = JourneyState.readPendingPayment(journeyState.pendingPayment);
     state.reusableCredentialData = journeyState.reusableCredentialData ?? null;
     state.upsellQueue = journeyState.upsellQueue ?? [];
     // Clamped to zero on the way out of the database — see `UpsellQueue.current()`'s doc comment
@@ -202,6 +218,7 @@ export class JourneyState {
       promotionQuotedAgainst: this.promotionQuotedAgainst,
       acceptedBumps: this.acceptedBumps,
       consents: this.consents,
+      pendingPayment: JourneyState.readPendingPayment(this.pendingPayment),
       reusableCredentialData: this.reusableCredentialData,
       upsellQueue: this.upsellQueue,
       upsellCursor: this.upsellCursor,
@@ -210,6 +227,16 @@ export class JourneyState {
       receipt: this.receipt,
       completedAt: this.completedAt,
     };
+  }
+
+  /** All three identifiers or nothing: a reference without its attempt row could be finished but never released. */
+  private static readPendingPayment(raw: unknown): PendingPayment | null {
+    if (raw === null || typeof raw !== 'object') return null;
+    const row = raw as Record<string, unknown>;
+    const { reference, idempotency_key: key, claimed_at: claimedAt } = row;
+    if (typeof reference !== 'string' || reference === '' || typeof key !== 'string' || key === '' || typeof claimedAt !== 'string' || claimedAt === '') return null;
+
+    return { reference, idempotency_key: key, claimed_at: claimedAt };
   }
 
   fingerprint(): string {

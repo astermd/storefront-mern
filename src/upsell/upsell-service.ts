@@ -387,7 +387,7 @@ export class UpsellService {
 
   /** One offer as an order the provider can be told about (`[16.8]`) — one line, no promotion, no discount (`[13.17]`). */
   private envelope(state: JourneyState, upsell: Upsell, key: string, context: RequestContext | null): OrderEnvelope {
-    const line = new OrderLine(upsell.slug, upsell.name, upsell.providerOffer, upsell.providerItem, upsell.priceCents, 1, upsell.kind);
+    const line = new OrderLine(upsell.slug, upsell.name, upsell.providerOffer, upsell.providerItem, upsell.priceCents, 1, upsell.kind, upsell.emrProductId, upsell.emrVariantId);
 
     return new OrderEnvelope(
       [line],
@@ -404,6 +404,9 @@ export class UpsellService {
       key,
       upsell.slug,
       this.settlement.forSlug(upsell.slug),
+      null,
+      // A second order on a journey that already has one — which a provider whose order the EMR reads back has to say.
+      true,
     );
   }
 

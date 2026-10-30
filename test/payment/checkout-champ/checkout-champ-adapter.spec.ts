@@ -288,3 +288,17 @@ describe('CheckoutChampAdapter.ping', () => {
     expect(result.detail).toContain('rejected: Invalid credentials');
   });
 });
+
+describe('CheckoutChampAdapter client action (`[14.22]`)', () => {
+  it('declares no client action, so its challenge stops the checkout', () => {
+    expect(adapterWith(new FakeCheckoutChampTransport([])).capabilities().supportsClientAction).toBe(false);
+  });
+
+  it('answers resume() with a decline rather than throwing, and reaches nothing', async () => {
+    const outcome = await adapterWith(new FakeCheckoutChampTransport([])).resume('ref-1');
+
+    expect(outcome.state).toBe('declined');
+    expect(outcome.reference).toBe('ref-1');
+    expect(outcome.rawStatus).toBe('resume_unsupported');
+  });
+});

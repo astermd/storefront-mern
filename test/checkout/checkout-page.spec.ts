@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as ejs from 'ejs';
-import { AdapterCapabilities, SCOPE_LINE_ITEM, STRATEGY_TOKENIZATION, SURFACE_THEME_FIELDS } from '../../src/payment/adapter-capabilities';
+import { AdapterCapabilities, SCOPE_ORDER_LEVEL, SCOPE_LINE_ITEM, STRATEGY_TOKENIZATION, SURFACE_PROVIDER_HOSTED, SURFACE_THEME_FIELDS } from '../../src/payment/adapter-capabilities';
 import { CheckoutViewModel } from '../../src/checkout/checkout-view-model';
 import { ConsentDefinition } from '../../src/checkout/consent-definition';
 import { Promotion } from '../../src/checkout/promotion';
@@ -123,5 +123,31 @@ describe('checkout page renders', () => {
     expect(html).toContain('Enter an email address in the form name@example.com.');
     expect(html).toContain('Choose your state.');
     expect(html).not.toContain('Select Treatment Plan');
+  });
+
+  it('renders a provider-hosted surface with the declared client config, token field and live challenge', () => {
+    const hosted = new AdapterCapabilities('hosted', false, SCOPE_ORDER_LEVEL, STRATEGY_TOKENIZATION, SURFACE_PROVIDER_HOSTED, [], [], 'Hosted.', false, false, false, false, [], { publishable_key: 'pk_test_1', script: 'https://js.example.com/v3' }, true);
+    const checkout = new CheckoutViewModel({}, {}, null, Totals.of(2000, null), [], [], null, [], hosted, null, 'USD', 1, [], false, 'challenge_secret');
+
+    const html = render({ ...baseGlobals, noindex: true, checkout });
+
+    expect(html).toContain('id="payment-provider-surface"');
+    expect(html).toContain('name="payment_token"');
+    expect(html).toContain('pk_test_1');
+    expect(html).toContain('data-confirm-url="/checkout/confirm/"');
+    expect(html).toContain('data-challenge="challenge_secret"');
+    expect(html).toContain('<script src="https://js.example.com/v3" defer></script>');
+    expect(html).toContain('/assets/build/payment-hosted.js');
+    expect(html).not.toContain('name="card_number"');
+  });
+
+  it('renders no challenge attribute and no provider script for theme-rendered card fields', () => {
+    const checkout = new CheckoutViewModel({}, {}, null, Totals.of(2000, null), [], [], null, [], capabilities, null, 'USD', 1);
+
+    const html = render({ ...baseGlobals, noindex: true, checkout });
+
+    expect(html).toContain('name="card_number"');
+    expect(html).not.toContain('data-challenge');
+    expect(html).not.toContain('payment-none.js');
   });
 });

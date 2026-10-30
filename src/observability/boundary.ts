@@ -22,7 +22,8 @@ export type BoundaryValue =
   | 'provider.placement'
   | 'provider.promotion'
   | 'provider.order_search'
-  | 'provider.capture';
+  | 'provider.capture'
+  | 'provider.resume';
 
 export class Boundary {
   /** Minting and reading an analytics session (`[4.3]`, `[4.12]`). */
@@ -47,4 +48,6 @@ export class Boundary {
   static readonly ProviderOrderSearch: BoundaryValue = 'provider.order_search';
   /** Settling an order that was authorized rather than charged. */
   static readonly ProviderCapture: BoundaryValue = 'provider.capture';
+  /** Re-reading an order a challenge left pending, once the buyer has answered it (`[14.22]`). */
+  static readonly ProviderResume: BoundaryValue = 'provider.resume';
 }

@@ -1,4 +1,5 @@
 import { CatalogProduct, ProductVariant } from '../domain/product-catalog';
+import { PlanRow } from './subscription-plans';
 
 const PLACEHOLDER_IMAGE = '/assets/img/product-placeholder.svg';
 const PRICE_UNIT = '/ month';
@@ -9,6 +10,8 @@ export interface BuiltCatalog {
 }
 
 type RawRecord = Record<string, unknown>;
+
+type PlanAttachment = { id: string; name: string; first_payment_cents: number; allow_coupons: boolean };
 
 /**
  * Ported from storefront-lamp/core/Catalog/CatalogBuilder.php. Pure transform: the `data` subtree
@@ -23,7 +26,12 @@ type RawRecord = Record<string, unknown>;
  * below implements one of them.
  */
 export class CatalogBuilder {
-  static build(channelData: RawRecord, currency = 'USD'): BuiltCatalog {
+  /**
+   * @param plans the channel's sellable subscription plans, each naming the product and variant it
+   *   sells (`SubscriptionPlans.fromChannelDetails()`); empty for none
+   */
+  static build(channelData: RawRecord, currency = 'USD', plans: PlanRow[] = []): BuiltCatalog {
+    const planIndex = CatalogBuilder.planIndex(plans);
     const products: Record<string, CatalogProduct> = {};
     const rawProducts = Array.isArray(channelData.products) ? channelData.products : [];
     const paymentProcessor = channelData.payment_processor && typeof channelData.payment_processor === 'object' ? (channelData.payment_processor as RawRecord) : {};
@@ -69,7 +77,11 @@ export class CatalogBuilder {
         throw new Error(`CatalogBuilder: slug collision "${slug}" between EMR product ids "${String(products[slug].emr_product_id)}" and "${String(product._id)}"`);
       }
 
-      const variants = CatalogBuilder.buildVariants(Array.isArray(product.variants) ? product.variants : [], product, mappings, activeProcessorType);
+      const variants = CatalogBuilder.attachPlans(
+        CatalogBuilder.buildVariants(Array.isArray(product.variants) ? product.variants : [], product, mappings, activeProcessorType),
+        String(product._id),
+        planIndex,
+      );
 
       products[slug] = {
         slug,
@@ -103,6 +115,61 @@ export class CatalogBuilder {
       channel: { id: channelData._id ?? null, name: channelData.name ?? null, currency },
       products,
     };
+  }
+
+  /**
+   * The channel's sellable subscription plans, keyed by the product and variant each one sells.
+   *
+   * Where two plans sell the same variant, the lower plan id wins, so a re-sync of the same plans
+   * always writes the same catalog. A row missing any identifier, or whose first payment is not a
+   * non-negative integer, is skipped rather than repaired: a plan the storefront cannot price is
+   * one it must not sell.
+   */
+  private static planIndex(plans: PlanRow[]): Map<string, PlanAttachment> {
+    const index = new Map<string, PlanAttachment>();
+
+    for (const plan of plans) {
+      if (!plan || typeof plan !== 'object') continue;
+
+      const { plan_id: id, product_id: productId, variant_id: variantId, first_payment_cents: firstPayment } = plan;
+      if (typeof id !== 'string' || id === '' || typeof productId !== 'string' || typeof variantId !== 'string') continue;
+      if (typeof firstPayment !== 'number' || !Number.isInteger(firstPayment) || firstPayment < 0) continue;
+
+      const key = `${productId}|${variantId}`;
+      const existing = index.get(key);
+      if (existing && existing.id < id) continue;
+
+      const name = plan.display_name ?? plan.name ?? '';
+      index.set(key, {
+        id,
+        name: typeof name === 'string' ? name : '',
+        first_payment_cents: firstPayment,
+        allow_coupons: plan.allow_coupons !== false,
+      });
+    }
+
+    return index;
+  }
+
+  /**
+   * Puts each variant the channel sells on a plan onto that plan.
+   *
+   * A variant on a plan is sold at the plan's first payment, which is what the EMR's own checkout
+   * charges for it and what the buyer must be shown, so `price_cents` becomes that figure and the
+   * variant's own price is kept beside it as `list_price_cents`. Done here, once, rather than at
+   * each place a price is read, so the product page, the cart and the charge cannot disagree. A
+   * deployment that sells the variant one-off instead sets `plan` to null and `price_cents` back in
+   * the override layer.
+   */
+  private static attachPlans(variants: ProductVariant[], productId: string, planIndex: Map<string, PlanAttachment>): ProductVariant[] {
+    if (planIndex.size === 0) return variants;
+
+    return variants.map((variant) => {
+      const plan = planIndex.get(`${productId}|${variant.id}`);
+      if (!plan) return variant;
+
+      return { ...variant, list_price_cents: variant.price_cents, price_cents: plan.first_payment_cents, plan };
+    });
   }
 
   /**

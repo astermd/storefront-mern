@@ -11,6 +11,14 @@ export class OrderLine {
     public readonly unitPriceCents: number,
     public readonly quantity: number,
     public readonly kind: string = 'otc',
+    /**
+     * The EMR's own product id, and its variant id (the product id for a product without variants).
+     * A provider whose order is read back by the EMR names the line by these.
+     */
+    public readonly emrProductId: string | null = null,
+    public readonly emrVariantId: string | null = null,
+    /** The EMR subscription plan the line is sold on, when it is sold on one; such a line is named by the plan alone. */
+    public readonly planId: string | null = null,
   ) {}
 
   lineTotalCents(): number {

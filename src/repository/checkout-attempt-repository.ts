@@ -130,6 +130,28 @@ export class CheckoutAttemptRepository {
   }
 
   /**
+   * Replaces the pending outcome a challenge left on a completed attempt with the one the buyer's
+   * answer to it produced (`[14.22]`).
+   *
+   * A challenge is recorded like any other provider answer — the row is `complete` and holds the
+   * pending outcome, so a duplicate submit is told the payment is waiting rather than reaching the
+   * provider again. Once the challenge resolves into a placement that stored answer is out of date,
+   * and a duplicate must now be replayed the placement instead.
+   *
+   * Conditional on the row still being the one this journey claimed (`createdAt`), on the same
+   * ownership terms as `release()`, and with no count check for the reason `recordOutcome()` has
+   * none: it runs after the money has moved, and matching nothing is the safe direction. A challenge
+   * that ends in a decline does not come here — it took no money, so the key goes back through
+   * `release()`.
+   */
+  async resolvePending(key: string, claimedAt: string, outcome: Record<string, unknown>): Promise<void> {
+    await this.prisma.checkoutAttempt.updateMany({
+      where: { idempotencyKey: key, state: CheckoutAttemptRepository.STATE_COMPLETE, createdAt: claimedAt },
+      data: { outcome: JSON.stringify(outcome), completedAt: new Date().toISOString() },
+    });
+  }
+
+  /**
    * Gives the key back, so the same submission may be tried again. Only the request that owns the
    * row may delete it (`claimedAt` is the ownership token) — an unconditional delete was the root
    * cause of a real double charge in the PHP original's history. No count check, deliberately: a

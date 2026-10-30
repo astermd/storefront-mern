@@ -56,6 +56,11 @@ export class SubmitCheckoutDto {
   @IsString()
   card_cvc?: string;
 
+  /** A token the provider's own script minted in place of a card (`[15.1]`). */
+  @IsOptional()
+  @IsString()
+  payment_token?: string;
+
   @IsOptional()
   @IsObject()
   consents?: Record<string, unknown>;

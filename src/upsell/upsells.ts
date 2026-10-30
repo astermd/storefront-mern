@@ -94,6 +94,8 @@ export class Upsells {
       provider?.offer_id ?? null,
       provider?.product_id ?? null,
       product.kind ?? 'otc',
+      Upsells.text(typeof product.emr_product_id === 'string' ? product.emr_product_id : null),
+      Upsells.text((named ?? Upsells.firstVariant(product))?.id ?? null),
     );
   }
 

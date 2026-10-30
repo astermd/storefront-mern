@@ -13,7 +13,7 @@ import { BoundaryTimer } from './boundary-timer';
 
 /**
  * Ported from storefront-lamp/core/Observability/InstrumentedPaymentAdapter.php. `[20.9]` over the
- * provider boundary: placement, promotion, and the reverse sweep's order search.
+ * provider boundary: placement, resume, promotion, and the reverse sweep's order search.
  *
  * This is the boundary where a rising latency is a business fact rather than an engineering one — a
  * provider that has slowed to eight seconds converts worse than one that declines outright.
@@ -48,6 +48,19 @@ export class InstrumentedPaymentAdapter implements PaymentAdapter {
         settlement: outcome.settlement,
       }),
       { session: order.sessionUuid, lines: order.lines.length, total_cents: order.totalCents, currency: order.currency },
+    );
+  }
+
+  /**
+   * Timed like a placement, because it finishes one. The client action is deliberately absent from
+   * what is recorded: it can confirm the payment, and it never outlives the request.
+   */
+  async resume(reference: string): Promise<PlacementOutcome> {
+    return this.timer.measure(
+      Boundary.ProviderResume,
+      () => this.inner.resume(reference),
+      (outcome) => ({ outcome: outcome.state, raw_status: outcome.rawStatus, reference: outcome.reference, settlement: outcome.settlement }),
+      { reference },
     );
   }
 

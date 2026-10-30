@@ -21,5 +21,8 @@ export class Upsell {
     public readonly providerOffer: string | null,
     public readonly providerItem: string | null,
     public readonly kind: string,
+    /** The EMR's own ids for the same variant, for a provider whose order the EMR reads back by them. */
+    public readonly emrProductId: string | null = null,
+    public readonly emrVariantId: string | null = null,
   ) {}
 }

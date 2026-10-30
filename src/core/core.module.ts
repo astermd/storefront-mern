@@ -18,6 +18,8 @@ import { EmrCartGateway } from '../emr/emr-cart-gateway';
 import { EmrSessionGateway } from '../emr/emr-session-gateway';
 import { EmrAddressAutofill } from '../emr/emr-address-autofill';
 import { NullAddressAutofill } from '../emr/null-address-autofill';
+import { EmrCouponGateway } from '../emr/emr-coupon-gateway';
+import { NullCouponGateway } from '../emr/null-coupon-gateway';
 import { EmrVerificationGateway } from '../emr/emr-verification-gateway';
 import { NullCartGateway } from '../emr/null-cart-gateway';
 import { NullSessionGateway } from '../emr/null-session-gateway';
@@ -59,6 +61,7 @@ import { RouteExistsChecker } from '../support/route-exists-checker';
 import { EmrIdentityGateway } from '../verification/emr-identity-gateway';
 import { NullIdentityGateway } from '../verification/null-identity-gateway';
 import { VerificationStep } from '../verification/verification-step';
+import { CheckoutService } from '../checkout/checkout.service';
 import { Consents } from '../checkout/consents';
 import { DatabaseOrderRecorder } from '../checkout/database-order-recorder';
 import { EmrCheckoutEventReporter } from '../checkout/emr-checkout-event-reporter';
@@ -67,12 +70,17 @@ import { OrderBumps } from '../checkout/order-bumps';
 import { PostChargeGuard } from '../checkout/post-charge-guard';
 import { SettlementPolicy } from '../checkout/settlement-policy';
 import { AdapterRegistry } from '../payment/adapter-registry';
+import type { CouponGateway } from '../emr/coupon-gateway';
 import { CheckoutChampAdapter } from '../payment/checkout-champ/checkout-champ-adapter';
 import { CheckoutChampApiFactory } from '../payment/checkout-champ/checkout-champ-api-factory';
 import { CheckoutChampAuthorizeMode } from '../payment/checkout-champ/checkout-champ-authorize-mode';
 import { CheckoutChampCredentials } from '../payment/checkout-champ/checkout-champ-credentials';
 import { CheckoutChampRefusingTransport } from '../payment/checkout-champ/checkout-champ-refusing-transport';
 import { CheckoutChampWireLog } from '../payment/checkout-champ/checkout-champ-wire-log';
+import { StripeAdapter } from '../payment/stripe/stripe-adapter';
+import { StripeApiFactory } from '../payment/stripe/stripe-api-factory';
+import { StripeCredentials } from '../payment/stripe/stripe-credentials';
+import { StripeRefusingTransport } from '../payment/stripe/stripe-refusing-transport';
 import { VrioAdapter } from '../payment/vrio/vrio-adapter';
 import { VrioApiFactory } from '../payment/vrio/vrio-api-factory';
 import { VrioCredentials } from '../payment/vrio/vrio-credentials';
@@ -93,6 +101,7 @@ import { ForwardReconciliation } from '../reconciliation/forward-reconciliation'
 import { ReverseReconciliation } from '../reconciliation/reverse-reconciliation';
 import {
   ADDRESS_AUTOFILL,
+  COUPON_GATEWAY,
   CART_GATEWAY,
   CHECKOUT_EVENT_REPORTER,
   DATABASE_CONNECTION,
@@ -181,6 +190,14 @@ class DatabaseLifecycle implements OnModuleDestroy {
       provide: ADDRESS_AUTOFILL,
       useFactory: (config: ConfigService, clients: EmrClientFactory, log: OperatorLog) =>
         config.app.features.addressAutofill ? new EmrAddressAutofill(clients, log) : new NullAddressAutofill(),
+      inject: [ConfigService, EmrClientFactory, OperatorLog],
+    },
+    {
+      // Discount codes for a provider that has none of its own are the EMR's to price. Off under the
+      // test suite, like every other EMR port, so no run reaches the EMR.
+      provide: COUPON_GATEWAY,
+      useFactory: (config: ConfigService, clients: EmrClientFactory, log: OperatorLog) =>
+        config.app.env === 'test' ? new NullCouponGateway() : new EmrCouponGateway(clients, log),
       inject: [ConfigService, EmrClientFactory, OperatorLog],
     },
     {
@@ -289,7 +306,7 @@ class DatabaseLifecycle implements OnModuleDestroy {
     Upsells,
     SettlementPolicy,
     {
-      // Registers the two real providers (`vrio`, `checkout_champ`) — ported from
+      // Registers the three real providers (`vrio`, `checkout_champ`, `stripe`) — ported from
       // `AppFactory.php`'s own `AdapterRegistry` wiring. Registered as factories, not instances: a
       // deployment whose channel carries no payment processor must still boot, and the registry
       // answers with a configuration-error decline instead of a container that cannot be built.
@@ -299,7 +316,7 @@ class DatabaseLifecycle implements OnModuleDestroy {
       // environment, so unlike every EMR port there is no Null implementation standing between a
       // test and the live provider) — wire logging, when on, wraps whichever transport that is.
       provide: AdapterRegistry,
-      useFactory: (log: OperatorLog, config: ConfigService) => {
+      useFactory: (log: OperatorLog, config: ConfigService, coupons: CouponGateway) => {
         const registry = new AdapterRegistry(log);
         const rootDir = process.cwd();
 
@@ -338,9 +355,27 @@ class DatabaseLifecycle implements OnModuleDestroy {
             ),
         );
 
+        // The third. Stripe's SDK declares its own HTTP client, so its fence is its own refusing
+        // transport, installed under the suite exactly where the other two install theirs. Stripe
+        // has no wire log: its card never reaches this process, and the SDK's own request log would
+        // sit beside the one the EMR already keeps of the payment.
+        registry.register(
+          'stripe',
+          () =>
+            new StripeAdapter(
+              StripeCredentials.fromChannelConfig(channelGenerated.payment_processor.config),
+              new StripeApiFactory(config.app.env === 'test' ? new StripeRefusingTransport() : null),
+              log,
+              coupons,
+              channelGenerated.channel.id ?? '',
+              // Where the bank sends the buyer back after a verification that left the page (`[14.22]`).
+              `${config.app.url.replace(/\/+$/, '')}${CheckoutService.CONFIRM_PATH}`,
+            ),
+        );
+
         return registry;
       },
-      inject: [OperatorLog, ConfigService],
+      inject: [OperatorLog, ConfigService, COUPON_GATEWAY],
     },
     {
       // The provider is chosen from synced channel data, never named by a code path — the config
@@ -423,6 +458,7 @@ class DatabaseLifecycle implements OnModuleDestroy {
     INTAKE_GATEWAY,
     INTAKE_UPLOADS,
     ADDRESS_AUTOFILL,
+    COUPON_GATEWAY,
     LEAD_GATEWAY,
     IDENTITY_GATEWAY,
     DefinitionCache,
