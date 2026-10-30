@@ -32,5 +32,5 @@ export interface CheckoutEventReporter {
     opportunityId: string | null,
   ): Promise<void>;
   /** `[17.2]`: tells the EMR which of this journey's orders to sync as treatments. */
-  treatmentsSynced(sessionUuid: string | null, references: string[]): Promise<void>;
+  treatmentsSynced(sessionUuid: string | null, references: string[], payment?: PaymentDescriptor | null): Promise<void>;
 }

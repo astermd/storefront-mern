@@ -82,8 +82,8 @@ export class InstrumentedCheckoutEventReporter implements CheckoutEventReporter 
     );
   }
 
-  async treatmentsSynced(sessionUuid: string | null, references: string[]): Promise<void> {
-    await this.report(Boundary.TreatmentSync, 'treatments_synced', sessionUuid, { orders: references.length }, () => this.inner.treatmentsSynced(sessionUuid, references));
+  async treatmentsSynced(sessionUuid: string | null, references: string[], payment: PaymentDescriptor | null = null): Promise<void> {
+    await this.report(Boundary.TreatmentSync, 'treatments_synced', sessionUuid, { orders: references.length }, () => this.inner.treatmentsSynced(sessionUuid, references, payment));
   }
 
   private async report(boundary: BoundaryValue, operation: string, sessionUuid: string | null, context: Record<string, unknown>, call: () => Promise<void>): Promise<void> {

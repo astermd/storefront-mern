@@ -24,6 +24,7 @@ import { EmrVerificationGateway } from '../emr/emr-verification-gateway';
 import { NullCartGateway } from '../emr/null-cart-gateway';
 import { NullSessionGateway } from '../emr/null-session-gateway';
 import { NullVerificationGateway } from '../emr/null-verification-gateway';
+import type { VerificationGateway } from '../emr/verification-gateway';
 import { AnswerValidator } from '../forms/answer-validator';
 import { DefinitionCache } from '../forms/definition-cache';
 import { Disqualification } from '../forms/disqualification';
@@ -410,13 +411,14 @@ class DatabaseLifecycle implements OnModuleDestroy {
         request: Request,
         nullReporter: NullCheckoutEventReporter,
         instrumentation: Instrumentation,
+        verification: VerificationGateway,
       ) =>
         instrumentation.checkoutEventReporter(
           config.app.session.analytics
-            ? new EmrCheckoutEventReporter(clients, events, orders, log, journeyStoreFactory, config, request)
+            ? new EmrCheckoutEventReporter(clients, events, orders, log, journeyStoreFactory, config, request, verification)
             : nullReporter,
         ),
-      inject: [ConfigService, EmrClientFactory, EventRepository, OrderRepository, OperatorLog, JourneyStoreFactory, REQUEST, NullCheckoutEventReporter, Instrumentation],
+      inject: [ConfigService, EmrClientFactory, EventRepository, OrderRepository, OperatorLog, JourneyStoreFactory, REQUEST, NullCheckoutEventReporter, Instrumentation, EMR_VERIFICATION_GATEWAY],
     },
     // Phase 9 — SEO.
     MetaResolver,

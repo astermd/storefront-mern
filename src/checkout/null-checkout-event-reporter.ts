@@ -48,5 +48,5 @@ export class NullCheckoutEventReporter implements CheckoutEventReporter {
     _opportunityId: string | null,
   ): Promise<void> {}
 
-  async treatmentsSynced(_sessionUuid: string | null, _references: string[]): Promise<void> {}
+  async treatmentsSynced(_sessionUuid: string | null, _references: string[], _payment: PaymentDescriptor | null = null): Promise<void> {}
 }

@@ -12,10 +12,11 @@ export const apiError = (status: number, message = 'You do not have permission t
  * network, no credentials. Every call is a jest mock, so a test asserts what reached the EMR and, as
  * often, that nothing did.
  */
-export function fakeClients(resources: { verification?: Record<string, jest.Mock>; intakeSubmissions?: Record<string, jest.Mock> }): EmrClientFactory {
+export function fakeClients(resources: { verification?: Record<string, jest.Mock>; intakeSubmissions?: Record<string, jest.Mock>; treatments?: Record<string, jest.Mock> }): EmrClientFactory {
   const client = {
     verification: () => resources.verification ?? {},
     intakeSubmissions: () => resources.intakeSubmissions ?? {},
+    treatments: () => resources.treatments ?? {},
   };
 
   return { create: () => client } as unknown as EmrClientFactory;

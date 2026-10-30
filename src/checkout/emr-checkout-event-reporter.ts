@@ -12,9 +12,19 @@ import { OperatorLog } from '../support/operator-log';
 import { CheckoutEventReporter } from './checkout-event-reporter';
 import { PaymentDescriptor } from '../payment/payment-descriptor';
 import { Totals } from './totals';
+import { VerificationGateway } from '../emr/verification-gateway';
+import { ExtendedTreatmentSyncOptions, VerificationBlock } from '../emr/treatment-sync-options';
+import { VerificationRecord } from '../journey/journey-state';
 
 /** What an import with no browser behind it is attributed to — a sweep has no buyer device. */
 const STOREFRONT_AGENT = 'AsterMD-Storefront';
+
+/** The identity checks `config/verification.ts` runs, as the treatments sync names their method. */
+const IDENTITY_METHOD_FOR: Record<string, NonNullable<VerificationBlock['id']>['method']> = {
+  crosscheck: 'cross_check',
+  dob_verify: 'dob',
+  ssn_verify: 'ssn',
+};
 
 /** What the local trail files a checkout under when there is no analytics session to file it under. */
 const NO_SESSION = '';
@@ -40,11 +50,12 @@ const NO_SESSION = '';
  * **Dollars are converted here and nowhere else** — the EMR documents floats, `Totals` carries
  * integer cents, and `Totals.dollars()` is the one conversion point.
  *
- * **Deviates from PHP in one real way, not a porting shortcut: the JS SDK's `TreatmentSyncOptions`
- * has no `payment`/`verification` fields**, unlike PHP's `Treatments::sync()`. Checked the real
- * `.d.ts` directly rather than assuming parity — this port sends what the JS SDK actually accepts
- * (`session`, `orderIds`, `utmSource`, `userAgent`) and nothing more; a future SDK version adding
- * those fields would need this call site revisited, not silently work around a type it never had.
+ * **`payment` and `verification` ride the treatments sync, as in PHP** (`payment` is
+ * `PaymentDescriptor.toArray()`, omitted when there is none; `verification` is
+ * `{ email: true, address: false }` only for a deliverable buyer email). The installed
+ * `@astermd-hq/sdk` 0.0.2 has no such fields and drops them — a release matching PHP astermd/sdk
+ * 0.0.3 is required; see {@link ExtendedTreatmentSyncOptions}. Only `orderPlaced` has a descriptor
+ * to thread; the receipt batch and the reconciliation sweep sync without one, exactly as lamp does.
  */
 @Injectable()
 export class EmrCheckoutEventReporter implements CheckoutEventReporter {
@@ -56,6 +67,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
     private readonly journeyStoreFactory: JourneyStoreFactory,
     private readonly config: ConfigService,
     @Inject(REQUEST) private readonly request: Request,
+    private readonly verification: VerificationGateway | null = null,
   ) {}
 
   async checkoutVisited(sessionUuid: string | null, totals: Totals): Promise<void> {
@@ -98,7 +110,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
     // for the receipt, is what closes a real gap: a buyer who closes the tab mid-upsell never
     // reaches the receipt, and without this call their already-charged treatment would never reach
     // a clinician's queue at all.
-    await this.treatmentsSynced(sessionUuid, references);
+    await this.treatmentsSynced(sessionUuid, references, payment);
   }
 
   async orderDeclined(
@@ -197,17 +209,21 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
    * whose `treatment_reference` stays null — exactly what `ForwardReconciliation`'s sweep looks
    * for, so a failure here is recoverable later rather than silently lost.
    */
-  async treatmentsSynced(sessionUuid: string | null, references: string[]): Promise<void> {
+  async treatmentsSynced(sessionUuid: string | null, references: string[], payment: PaymentDescriptor | null = null): Promise<void> {
     if (sessionUuid === null || !this.reportToEmr() || references.length === 0) return;
 
     let response: AsterMDResponse<Record<string, unknown>[]>;
     try {
-      response = await this.clients.create().treatments().sync<Record<string, unknown>[]>({
+      const verification = await this.verificationBlock();
+      const options: ExtendedTreatmentSyncOptions = {
         session: sessionUuid,
         orderIds: references,
         utmSource: this.utmSource() ?? undefined,
         userAgent: await this.userAgentFor(references),
-      });
+        ...(payment === null ? {} : { payment: payment.toArray() }),
+        ...(verification === null ? {} : { verification }),
+      };
+      response = await this.clients.create().treatments().sync<Record<string, unknown>[]>(options);
     } catch (e) {
       this.log.warning('checkout.treatment_sync_failed', {
         session: sessionUuid,
@@ -242,6 +258,42 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
     }
 
     return STOREFRONT_AGENT;
+  }
+
+  /**
+   * What this storefront has actually verified about the buyer — only what was checked, never a row
+   * of falses. `address` is false because no address is ever verified here (`normaliseAddress()` has
+   * no caller). Only a literal `true` counts: `null` means the check could not run, which passes
+   * checkout validation without verifying anything. The gateway memoises, so this read costs no
+   * extra round trip.
+   */
+  private async verificationBlock(): Promise<VerificationBlock | null> {
+    const state = this.journeyStoreFactory.get().currentState();
+    const email = (state?.buyer?.email ?? '').trim();
+
+    const emailVerified =
+      email !== '' && this.verification !== null && this.verification.isEnabled() && (await this.verification.emailIsDeliverable(email)) === true;
+    const id = EmrCheckoutEventReporter.identityBlock(state?.verification ?? null);
+
+    if (!emailVerified && id === null) return null;
+
+    return { email: emailVerified, address: false, ...(id === null ? {} : { id }) };
+  }
+
+  /**
+   * The identity check's outcome, from the verdict `VerificationStep` recorded on the journey.
+   * Only a decisive verdict is reported — `inconclusive` means the check could not run, which
+   * verified nothing — and only when the check maps to a method the EMR knows. `value` is the
+   * provider's own `basis` when it gave one (a coded descriptor, safe to log), else the method
+   * itself: never an SSN or date of birth, which this class never holds.
+   */
+  private static identityBlock(record: VerificationRecord | null): VerificationBlock['id'] | null {
+    if (record === null || record.status === 'inconclusive') return null;
+
+    const method = record.check === null ? undefined : IDENTITY_METHOD_FOR[record.check];
+    if (method === undefined) return null;
+
+    return { verified: record.status === 'passed', method, value: record.basis ?? method };
   }
 
   private utmSource(): string | null {
