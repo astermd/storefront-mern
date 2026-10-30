@@ -42,7 +42,7 @@ describe('treatments sync on the wire', () => {
           currentState: () => ({
             buyer: { email: 'ada@example.com' },
             attribution: null,
-            verification: { status: 'passed', at: 'now', check: 'dob_verify', basis: 'name_dob_match' },
+            verification: { status: 'passed', at: 'now', check: 'dob_verify', basis: 'name_dob_match', reference: 'dummy-1793352951978' },
           }),
         }),
       } as never,
@@ -61,7 +61,7 @@ describe('treatments sync on the wire', () => {
       session_id: 'sess-1',
       order_ids: ['34660'],
       payment: { type: 'credit_card', pre_auth: false },
-      verification: { email: true, address: false, id: { verified: true, method: 'dob', value: 'name_dob_match' } },
+      verification: { email: true, address: false, id: { verified: true, method: 'dob', value: 'dummy-1793352951978' } },
     });
   });
 });

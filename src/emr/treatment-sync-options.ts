@@ -22,5 +22,5 @@ export interface VerificationBlock {
   email: boolean;
   address: boolean;
   /** The identity check's outcome; present only when a decisive check ran. */
-  id?: { verified: boolean; method: 'ssn' | 'dob' | 'cross_check' | 'document_upload'; value: string };
+  id?: { verified: boolean | null; method: 'ssn' | 'dob' | 'cross_check' | 'document_upload'; value?: string };
 }

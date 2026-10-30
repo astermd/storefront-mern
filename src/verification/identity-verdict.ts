@@ -17,6 +17,8 @@ export class IdentityVerdict {
     /** Coded reasons only — never the provider's free-text message. */
     public readonly reasons: string[],
     public readonly cached: boolean,
+    /** The provider's own id for this check (`raw.id`): what the EMR files as the patient's identity reference. */
+    public readonly reference: string | null = null,
   ) {}
 
   /** Builds a verdict from the provider's own response envelope. */
@@ -40,7 +42,13 @@ export class IdentityVerdict {
       typeof data.threshold === 'number' ? data.threshold : null,
       reasons,
       data.cached === true,
+      IdentityVerdict.referenceIn(data.raw),
     );
+  }
+
+  private static referenceIn(raw: unknown): string | null {
+    const id = raw !== null && typeof raw === 'object' ? (raw as Record<string, unknown>).id : null;
+    return typeof id === 'string' && id.trim() !== '' ? id : null;
   }
 
   /** The check could not be run at all — never a pass or a fail. */

@@ -8,6 +8,8 @@ export interface VerificationRecord {
   at: string;
   basis: string | null;
   check: string | null;
+  /** The provider's reference id for the check, reported as `verification.id.value` on the treatments sync. */
+  reference?: string | null;
 }
 
 export interface CartLineData {
@@ -65,6 +67,8 @@ export interface JourneyStateData {
   placedOrders: string[];
   /** `PaymentDescriptor.toArray()` of the checkout payment — what the receipt-time treatments sync reports. */
   paymentSummary: Record<string, unknown> | null;
+  /** The EMR path of the ID document the visitor uploaded on the intake, if any. */
+  identityDocument: string | null;
   answers: Record<string, Record<string, unknown>>;
   emrEvents: string[];
   /**
@@ -144,6 +148,7 @@ export class JourneyState {
   verification: VerificationRecord | null = null;
   placedOrders: string[] = [];
   paymentSummary: Record<string, unknown> | null = null;
+  identityDocument: string | null = null;
   answers: Record<string, Record<string, unknown>> = {};
   emrEvents: string[] = [];
   buyer: Record<string, string> = {};
@@ -180,6 +185,7 @@ export class JourneyState {
     state.verification = journeyState.verification ?? null;
     state.placedOrders = journeyState.placedOrders ?? [];
     state.paymentSummary = journeyState.paymentSummary ?? null;
+    state.identityDocument = journeyState.identityDocument ?? null;
     state.answers = journeyState.answers ?? {};
     state.emrEvents = journeyState.emrEvents ?? [];
     state.buyer = journeyState.buyer ?? {};
@@ -216,6 +222,7 @@ export class JourneyState {
       verification: this.verification,
       placedOrders: this.placedOrders,
       paymentSummary: this.paymentSummary,
+      identityDocument: this.identityDocument,
       answers: this.answers,
       emrEvents: this.emrEvents,
       buyer: this.buyer,
@@ -297,8 +304,8 @@ export class JourneyState {
     this.disqualifiedTeleform = null;
   }
 
-  recordVerification(status: VerificationStatus, basis: string | null = null, check: string | null = null): void {
-    this.verification = { status, at: new Date().toISOString(), basis, check };
+  recordVerification(status: VerificationStatus, basis: string | null = null, check: string | null = null, reference: string | null = null): void {
+    this.verification = { status, at: new Date().toISOString(), basis, check, reference };
   }
 
   /** Deliberately not "did not fail": an inconclusive or never-asked verdict both answer false. */
@@ -351,5 +358,6 @@ export class JourneyState {
     this.attribution = null;
     this.buyer = {};
     this.paymentSummary = null;
+    this.identityDocument = null;
   }
 }

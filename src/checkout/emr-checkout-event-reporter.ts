@@ -273,7 +273,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
 
     const emailVerified =
       email !== '' && this.verification !== null && this.verification.isEnabled() && (await this.verification.emailIsDeliverable(email)) === true;
-    const id = EmrCheckoutEventReporter.identityBlock(state?.verification ?? null);
+    const id = EmrCheckoutEventReporter.identityBlock(state?.verification ?? null, state?.identityDocument ?? null);
 
     if (!emailVerified && id === null) return null;
 
@@ -281,19 +281,27 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
   }
 
   /**
-   * The identity check's outcome, from the verdict `VerificationStep` recorded on the journey.
-   * Only a decisive verdict is reported — `inconclusive` means the check could not run, which
-   * verified nothing — and only when the check maps to a method the EMR knows. `value` is the
-   * provider's own `basis` when it gave one (a coded descriptor, safe to log), else the method
-   * itself: never an SSN or date of birth, which this class never holds.
+   * How the buyer's identity was established, from the verdict `VerificationStep` recorded on the
+   * journey, else from an ID document they uploaded on the intake.
+   *
+   * A decisive online check wins. `inconclusive` means the check could not run, which verified
+   * nothing, and a check the EMR has no method for is not reported. `value` is the provider's own
+   * reference id for the check, which sales files as the patient's identity reference (and hands
+   * Beluga as the online verification id); it is omitted when the provider gave none, never filled
+   * with an answer — this class holds no SSN or date of birth.
+   *
+   * With no online check, an uploaded ID document is reported as `document_upload`: `verified` is
+   * null because nobody has reviewed it yet, and `value` is its path at the EMR.
    */
-  private static identityBlock(record: VerificationRecord | null): VerificationBlock['id'] | null {
-    if (record === null || record.status === 'inconclusive') return null;
+  private static identityBlock(record: VerificationRecord | null, documentPath: string | null): VerificationBlock['id'] | null {
+    const method = record === null || record.check === null ? undefined : IDENTITY_METHOD_FOR[record.check];
 
-    const method = record.check === null ? undefined : IDENTITY_METHOD_FOR[record.check];
-    if (method === undefined) return null;
+    if (record !== null && record.status !== 'inconclusive' && method !== undefined) {
+      const reference = record.reference ?? null;
+      return { verified: record.status === 'passed', method, ...(reference === null ? {} : { value: reference }) };
+    }
 
-    return { verified: record.status === 'passed', method, value: record.basis ?? method };
+    return documentPath === null ? null : { verified: null, method: 'document_upload', value: documentPath };
   }
 
   private utmSource(): string | null {

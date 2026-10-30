@@ -7,13 +7,13 @@ const SESSION = 'sess-1';
 
 /** Ported from lamp's EmrCheckoutEventReporterTest payment/verification sync cases. */
 describe('EmrCheckoutEventReporter treatmentsSynced', () => {
-  function build(opts: { verification?: VerificationGateway | null; email?: string | null; identity?: { status: string; check: string | null; basis: string | null } | null } = {}) {
+  function build(opts: { verification?: VerificationGateway | null; email?: string | null; identity?: { status: string; check: string | null; basis: string | null; reference?: string | null } | null; document?: string | null } = {}) {
     const sync = jest.fn().mockResolvedValue(response([{ id: 'tr-1' }]));
     const { log } = capturedLog();
     const events = { append: jest.fn().mockResolvedValue(undefined) };
     const orders = { findByReference: jest.fn().mockResolvedValue(null) };
     const email = opts.email === undefined ? 'ada@example.com' : opts.email;
-    const journeyStoreFactory = { get: () => ({ currentState: () => (email === null && !opts.identity ? null : { buyer: { email: email ?? '' }, attribution: null, verification: opts.identity ? { at: 'now', ...opts.identity } : null }) }) };
+    const journeyStoreFactory = { get: () => ({ currentState: () => (email === null && !opts.identity && !opts.document ? null : { buyer: { email: email ?? '' }, attribution: null, identityDocument: opts.document ?? null, verification: opts.identity ? { at: 'now', ...opts.identity } : null }) }) };
     const config = { app: { session: { analytics: true } }, get: (_k: string, d: unknown) => d };
     const request = { get: () => 'Mozilla/5.0 (test)' };
 
@@ -93,17 +93,17 @@ describe('EmrCheckoutEventReporter treatmentsSynced', () => {
     ['dob_verify', 'dob'],
     ['ssn_verify', 'ssn'],
   ])('reports a decisive %s identity check as method %s, even with no email verified', async (check, method) => {
-    const t = build({ email: null, identity: { status: 'passed', check, basis: 'name_phone_match' } });
+    const t = build({ email: null, identity: { status: 'passed', check, basis: 'name_phone_match', reference: 'dummy-1793352951978' } });
     await t.reporter.treatmentsSynced(SESSION, ['34660']);
 
-    expect(t.options().verification).toEqual({ email: false, address: false, id: { verified: true, method, value: 'name_phone_match' } });
+    expect(t.options().verification).toEqual({ email: false, address: false, id: { verified: true, method, value: 'dummy-1793352951978' } });
   });
 
-  it('reports a failed identity check as not verified, with the method as value when there is no basis', async () => {
+  it('reports a failed identity check as not verified, and leaves value out when the provider gave no reference', async () => {
     const t = build({ verification: gateway(true), identity: { status: 'failed', check: 'dob_verify', basis: null } });
     await t.reporter.treatmentsSynced(SESSION, ['34660']);
 
-    expect(t.options().verification).toEqual({ email: true, address: false, id: { verified: false, method: 'dob', value: 'dob' } });
+    expect(t.options().verification).toEqual({ email: true, address: false, id: { verified: false, method: 'dob' } });
   });
 
   it.each([
@@ -115,5 +115,28 @@ describe('EmrCheckoutEventReporter treatmentsSynced', () => {
     await t.reporter.treatmentsSynced(SESSION, ['34660']);
 
     expect(t.options()).not.toHaveProperty('verification');
+  });
+
+  it('reports an uploaded ID document as document_upload, pending review', async () => {
+    const path = 'acct/org/intake_submissions/7b2c6c1e-0000-4000-8000-000000000001/license.jpg';
+    const t = build({ email: null, document: path });
+    await t.reporter.treatmentsSynced(SESSION, ['34660']);
+
+    expect(t.options().verification).toEqual({ email: false, address: false, id: { verified: null, method: 'document_upload', value: path } });
+  });
+
+  it('prefers a decisive online check over an uploaded document', async () => {
+    const t = build({ email: null, document: 'acct/org/intake_submissions/x/id.jpg', identity: { status: 'passed', check: 'crosscheck', basis: 'score', reference: 'ref-1' } });
+    await t.reporter.treatmentsSynced(SESSION, ['34660']);
+
+    expect(t.options().verification).toEqual({ email: false, address: false, id: { verified: true, method: 'cross_check', value: 'ref-1' } });
+  });
+
+  it('falls back to the uploaded document when the online check was inconclusive', async () => {
+    const path = 'acct/org/intake_submissions/x/id.jpg';
+    const t = build({ email: null, document: path, identity: { status: 'inconclusive', check: 'crosscheck', basis: null } });
+    await t.reporter.treatmentsSynced(SESSION, ['34660']);
+
+    expect((t.options().verification as { id: unknown }).id).toEqual({ verified: null, method: 'document_upload', value: path });
   });
 });

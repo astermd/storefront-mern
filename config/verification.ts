@@ -18,6 +18,11 @@ export interface VerificationConfig {
   blocking: boolean;
   /** Run in this order until one comes back decisive — see `IdentityVerificationSequence`. */
   checks: IdentityCheckConfig[];
+  /**
+   * A file-upload question whose label or name matches this (case-insensitive) is the visitor's ID
+   * document: its uploaded path is reported as the identity `document_upload` on the treatments sync.
+   */
+  documentFieldPattern?: string;
 }
 
 export function loadVerificationConfig(env: NodeJS.ProcessEnv): VerificationConfig {
@@ -25,6 +30,7 @@ export function loadVerificationConfig(env: NodeJS.ProcessEnv): VerificationConf
     enabled: env.IDENTITY_VERIFICATION === 'true',
     placement: 'intake',
     blocking: false,
+    documentFieldPattern: env.IDENTITY_DOCUMENT_FIELD ?? '\\b(id|identity|licen[cs]e|passport|document)\\b',
     checks: [
       { slug: 'crosscheck', required: ['firstName', 'lastName'], narrowing: ['email', 'phone', 'ipAddress', 'address'] },
       { slug: 'dob_verify', required: ['firstName', 'lastName', 'phone', 'dob'], narrowing: ['email', 'address'] },

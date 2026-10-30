@@ -111,7 +111,7 @@ export class VerificationStep {
   async run(cart: Cart, state: JourneyState, submitted: Record<string, unknown>, ipAddress: string | null): Promise<IdentityVerdict> {
     const verdict = await this.sequence.run(await this.identity(cart, state, submitted, ipAddress));
 
-    state.recordVerification(verdict.status, verdict.basis, verdict.check);
+    state.recordVerification(verdict.status, verdict.basis, verdict.check, verdict.reference);
 
     // Deliberately the verdict's own context and nothing else.
     this.log.info('verify.recorded', verdict.logContext());

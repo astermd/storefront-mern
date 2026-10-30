@@ -55,4 +55,14 @@ describe('IdentityVerdict', () => {
       cached: true,
     });
   });
+
+  it('reads the provider reference id from the raw payload', () => {
+    const verdict = IdentityVerdict.fromProviderData('ssn_verify', { valid: true, raw: { id: 'dummy-123' } });
+
+    expect(verdict.reference).toBe('dummy-123');
+  });
+
+  it.each([[{ valid: true }], [{ valid: true, raw: {} }], [{ valid: true, raw: { id: 42 } }], [{ valid: true, raw: { id: ' ' } }]])('has no reference for %j', (data) => {
+    expect(IdentityVerdict.fromProviderData('ssn_verify', data).reference).toBeNull();
+  });
 });

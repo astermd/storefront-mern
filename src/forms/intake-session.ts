@@ -54,7 +54,7 @@ export class IntakeSession {
     private readonly leads: LeadWriter,
     private readonly mapper: RecordMapper,
     private readonly log: OperatorLog,
-    config: ConfigService,
+    private readonly config: ConfigService,
   ) {
     // The hosted engine keeps a picked file's name and never its bytes, so under it a file or a
     // signature cannot be collected.
@@ -231,8 +231,40 @@ export class IntakeSession {
     // Answers to questions the form no longer asks are carried through rather than dropped — a
     // republished form that removes a question must not destroy what was already answered.
     state?.storeAnswers(teleformId, { ...IntakeSession.orphans(stored, definition), ...answers.all() });
+    if (state !== null && state !== undefined) {
+      state.identityDocument = this.identityDocumentIn(definition, answers) ?? state.identityDocument;
+    }
 
     return answers;
+  }
+
+  /**
+   * The EMR path of the visitor's ID document: the first file uploaded to a file-upload question
+   * whose label or name matches `verification.documentFieldPattern`. Null when there is none — a
+   * form with other uploads (lab results, say) must not have one of them reported as an ID.
+   */
+  private identityDocumentIn(definition: Definition, answers: AnswerSet): string | null {
+    const source = this.config.verification.documentFieldPattern;
+    if (source === undefined || source === '') return null;
+
+    let pattern: RegExp;
+    try {
+      pattern = new RegExp(source, 'i');
+    } catch {
+      return null;
+    }
+
+    for (const field of definition.fields()) {
+      if (!field.isFileUpload() || !(pattern.test(field.label) || pattern.test(field.name))) continue;
+
+      const value = answers.value(field.name);
+      for (const entry of Array.isArray(value) ? value : [value]) {
+        const reference = FileReference.fromArray(entry);
+        if (reference !== null) return reference.path;
+      }
+    }
+
+    return null;
   }
 
   /**
