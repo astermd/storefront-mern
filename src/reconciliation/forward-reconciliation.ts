@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CheckoutEventReporter } from '../checkout/checkout-event-reporter';
-import { CHECKOUT_EVENT_REPORTER } from '../core/tokens';
+import { SWEEP_CHECKOUT_EVENT_REPORTER } from '../core/tokens';
 import { OrderRepository } from '../repository/order-repository';
 import { FailureDigest } from '../support/failure-digest';
 import { OperatorLog } from '../support/operator-log';
@@ -47,7 +47,9 @@ export class ForwardReconciliation {
 
   constructor(
     private readonly orders: OrderRepository,
-    @Inject(CHECKOUT_EVENT_REPORTER) private readonly events: CheckoutEventReporter,
+    // The sweep's own, non-request-scoped reporter: through the request-scoped one the console could
+    // not construct this class at all, and `emr:reconcile` failed on every run.
+    @Inject(SWEEP_CHECKOUT_EVENT_REPORTER) private readonly events: CheckoutEventReporter,
     private readonly log: OperatorLog,
   ) {}
 

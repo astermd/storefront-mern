@@ -26,6 +26,12 @@ export const IDENTITY_GATEWAY = Symbol('IdentityGateway');
 export const PAYMENT_ADAPTER = Symbol('PaymentAdapter');
 export const ORDER_RECORDER = Symbol('OrderRecorder');
 export const CHECKOUT_EVENT_REPORTER = Symbol('CheckoutEventReporter');
+/**
+ * The same reporter for code that runs outside any request — the forward reconciliation sweep
+ * behind `emr:reconcile`. Not request-scoped, so the console can build it: it reads no journey and
+ * no request, and takes the user agent from the order row.
+ */
+export const SWEEP_CHECKOUT_EVENT_REPORTER = Symbol('SweepCheckoutEventReporter');
 
 // Infrastructure tokens — not ports in the PHP original's sense, but still bound once in
 // CoreModule so nothing outside it constructs them directly.

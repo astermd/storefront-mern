@@ -107,6 +107,7 @@ import {
   COUPON_GATEWAY,
   CART_GATEWAY,
   CHECKOUT_EVENT_REPORTER,
+  SWEEP_CHECKOUT_EVENT_REPORTER,
   DATABASE_CONNECTION,
   EMR_VERIFICATION_GATEWAY,
   IDENTITY_GATEWAY,
@@ -399,9 +400,11 @@ class DatabaseLifecycle implements OnModuleDestroy {
     { provide: ORDER_RECORDER, useExisting: DatabaseOrderRecorder },
     NullCheckoutEventReporter,
     {
-      // Config-gated real-vs-Null, matching every other real EMR port in this module
-      // (`SESSION_GATEWAY`/`CART_GATEWAY`/`LEAD_GATEWAY`) — real once `session.analytics` is on,
-      // matching `AppFactory.php`'s own unconditional binding of `EmrCheckoutEventReporter`. Built
+      // Bound whatever the analytics flag says, as `AppFactory.php` binds `EmrCheckoutEventReporter`
+      // unconditionally: `[18.1]`'s local audit trail (`checkout.*`/`upsell_*` rows) is the
+      // storefront's own record and must survive analytics being switched off. The flag is checked
+      // inside the reporter, before each EMR call (`reportToEmr()`), so analytics off still sends
+      // the EMR nothing. Built
       // after discovering, live, that a fully successful checkout in this port still told AsterMD
       // nothing at all: no `checkoutEvents()` funnel record, and — the more serious half — no
       // `treatments().sync()` call, meaning even a real, paid order would never reach a clinician's
@@ -420,12 +423,18 @@ class DatabaseLifecycle implements OnModuleDestroy {
         instrumentation: Instrumentation,
         verification: VerificationGateway,
       ) =>
-        instrumentation.checkoutEventReporter(
-          config.app.session.analytics
-            ? new EmrCheckoutEventReporter(clients, events, orders, log, journeyStoreFactory, config, request, verification)
-            : nullReporter,
-        ),
-      inject: [ConfigService, EmrClientFactory, EventRepository, OrderRepository, OperatorLog, JourneyStoreFactory, REQUEST, NullCheckoutEventReporter, Instrumentation, EMR_VERIFICATION_GATEWAY],
+        instrumentation.checkoutEventReporter(new EmrCheckoutEventReporter(clients, events, orders, log, journeyStoreFactory, config, request, verification)),
+      inject: [ConfigService, EmrClientFactory, EventRepository, OrderRepository, OperatorLog, JourneyStoreFactory, REQUEST, Instrumentation, EMR_VERIFICATION_GATEWAY],
+    },
+    {
+      // The reporter the forward reconciliation sweep uses: the same class, built with no request
+      // and no journey, so it is a singleton the console can construct. lamp gets this for free by
+      // handing the reporter closures that read the journey lazily; through the request-scoped
+      // binding above, `emr:reconcile` could never be built and failed on every run.
+      provide: SWEEP_CHECKOUT_EVENT_REPORTER,
+      useFactory: (config: ConfigService, clients: EmrClientFactory, events: EventRepository, orders: OrderRepository, log: OperatorLog, instrumentation: Instrumentation, verification: VerificationGateway) =>
+        instrumentation.checkoutEventReporter(new EmrCheckoutEventReporter(clients, events, orders, log, null, config, null, verification)),
+      inject: [ConfigService, EmrClientFactory, EventRepository, OrderRepository, OperatorLog, Instrumentation, EMR_VERIFICATION_GATEWAY],
     },
     // Phase 9 — SEO.
     MetaResolver,
