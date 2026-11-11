@@ -11,7 +11,7 @@ import { CouponGateway } from './coupon-gateway';
  * then refused (`[13.18]`).
  */
 export class NullCouponGateway implements CouponGateway {
-  async quote(code: string, _lines: OrderLine[]): Promise<PromotionQuote> {
+  async quote(code: string, _lines: OrderLine[], _email: string | null = null): Promise<PromotionQuote> {
     return PromotionQuote.rejected(code, 'unsupported');
   }
 

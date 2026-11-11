@@ -1,7 +1,7 @@
 import { IsOptional, IsString } from 'class-validator';
 
 /**
- * The 8 `BuyerDetails` fields, shared by every checkout sub-action DTO (`bump`/`promo`/
+ * The `BuyerDetails` fields (8 contact/delivery, plus the optional billing set), shared by every checkout sub-action DTO (`bump`/`promo`/
  * `promo/remove`/`plan`) — `[27.10]`: every sub-action reposts the whole form so
  * `CheckoutController.rememberBuyer()` can keep what the buyer already typed, even though the
  * sub-action itself only acts on one other field.
@@ -42,4 +42,33 @@ export class BuyerContactFieldsDto {
   @IsOptional()
   @IsString()
   postal_code?: string;
+
+  /** "Use a different billing address": `on` when ticked; the `billing_*` fields are read only then (`[13.2]`). */
+  @IsOptional()
+  @IsString()
+  billing_different?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_first_name?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_last_name?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_address_line?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_city?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_territory?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_postal_code?: string;
 }

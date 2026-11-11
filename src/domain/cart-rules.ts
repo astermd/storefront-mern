@@ -2,6 +2,7 @@ import { Cart } from './cart';
 import { CartLine } from './cart-line';
 import { CartOutcome } from './cart-outcome';
 import { CatalogProduct, ProductCatalog, ProductVariant } from './product-catalog';
+import { VariantPlans } from './variant-plans';
 
 /**
  * Ported from storefront-lamp/core/Domain/CartRules.php. Every rule §7 states about a cart, as
@@ -26,6 +27,8 @@ export class CartRules {
   static readonly UNKNOWN_PRODUCT = 'That product is not available.';
   static readonly GEO_BLOCKED = 'This product is not available in your region.';
   static readonly UNKNOWN_VARIANT = 'Choose a treatment plan before continuing.';
+
+  static readonly UNKNOWN_SUBSCRIPTION = 'That subscription is not available for this treatment.';
   static readonly CHILD_UNAVAILABLE = '%s cannot be added right now: a required item (%s) is unavailable.';
   static readonly CHILD_LOCKED = '%s is included with %s and cannot be changed on its own.';
   static readonly RX_QTY_FIXED = 'Prescription quantities are fixed at one per order.';
@@ -85,7 +88,8 @@ export class CartRules {
     if (variantId !== null) {
       line.variantId = variantId;
     }
-    line.unitPriceCents = CartRules.priceFor(product, line.variantId);
+    line.planId = CartRules.planFor(product, line.variantId, line.planId);
+    line.unitPriceCents = CartRules.priceFor(product, line.variantId, line.planId);
     line.quantity = CartRules.clampQuantity(product, line.quantity + Math.max(1, quantity));
 
     this.attachChildren(cart, slug);
@@ -182,7 +186,31 @@ export class CartRules {
     }
 
     line.variantId = variantId;
-    line.unitPriceCents = CartRules.priceFor(product, variantId);
+    line.planId = CartRules.planFor(product, variantId, line.planId);
+    line.unitPriceCents = CartRules.priceFor(product, variantId, line.planId);
+
+    return CartOutcome.accepted();
+  }
+
+  /**
+   * `[12.4]`: which of its variant's subscription plans a line is sold on, re-pricing it at that
+   * plan's first payment. A plan the line's variant is not sold on is refused rather than replaced
+   * by the default, for the reason a foreign variant is (`[12.9]`): the order would name a plan the
+   * buyer was never shown.
+   */
+  chooseSubscription(cart: Cart, slug: string, planId: string): CartOutcome {
+    const line = cart.line(slug);
+    const product = this.catalog.product(slug);
+    if (line === null || product === null) {
+      return CartOutcome.rejected(CartRules.UNKNOWN_PRODUCT);
+    }
+
+    if (!VariantPlans.offers(CartRules.pricedVariant(product, line.variantId), planId)) {
+      return CartOutcome.rejected(CartRules.UNKNOWN_SUBSCRIPTION);
+    }
+
+    line.planId = planId;
+    line.unitPriceCents = CartRules.priceFor(product, line.variantId, planId);
 
     return CartOutcome.accepted();
   }
@@ -296,20 +324,55 @@ export class CartRules {
   /**
    * `[7.4]` with `[7.14a]` on top: a `free-addon` is always zero, an `rx` with no plan chosen yet
    * is zero because its price is not knowable until the variant is (`[12.4]`), and everything else
-   * takes the chosen variant's price or the first variant's.
+   * takes the chosen variant's price or the first variant's — or, for a variant sold on a
+   * subscription plan the buyer chose over its default, that plan's first payment.
    */
-  private static priceFor(product: CatalogProduct, variantId: string | null): number {
+  private static priceFor(product: CatalogProduct, variantId: string | null, planId: string | null = null): number {
     if (product.kind === 'free-addon') return 0;
 
     if (variantId !== null) {
       const variant = CartRules.variant(product, variantId);
-      if (variant !== null) return variant.price_cents ?? 0;
+      if (variant !== null) return CartRules.planPrice(variant, planId) ?? variant.price_cents ?? 0;
     }
 
     if (product.kind === 'rx') return 0;
 
     const variants = CartRules.variants(product);
-    return variants[0]?.price_cents ?? product.price_cents ?? 0;
+    const planned = variants[0] !== undefined ? CartRules.planPrice(variants[0], planId) : null;
+
+    return planned ?? variants[0]?.price_cents ?? product.price_cents ?? 0;
+  }
+
+  /**
+   * The first payment of the plan the buyer chose for this variant, or null when the variant's own
+   * price stands: it is sold one-off, or on its default plan, whose first payment `theme:sync`
+   * already wrote into `price_cents` — where a deployment's override of that price must keep
+   * winning, as it did before a plan could be chosen.
+   */
+  private static planPrice(variant: ProductVariant, planId: string | null): number | null {
+    const plan = VariantPlans.chosen(variant, planId);
+    const fallback = VariantPlans.of(variant)[0] ?? null;
+
+    if (plan === null || plan.id === fallback?.id || !Number.isInteger(plan.first_payment_cents)) return null;
+
+    return plan.first_payment_cents as number;
+  }
+
+  /**
+   * The plan a line is on once its variant is known: the one it is already on while that variant
+   * is still sold on it, otherwise the variant's default; null for a variant sold one-off, and for
+   * an Rx line whose variant is not chosen yet, which has no plan until it has a variant (`[12.9]`).
+   */
+  private static planFor(product: CatalogProduct, variantId: string | null, planId: string | null): string | null {
+    return VariantPlans.chosen(CartRules.pricedVariant(product, variantId), planId)?.id ?? null;
+  }
+
+  /** The variant a line is priced on, by `priceFor()`'s rule: the chosen one, or the first for anything but an Rx line, whose variant has to be chosen. */
+  private static pricedVariant(product: CatalogProduct, variantId: string | null): ProductVariant | null {
+    const variant = variantId !== null ? CartRules.variant(product, variantId) : null;
+    if (variant !== null || product.kind === 'rx') return variant;
+
+    return CartRules.variants(product)[0] ?? null;
   }
 
   private static variant(product: CatalogProduct, variantId: string): ProductVariant | null {

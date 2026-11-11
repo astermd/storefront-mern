@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import { join } from 'node:path';
 import { Global, Inject, Injectable, Module, OnModuleDestroy } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
@@ -82,6 +83,7 @@ import { StripeAdapter } from '../payment/stripe/stripe-adapter';
 import { StripeApiFactory } from '../payment/stripe/stripe-api-factory';
 import { StripeCredentials } from '../payment/stripe/stripe-credentials';
 import { StripeRefusingTransport } from '../payment/stripe/stripe-refusing-transport';
+import { StripeWireLog } from '../payment/stripe/stripe-wire-log';
 import { VrioAdapter } from '../payment/vrio/vrio-adapter';
 import { VrioApiFactory } from '../payment/vrio/vrio-api-factory';
 import { VrioCredentials } from '../payment/vrio/vrio-credentials';
@@ -357,15 +359,20 @@ class DatabaseLifecycle implements OnModuleDestroy {
         );
 
         // The third. Stripe's SDK declares its own HTTP client, so its fence is its own refusing
-        // transport, installed under the suite exactly where the other two install theirs. Stripe
-        // has no wire log: its card never reaches this process, and the SDK's own request log would
-        // sit beside the one the EMR already keeps of the payment.
+        // transport, installed under the suite exactly where the other two install theirs. Composed
+        // as the other two are: the fence underneath, the wire log wrapping whatever is there.
         registry.register(
           'stripe',
           () =>
             new StripeAdapter(
               StripeCredentials.fromChannelConfig(channelGenerated.payment_processor.config),
-              new StripeApiFactory(config.app.env === 'test' ? new StripeRefusingTransport() : null),
+              new StripeApiFactory(
+                (() => {
+                  const inner = config.app.env === 'test' ? new StripeRefusingTransport() : null;
+                  if (config.app.debug.wireLog !== true) return inner;
+                  return new StripeWireLog(inner ?? Stripe.createNodeHttpClient(), join(rootDir, 'storage/logs/stripe-wire.log'));
+                })(),
+              ),
               log,
               coupons,
               channelGenerated.channel.id ?? '',

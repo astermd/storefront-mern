@@ -33,9 +33,12 @@ const PI = 'pi_3QxSemaA1b2C3d4E';
 
 /** A coupon gateway that prices every code at $10 off, or answers what it is given. */
 class FixedCoupons implements CouponGateway {
+  readonly emails: Array<string | null | undefined> = [];
+
   constructor(private readonly answer: PromotionQuote | null = null) {}
 
-  async quote(code: string): Promise<PromotionQuote> {
+  async quote(code: string, _lines: unknown, email?: string | null): Promise<PromotionQuote> {
+    this.emails.push(email);
     return this.answer ?? PromotionQuote.accepted(code, 1000, COUPON);
   }
 
@@ -153,6 +156,7 @@ describe('StripeAdapter', () => {
     expect(outcome.settlement).toBe(SettlementMode.Capture);
     expect(outcome.providerCardBrand).toBe(CardBrand.Visa);
     expect(outcome.providerCardExpiry).toBe('04/31');
+    expect(outcome.providerCardLastFour).toBe('4242');
     expect(outcome.reusableCredential?.isReusable()).toBe(true);
     expect(outcome.reusableCredential?.handle).toEqual({ customer: 'cus_VWTGV3w2nz1PqB', payment_method: 'pm_1Card' });
   });
@@ -448,8 +452,10 @@ describe('StripeAdapter', () => {
     });
 
     it('prices a code through the EMR', async () => {
-      const quote = await adapter(new FixedCoupons()).quotePromotion(envelope(), 'foobar');
+      const coupons = new FixedCoupons();
+      const quote = await adapter(coupons).quotePromotion(envelope(), 'foobar');
 
+      expect(coupons.emails).toEqual([envelope().buyer.email]);
       expect(quote.accepted).toBe(true);
       expect(quote.discountCents).toBe(1000);
       expect(quote.reference).toBe(COUPON);

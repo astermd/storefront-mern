@@ -50,6 +50,16 @@ describe('shared payment layer additions', () => {
     expect(CardDescriptor.fromCredential(PaymentCredential.card('4111111111111111', '12', '2030', '123'), null, '04/29').toArray().exp).toBe('12/30');
   });
 
+  it("sends the card's last four as last_4, from the provider only when the storefront never saw the number", () => {
+    const typed = PaymentCredential.card('4111111111111234', '12', '2030', '123');
+    expect(CardDescriptor.fromCredential(typed, null, null, '9999').toArray()).toEqual({ type: 'visa', last_4: '1234', exp: '12/30' });
+
+    const token = PaymentCredential.token('ctoken_1');
+    expect(CardDescriptor.fromCredential(token, 'visa', '04/29', '4242').toArray()).toEqual({ type: 'visa', last_4: '4242', exp: '04/29' });
+    expect(CardDescriptor.fromCredential(token, 'visa', '04/29', '42x2').toArray()).toEqual({ type: 'visa', exp: '04/29' });
+    expect(CardDescriptor.fromCredential(token, 'visa', '04/29').toArray()).not.toHaveProperty('bin');
+  });
+
   it('journey state round-trips a pending payment and drops a partial one', () => {
     const pending = { reference: 'pi_1', idempotency_key: 'k', claimed_at: '2026-01-01T00:00:00Z' };
     const state = JourneyState.fromArray({ pendingPayment: pending }, null, null);

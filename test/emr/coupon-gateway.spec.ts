@@ -8,8 +8,8 @@ import { capturedLog, response } from '../support/fake-emr-client';
 /**
  * Coupon gateway coverage, after the cases storefront-lamp exercises through its Stripe adapter
  * tests: the EMR's `POST /coupons/validate` answers {discount_cents, coupon_id}, 404 for an unknown
- * code and 422 with a buyer-facing message for every other refusal. The installed SDK has no
- * coupons resource yet, so the client here is a stand-in exposing one.
+ * code and 422 with a buyer-facing message for every other refusal. The client here is a stand-in
+ * exposing the SDK 0.0.4 coupons resource (`validate({ code, items, email? })`).
  */
 const line = () => new OrderLine('slug', 'Name', 'o', 'i', 1000, 2, 'otc', 'p1', 'v1', null);
 
@@ -38,7 +38,7 @@ describe('EmrCouponGateway', () => {
     expect(g.available()).toBe(true);
     const quote = await g.quote(' SAVE10 ', [line()]);
 
-    expect(validate).toHaveBeenCalledWith('SAVE10', [{ product_id: 'p1', variant_id: 'v1', quantity: 2 }]);
+    expect(validate).toHaveBeenCalledWith({ code: 'SAVE10', items: [{ product_id: 'p1', variant_id: 'v1', quantity: 2 }] });
     expect(quote.accepted).toBe(true);
     expect(quote.discountCents).toBe(250);
     expect(quote.reference).toBe('c_1');
@@ -50,7 +50,25 @@ describe('EmrCouponGateway', () => {
 
     await g.quote('X', [new OrderLine('s', 'n', 'o', 'i', 1000, 1, 'otc', 'p1', 'v1', 'plan_9')]);
 
-    expect(validate).toHaveBeenCalledWith('X', [{ plan_id: 'plan_9', quantity: 1 }]);
+    expect(validate).toHaveBeenCalledWith({ code: 'X', items: [{ plan_id: 'plan_9', quantity: 1 }] });
+  });
+
+  it('names the buyer by a trimmed email, so a patient-only coupon can match', async () => {
+    const validate = jest.fn().mockResolvedValue(response({ discount_cents: 100, coupon_id: 'c_1' }));
+    const { gateway: g } = gateway({ validate });
+
+    await g.quote('X', [line()], '  ada@example.com ');
+
+    expect(validate).toHaveBeenCalledWith({ code: 'X', items: [{ product_id: 'p1', variant_id: 'v1', quantity: 2 }], email: 'ada@example.com' });
+  });
+
+  it.each([[null], [''], ['   '], ['ada@'], ['not an email']])('leaves the email out when it is %p', async (email) => {
+    const validate = jest.fn().mockResolvedValue(response({ discount_cents: 100, coupon_id: 'c_1' }));
+    const { gateway: g } = gateway({ validate });
+
+    await g.quote('X', [line()], email);
+
+    expect(validate.mock.calls[0][0]).not.toHaveProperty('email');
   });
 
   it('refuses without calling the EMR when a line has no EMR ids, or the code or cart is empty', async () => {

@@ -1,3 +1,4 @@
+import { SettlementModeValue } from './settlement-mode';
 import { AdapterCapabilities } from './adapter-capabilities';
 import { CaptureOutcome } from './capture-outcome';
 import { CaptureRequest } from './capture-request';
@@ -30,6 +31,13 @@ export interface PaymentAdapter {
    */
   resume(reference: string): Promise<PlacementOutcome>;
   quotePromotion(order: OrderEnvelope, code: string): Promise<PromotionQuote>;
+  /**
+   * What this adapter will actually do with the order's money, after any narrowing the provider
+   * applies to the cart's `settlement` (Stripe holds only an order with a prescription in it, for
+   * one). The checkout page is set up from it, so it promises what the submit will do. Optional: an
+   * adapter without it settles exactly as the cart says.
+   */
+  settlementFor?(order: OrderEnvelope): SettlementModeValue;
   searchOrders(search: OrderSearch): Promise<OrderSearchResult>;
   capture(request: CaptureRequest): Promise<CaptureOutcome>;
   ping(): Promise<{ ok: boolean; detail: string }>;

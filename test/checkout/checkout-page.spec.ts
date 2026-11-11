@@ -150,4 +150,127 @@ describe('checkout page renders', () => {
     expect(html).not.toContain('data-challenge');
     expect(html).not.toContain('payment-none.js');
   });
+
+  describe('one form, so every sub-action posts what the buyer typed', () => {
+    function happyPath(caps: AdapterCapabilities): string {
+      const checkout = new CheckoutViewModel(
+        { first_name: 'Jane', email: 'jane@example.com' },
+        {},
+        null,
+        Totals.of(15000, null),
+        [],
+        [{ key: 'sleep-mask', slug: 'sleep-mask', headline: 'Add a Sleep Mask', body: 'Free with your order.', name: 'Sleep Mask', price_cents: 0, catalog_price_cents: 500, discounted: true, image: null }],
+        semaglutidePlan,
+        [],
+        caps,
+        Promotion.fromArray({ code: 'SAVE10', discount_cents: 1000 }),
+        'USD',
+        1,
+        [semaglutidePlan],
+        false,
+      );
+      return render({ ...baseGlobals, noindex: true, checkout });
+    }
+
+    const submitButtons = (html: string): string[] => html.match(/<button[^>]*type="submit"[^>]*>/g) ?? [];
+
+    it('renders no second form: plan, bump and promo are formaction buttons of the checkout form', () => {
+      const html = happyPath(promotionCapableCapabilities);
+
+      expect((html.match(/<form\b/g) ?? []).length).toBe(1);
+      // The only control outside the form is a remove button, and it names the checkout form.
+      expect(html.match(/\sform="[^"]*"/g) ?? []).toEqual((html.match(/\sform="checkout-form"/g) ?? []));
+      expect(html).toMatch(/<button type="submit" formaction="\/checkout\/plan" name="plan\[semaglutide\]" value="plan-3mo" aria-pressed="true"/);
+      expect(html).toMatch(/<button type="submit" formaction="\/checkout\/plan" name="plan\[semaglutide\]" value="plan-1mo" aria-pressed="false"/);
+      expect(html).toMatch(/<button type="submit" formaction="\/checkout\/bump" name="bump_slug" value="sleep-mask"/);
+      expect(html).toMatch(/<button type="submit" formaction="\/checkout\/promo\/remove"/);
+      expect(html).toMatch(/<input type="text" id="checkout-discount"[^>]*name="discount_code"/);
+    });
+
+    it('answers Enter with the hidden apply-code button, never Pay Now or a sub-action', () => {
+      const first = submitButtons(happyPath(promotionCapableCapabilities))[0];
+
+      expect(first).toContain('formaction="/checkout/promo"');
+      expect(first).toContain('data-promo-apply');
+      expect(first).toContain('data-default-guard');
+    });
+
+    it('answers Enter with nothing at all when the provider has no discount codes', () => {
+      const first = submitButtons(happyPath(capabilities))[0];
+
+      expect(first).toContain('disabled');
+      expect(first).toContain('data-default-guard');
+      expect(first).not.toContain('data-checkout-submit');
+    });
+  });
+
+  describe('subscriptions', () => {
+    const hosted = new AdapterCapabilities('stripe', true, SCOPE_ORDER_LEVEL, STRATEGY_TOKENIZATION, SURFACE_PROVIDER_HOSTED, [], [], 'Hosted.', false, false, false, true, [], { publishable_key: 'pk_test_1' }, true);
+    const nad = {
+      slug: 'nad',
+      name: 'Aritra Nad+',
+      variant_name: 'Aritra Nad+',
+      chosen: 'plan-b',
+      options: [
+        { id: 'plan-a', name: 'Aritra Boost Energy', description: 'Best for multi-product care', price_cents: 2000 },
+        { id: 'plan-b', name: 'Nad+ Simple Plan', description: '', price_cents: 3000 },
+      ],
+    };
+
+    function page(subscriptions: unknown[], notice: string, settlement: string): string {
+      const checkout = new CheckoutViewModel({}, {}, null, Totals.of(3000, null), [], [], null, [], hosted, null, 'USD', 1, [], false, null, subscriptions as never, notice, settlement);
+      return render({ ...baseGlobals, noindex: true, checkout });
+    }
+
+    it('lists every plan of the line, the chosen one pressed, each posting subscription[slug]', () => {
+      const html = page([nad], CheckoutViewModel.NOTICE_CHARGE, 'capture');
+
+      expect(html).toContain('Select Subscription');
+      expect(html).toContain('Aritra Nad+ · Aritra Nad+');
+      expect(html).toMatch(/formaction="\/checkout\/subscription" name="subscription\[nad\]" value="plan-a" aria-pressed="false"/);
+      expect(html).toMatch(/formaction="\/checkout\/subscription" name="subscription\[nad\]" value="plan-b" aria-pressed="true"/);
+      expect(html).toContain('Best for multi-product care');
+      expect(html).toContain('$30.00');
+    });
+
+    it('tells a subscription that takes the money it is charged today, and sets the card form to capture', () => {
+      const html = page([nad], CheckoutViewModel.NOTICE_CHARGE, 'capture');
+
+      expect(html).toContain('Your card will be charged today for the first payment of your subscription.');
+      expect(html).not.toContain('Payment authorization will be held');
+      expect(html).toContain('data-settlement="capture"');
+    });
+
+    it('keeps the hold notice, and a manual-capture card form, when the order is held', () => {
+      const html = page([], CheckoutViewModel.NOTICE_HOLD, 'authorize');
+
+      expect(html).not.toContain('Select Subscription');
+      expect(html).toContain('Payment authorization will be held');
+      expect(html).toContain('data-settlement="authorize"');
+    });
+  });
+
+  it("puts a remove button on the buyer's own lines only, posting the checkout form to /checkout/remove", () => {
+    const checkout = new CheckoutViewModel(
+      { first_name: 'Jane' },
+      {},
+      null,
+      Totals.of(3100, null),
+      [
+        { slug: 'nad', name: 'Aritra Nad+', quantity: 1, unit_price_cents: 3000, line_total_cents: 3000, variant_name: null, image: null, is_free: false, is_child: false },
+        { slug: 'cc', name: 'Minoxidil CC', quantity: 1, unit_price_cents: 100, line_total_cents: 100, variant_name: null, image: null, is_free: false, is_child: true },
+      ],
+      [],
+      null,
+      [],
+      capabilities,
+      null,
+      'USD',
+      1,
+    );
+    const html = render({ ...baseGlobals, noindex: true, checkout });
+
+    expect(html).toMatch(/<button type="submit" form="checkout-form" formaction="\/checkout\/remove" name="remove_slug" value="nad"/);
+    expect(html).not.toContain('name="remove_slug" value="cc"');
+  });
 });

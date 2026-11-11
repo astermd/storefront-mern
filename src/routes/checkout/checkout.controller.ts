@@ -4,11 +4,15 @@ import { BuyerDetails } from '../../checkout/buyer-details';
 import { CheckoutResult } from '../../checkout/checkout-result';
 import { CheckoutService } from '../../checkout/checkout.service';
 import { CheckoutViewModel } from '../../checkout/checkout-view-model';
+import { CartMirror } from '../../emr/cart-mirror';
 import { CartStoreFactory } from '../../journey/cart-store-factory';
+import { JourneyStoreFactory } from '../../journey/journey-store-factory';
 import { PaymentCredential } from '../../payment/payment-credential';
 import { RequestContext } from '../../support/request-context';
 import { ApplyPromoDto } from './dto/apply-promo.dto';
 import { ChoosePlanDto } from './dto/choose-plan.dto';
+import { ChooseSubscriptionDto } from './dto/choose-subscription.dto';
+import { RemoveLineDto } from './dto/remove-line.dto';
 import { SubmitCheckoutDto } from './dto/submit-checkout.dto';
 import { ToggleBumpDto } from './dto/toggle-bump.dto';
 
@@ -34,6 +38,8 @@ export class CheckoutController {
   constructor(
     private readonly checkout: CheckoutService,
     private readonly cartStoreFactory: CartStoreFactory,
+    private readonly mirror: CartMirror,
+    private readonly journeyStoreFactory: JourneyStoreFactory,
   ) {}
 
   @Get()
@@ -143,6 +149,50 @@ export class CheckoutController {
     }
 
     const outcome = this.checkout.choosePlan(slug, variantId);
+    if (outcome.notice !== null) {
+      this.cartStoreFactory.get().flash(outcome.notice);
+    }
+
+    res.redirect(303, CHECKOUT_PATH);
+  }
+
+  /**
+   * `[12.4]`: switching the subscription plan re-prices the line it names. Each button posts
+   * `subscription[<slug>]=<plan>` for the same reason the variant picker posts `plan[<slug>]`: with
+   * several lines on plans, only the button clicked is submitted, and it says which line it is for.
+   */
+  /**
+   * Removes a line from the order summary. The button belongs to the checkout form, so what the
+   * buyer typed is posted with it and kept, as for every other sub-action (`[27.10]`). The EMR's
+   * copy of the cart is updated as `/cart/remove` updates it; an emptied cart is sent on by the
+   * checkout step's own guard.
+   */
+  @Post('remove')
+  async removeLine(@Body() body: RemoveLineDto, @Req() req: Request, @Res() res: Response): Promise<void> {
+    this.checkout.rememberBuyer(BuyerDetails.fromSubmitted(body as unknown as Record<string, unknown>));
+
+    const outcome = this.checkout.removeLine(body.remove_slug ?? '');
+    const store = this.cartStoreFactory.get();
+    if (outcome.notice !== null) {
+      store.flash(outcome.notice);
+    }
+
+    if (outcome.accepted) {
+      const sessionUuid = (req as { sessionUuid?: string | null }).sessionUuid ?? null;
+      await this.mirror.mirror(sessionUuid, store.currentCart(), this.journeyStoreFactory.get().currentState());
+    }
+
+    res.redirect(303, CHECKOUT_PATH);
+  }
+
+  @Post('subscription')
+  subscription(@Body() body: ChooseSubscriptionDto, @Res() res: Response): void {
+    this.checkout.rememberBuyer(BuyerDetails.fromSubmitted(body as unknown as Record<string, unknown>));
+
+    const entries = body.subscription && typeof body.subscription === 'object' ? Object.entries(body.subscription) : [];
+    const [slug, planId] = entries.length === 1 ? [String(entries[0][0]), String(entries[0][1])] : ['', ''];
+
+    const outcome = this.checkout.chooseSubscription(slug, planId);
     if (outcome.notice !== null) {
       this.cartStoreFactory.get().flash(outcome.notice);
     }

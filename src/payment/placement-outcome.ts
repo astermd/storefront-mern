@@ -7,8 +7,9 @@ import { SettlementMode, SettlementModeValue } from './settlement-mode';
  * Ported from storefront-lamp/core/Payment/PlacementOutcome.php — the central result type every
  * `PaymentAdapter.place()` call returns.
  *
- * `providerCardExpiry` (`MM/YY`) is for a credential that carries no card of its own: a token
- * collected in the provider's fields leaves the storefront nothing to read an expiry from.
+ * `providerCardExpiry` (`MM/YY`) and `providerCardLastFour` are for a credential that carries no card
+ * of its own: a token collected in the provider's fields leaves the storefront nothing to read an
+ * expiry or a last four from.
  *
  * **`clientAction` is the one field that must never outlive the request.** It is what a pending
  * outcome hands the provider's own script on the page to run a challenge (`[14.22]`), and for at
@@ -34,6 +35,7 @@ export class PlacementOutcome {
     public readonly providerCardBrand: CardBrandValue | null = null,
     public readonly providerCardExpiry: string | null = null,
     public readonly clientAction: string | null = null,
+    public readonly providerCardLastFour: string | null = null,
   ) {}
 
   static placed(
@@ -45,6 +47,7 @@ export class PlacementOutcome {
     preAuthQa: boolean | null = null,
     providerCardBrand: CardBrandValue | null = null,
     providerCardExpiry: string | null = null,
+    providerCardLastFour: string | null = null,
   ): PlacementOutcome {
     return new PlacementOutcome(
       PlacementOutcome.PLACED,
@@ -58,6 +61,8 @@ export class PlacementOutcome {
       preAuthQa,
       providerCardBrand,
       providerCardExpiry,
+      null,
+      providerCardLastFour,
     );
   }
 

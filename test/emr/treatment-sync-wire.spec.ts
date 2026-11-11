@@ -46,7 +46,7 @@ describe('treatments sync on the wire', () => {
           }),
         }),
       } as never,
-      { app: { session: { analytics: true } }, get: (_k: string, d: unknown) => d } as never,
+      { app: { session: { analytics: true } }, verification: { enabled: true }, get: (_k: string, d: unknown) => d } as never,
       { get: () => 'Mozilla/5.0 (test)' } as never,
       { isEnabled: () => true, emailIsDeliverable: jest.fn().mockResolvedValue(true), normaliseAddress: jest.fn() } as never,
     );

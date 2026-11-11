@@ -1,13 +1,14 @@
 import { ApiError, NotFoundError } from '@astermd-hq/sdk';
+import type { CouponCartItem } from '@astermd-hq/sdk';
 import { OrderLine } from '../payment/order-line';
 import { PromotionQuote } from '../payment/promotion-quote';
 import { OperatorLog } from '../support/operator-log';
 import { EmrClientFactory } from './client-factory';
 import { CouponGateway } from './coupon-gateway';
 
-/** The slice of the SDK's coupons resource this gateway uses; the installed SDK (0.0.2) does not ship it yet. */
+/** The slice of the SDK's coupons resource this gateway uses (`@astermd-hq/sdk` 0.0.4 ships it). */
 interface CouponsResource {
-  validate(code: string, items: Array<Record<string, unknown>>): Promise<{ data(): unknown }>;
+  validate(options: { code: string; items: CouponCartItem[]; email?: string }): Promise<{ data(): unknown }>;
 }
 
 /**
@@ -18,6 +19,10 @@ interface CouponsResource {
  * EMR's product and variant — and never by an amount: the EMR prices the cart from its own
  * catalogue, which is why the discount it answers is the one it will honour when the order is read
  * back.
+ *
+ * **The buyer is named by email when the checkout holds one**, so a coupon restricted to particular
+ * patients can match them. Without a well-formed one the field is left out rather than sent empty or
+ * malformed (a malformed email is a 400 for the whole request), and only a coupon open to anyone applies.
  *
  * **Nothing is counted.** The EMR checks the code and answers what it would take off; the
  * redemption is recorded when the paid order reaches it.
@@ -30,8 +35,9 @@ interface CouponsResource {
  *
  * **Unavailable until the SDK this deployment runs offers the coupons resource** (`client.coupons()`,
  * by the naming of every other resource), so a storefront on an older SDK hides the control rather
- * than refusing every code typed into it. The resource is reached through a defensive cast because
- * the installed typings do not declare it.
+ * than refusing every code typed into it. `@astermd-hq/sdk` 0.0.4 is the first to ship it; the
+ * resource is still reached through a defensive cast so a deployment on an older SDK degrades to
+ * "unavailable" instead of throwing.
  */
 export class EmrCouponGateway implements CouponGateway {
   private static readonly UNKNOWN_CODE = "That discount code isn't valid.";
@@ -41,8 +47,9 @@ export class EmrCouponGateway implements CouponGateway {
     private readonly log: OperatorLog,
   ) {}
 
-  async quote(code: string, lines: OrderLine[]): Promise<PromotionQuote> {
+  async quote(code: string, lines: OrderLine[], email: string | null = null): Promise<PromotionQuote> {
     code = code.trim();
+    const buyer = EmrCouponGateway.email(email);
     const items = EmrCouponGateway.items(lines);
 
     if (code === '' || items === null) {
@@ -55,7 +62,7 @@ export class EmrCouponGateway implements CouponGateway {
       if (coupons === null) {
         return PromotionQuote.rejected(code, 'unsupported');
       }
-      const result = (await coupons.validate(code, items)).data();
+      const result = (await coupons.validate({ code, items, ...(buyer === null ? {} : { email: buyer }) })).data();
       data = result !== null && typeof result === 'object' ? (result as Record<string, unknown>) : {};
     } catch (e) {
       if (e instanceof NotFoundError) {
@@ -105,8 +112,8 @@ export class EmrCouponGateway implements CouponGateway {
    * The lines as the EMR names them, or null when one cannot be named: a code priced against part of
    * the cart is a discount on some other cart.
    */
-  private static items(lines: OrderLine[]): Array<Record<string, unknown>> | null {
-    const items: Array<Record<string, unknown>> = [];
+  private static items(lines: OrderLine[]): CouponCartItem[] | null {
+    const items: CouponCartItem[] = [];
 
     for (const line of lines) {
       if (line.planId !== null) {
@@ -122,6 +129,13 @@ export class EmrCouponGateway implements CouponGateway {
     }
 
     return items.length === 0 ? null : items;
+  }
+
+  /** A trimmed, well-formed email, or null: the EMR refuses the whole request over a malformed one. */
+  private static email(email: string | null): string | null {
+    const trimmed = (email ?? '').trim();
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed) ? trimmed : null;
   }
 
   private unavailable(e: unknown): void {

@@ -1,5 +1,13 @@
 import { IdentityCheck } from '@astermd-hq/sdk';
+import { Inject } from '@nestjs/common';
 import { Command, CommandRunner } from 'nest-commander';
+import { CatalogProvider } from '../catalog/catalog-provider';
+import { SettlementPolicy } from '../checkout/settlement-policy';
+import { PAYMENT_ADAPTER } from '../core/tokens';
+import { VariantPlans } from '../domain/variant-plans';
+import { CheckoutChampAuthorizeMode } from '../payment/checkout-champ/checkout-champ-authorize-mode';
+import { PaymentAdapter } from '../payment/payment-adapter';
+import { SettlementMode } from '../payment/settlement-mode';
 import { ConfigService } from '../support/config';
 
 const IMPLEMENTED_PLACEMENTS = ['intake', 'post_checkout', 'receipt'];
@@ -32,14 +40,20 @@ const KNOWN_IDENTITY_CHECKS: readonly string[] = Object.values(IdentityCheck);
  * `app.debug.wireLog` left on (a live PCI/PHI violation while it runs, per `[15.8]`/`[22.21]`);
  * `abandonment.*`'s four numbers and its `marketingConsentKey` cross-reference into
  * `consent.consents`; `verification.*`'s placement/checks, when the step is enabled; `app.portal.url`
- * (warning only — the storefront still sells without a portal).
+ * (warning only — the storefront still sells without a portal); and settlement (`validateSettlement()`):
+ * whether the holds the catalog and its subscription plans ask for can be honoured by the
+ * configured provider.
  *
  * Exit code 2 (not 1) on any error, matching the PHP original exactly. Exit 0 when there are no
  * errors, whether or not there are warnings.
  */
 @Command({ name: 'config:validate', description: 'Validate the merged configuration structurally' })
 export class ConfigValidateCommand extends CommandRunner {
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly catalog: CatalogProvider,
+    @Inject(PAYMENT_ADAPTER) private readonly adapter: PaymentAdapter,
+  ) {
     super();
   }
 
@@ -54,6 +68,7 @@ export class ConfigValidateCommand extends CommandRunner {
     this.validateAbandonment(errors);
     this.validateVerification(errors);
     this.validatePortal(warnings);
+    this.validateSettlement(errors, warnings);
 
     for (const warning of warnings) console.log(`warning: ${warning}`);
     for (const error of errors) console.error(`ERROR: ${error}`);
@@ -91,6 +106,83 @@ export class ConfigValidateCommand extends CommandRunner {
     if (!knownKeys.includes(marketingConsentKey)) {
       // Every abandonment signal would report `not_asked`, including journeys that actually declined.
       errors.push(`abandonment.marketingConsentKey ('${marketingConsentKey}') does not match any configured consent key: ${knownKeys.join(', ') || '(none configured)'}.`);
+    }
+  }
+
+  /**
+   * Ported from storefront-lamp's `ValidateCommand::validateSettlement()`. The settlement the
+   * catalog asks for, and whether the configured provider can honour it.
+   *
+   * Errors, because each has the same consequence in production — an order either charges a card
+   * the deployment meant to hold, or fails at checkout in front of a buyer:
+   *  - a product's `settlement` key that is not a mode;
+   *  - a plan whose settlement is not a mode (`theme:sync` only writes the two, so this is an
+   *    override's typo, and its line would quietly settle as if it were sold one-off);
+   *  - `payment.checkoutChamp.authorizeMode` that is not a mode, when CheckoutChamp is the provider;
+   *  - anything asking for a hold — the default, one product, or a subscription plan that holds its
+   *    first payment — on a provider without authorize-and-capture, which refuses every such order.
+   *
+   * Warnings, because the order still goes through, just not as somebody may have meant: a product
+   * key that cannot reach the product's subscription variants, whose plan decides instead; and a
+   * plan that holds the first payment of something that is not a prescription, which nothing
+   * captures until a doctor approves one, so a cart with no prescription is charged at once.
+   *
+   * `payment.settlement` itself is not checked: `config/payment.ts` already reduces it to one of
+   * the two modes, where lamp reads it raw.
+   */
+  private validateSettlement(errors: string[], warnings: string[]): void {
+    let wantsAuthorize = SettlementMode.isAuthorize(this.config.payment.settlement);
+
+    for (const product of this.catalog.products()) {
+      let planned = false;
+      for (const variant of product.variants ?? []) {
+        for (const plan of VariantPlans.of(variant)) {
+          planned = true;
+
+          // A plan synced before plans said how they settle has no answer to check.
+          const raw = plan[SettlementPolicy.PLAN_KEY];
+          if (raw === undefined) continue;
+
+          const mode = SettlementMode.parse(raw);
+          if (mode === null) {
+            errors.push(`payment: product ${product.slug} is sold on plan ${plan.id}, whose settlement is ${JSON.stringify(raw)}, which is neither "capture" nor "authorize".`);
+            continue;
+          }
+
+          if (!SettlementMode.isAuthorize(mode)) continue;
+
+          wantsAuthorize = true;
+          if (product.kind !== 'rx') {
+            warnings.push(`payment: plan ${plan.id} holds the first payment of product ${product.slug}, which is not a prescription — a hold is captured when a doctor approves a prescription, so a cart with none is charged at once instead.`);
+          }
+        }
+      }
+
+      if (product.settlement === undefined) continue;
+
+      if (planned) {
+        warnings.push(`payment: product ${product.slug} sets settlement, which does not apply to its variants sold on a subscription plan — those settle as their plan says.`);
+      }
+
+      const mode = SettlementMode.parse(product.settlement);
+      if (mode === null) {
+        errors.push(`payment: product ${product.slug} sets settlement to ${JSON.stringify(product.settlement)}, which is neither "capture" nor "authorize".`);
+        continue;
+      }
+
+      wantsAuthorize = wantsAuthorize || SettlementMode.isAuthorize(mode);
+    }
+
+    const capabilities = this.adapter.capabilities();
+
+    // Provider-scoped: a deployment on another adapter has no business being told about a key it does not read.
+    const ccMode = this.config.payment.checkoutChamp.authorizeMode;
+    if (capabilities.providerCategory === 'checkout_champ' && CheckoutChampAuthorizeMode.parse(ccMode) === null) {
+      errors.push(`payment: payment.checkoutChamp.authorizeMode is ${JSON.stringify(ccMode)}, which is neither "qa" nor "preauth" — the storefront falls back to "qa".`);
+    }
+
+    if (wantsAuthorize && !capabilities.supportsAuthorizeCapture) {
+      errors.push(`payment: settlement asks for an authorization but the ${capabilities.providerCategory} adapter does not support authorize-and-capture, so every such order is refused at checkout.`);
     }
   }
 

@@ -125,7 +125,7 @@ function harness(adapter: PaymentAdapter) {
     log as never,
     new PostChargeGuard(log as never),
     { queueFor: () => [] } as never,
-    { forSlugs: () => SettlementMode.Capture } as never,
+    { forSlugs: () => SettlementMode.Capture, forLines: () => SettlementMode.Capture } as never,
     { sessionID: 'http-session' } as never,
   );
 

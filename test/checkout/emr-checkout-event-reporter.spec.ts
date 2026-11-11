@@ -7,14 +7,14 @@ const SESSION = 'sess-1';
 
 /** Ported from lamp's EmrCheckoutEventReporterTest payment/verification sync cases. */
 describe('EmrCheckoutEventReporter treatmentsSynced', () => {
-  function build(opts: { verification?: VerificationGateway | null; email?: string | null; identity?: { status: string; check: string | null; basis: string | null; reference?: string | null } | null; document?: string | null } = {}) {
+  function build(opts: { identityEnabled?: boolean; verification?: VerificationGateway | null; email?: string | null; identity?: { status: string; check: string | null; basis: string | null; reference?: string | null } | null; document?: string | null } = {}) {
     const sync = jest.fn().mockResolvedValue(response([{ id: 'tr-1' }]));
     const { log } = capturedLog();
     const events = { append: jest.fn().mockResolvedValue(undefined) };
     const orders = { findByReference: jest.fn().mockResolvedValue(null) };
     const email = opts.email === undefined ? 'ada@example.com' : opts.email;
     const journeyStoreFactory = { get: () => ({ currentState: () => (email === null && !opts.identity && !opts.document ? null : { buyer: { email: email ?? '' }, attribution: null, identityDocument: opts.document ?? null, verification: opts.identity ? { at: 'now', ...opts.identity } : null }) }) };
-    const config = { app: { session: { analytics: true } }, get: (_k: string, d: unknown) => d };
+    const config = { app: { session: { analytics: true } }, verification: { enabled: opts.identityEnabled ?? true }, get: (_k: string, d: unknown) => d };
     const request = { get: () => 'Mozilla/5.0 (test)' };
 
     const reporter = new EmrCheckoutEventReporter(
@@ -41,16 +41,23 @@ describe('EmrCheckoutEventReporter treatmentsSynced', () => {
     const t = build();
     await t.reporter.treatmentsSynced(SESSION, ['34660'], new PaymentDescriptor(PaymentDescriptor.TYPE_CREDIT_CARD, true, true, 10850));
 
-    expect(t.options().payment).toEqual({ type: 'credit_card', pre_auth: true, pre_auth_qa: true, pre_auth_amount: 108.5 });
+    expect(t.options().payment).toEqual({ type: 'credit_card', preAuth: true, preAuthQa: true, preAuthAmount: 108.5 });
     expect(t.options().userAgent).toBe('Mozilla/5.0 (test)');
   });
 
-  it('sends a stored payment array as it is, for the receipt-time sync that has no live descriptor', async () => {
+  it('maps a stored payment array onto the SDK shape, for the receipt-time sync that has no live descriptor', async () => {
     const t = build();
-    const stored = { type: 'credit_card', pre_auth: false, card: { last4: '1111', exp: '12/30', type: 'visa' } };
+    const stored = { type: 'credit_card', pre_auth: false, card: { last_4: '1111', exp: '12/30', type: 'visa' } };
     await t.reporter.treatmentsSynced(SESSION, ['34660'], stored);
 
-    expect(t.options().payment).toEqual(stored);
+    expect(t.options().payment).toEqual({ type: 'credit_card', preAuth: false, card: { last_4: '1111', exp: '12/30', type: 'visa' } });
+  });
+
+  it('reads a card stored before the last_4 rename', async () => {
+    const t = build();
+    await t.reporter.treatmentsSynced(SESSION, ['34660'], { type: 'credit_card', pre_auth: false, card: { last4: '1111', exp: '12/30' } });
+
+    expect(t.options().payment).toEqual({ type: 'credit_card', preAuth: false, card: { last_4: '1111', exp: '12/30' } });
   });
 
   it('sends no payment key when there is none', async () => {
@@ -138,5 +145,12 @@ describe('EmrCheckoutEventReporter treatmentsSynced', () => {
     await t.reporter.treatmentsSynced(SESSION, ['34660']);
 
     expect((t.options().verification as { id: unknown }).id).toEqual({ verified: null, method: 'document_upload', value: path });
+  });
+
+  it('sends no id for an uploaded document when identity verification is off', async () => {
+    const t = build({ email: null, identityEnabled: false, document: 'acct/org/intake_submissions/x/id.jpg' });
+    await t.reporter.treatmentsSynced(SESSION, ['34660']);
+
+    expect(t.options()).not.toHaveProperty('verification');
   });
 });

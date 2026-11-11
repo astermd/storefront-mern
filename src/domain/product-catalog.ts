@@ -19,8 +19,21 @@ export interface ProductVariant {
   provider?: { offer_id: string; product_id: string } | null;
   /** The variant's own price before a plan's first payment replaced `price_cents` (set only with `plan`). */
   list_price_cents?: number;
-  /** The EMR subscription plan this variant is sold on, when it is (`OrderLine.planId`). */
-  plan?: { id: string; name?: string; first_payment_cents?: number; allow_coupons?: boolean } | null;
+  /** The default EMR subscription plan this variant is sold on, when it is (`OrderLine.planId`); what says the variant is sold on a plan at all. */
+  plan?: VariantPlan | null;
+  /** Every plan the variant is sold on, lowest id first; never read without `plan` (`VariantPlans`). */
+  plans?: VariantPlan[];
+}
+
+/** One EMR subscription plan a variant is sold on, as `theme:sync` writes it. */
+export interface VariantPlan {
+  id: string;
+  name?: string;
+  description?: string;
+  first_payment_cents?: number;
+  allow_coupons?: boolean;
+  /** Whether the plan's first payment is held (`authorize`) or taken (`capture`); absent on a plan synced before plans said. */
+  settlement?: string;
 }
 
 export interface ProductBadge {

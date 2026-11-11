@@ -53,6 +53,19 @@ export class BuyerValidator {
       errors.postal_code = 'Enter a ZIP code as five digits, or five plus four.';
     }
 
+    // The billing address gets the same shape checks as the delivery address, but never the geo
+    // gate: a prescription is restricted by where it ships to, not by where the card is registered.
+    if (details.billingDifferent) {
+      if (errors.billing_territory === undefined) {
+        const territoryError = BuyerValidator.territoryError(details.billingTerritory);
+        if (territoryError !== null) errors.billing_territory = territoryError;
+      }
+
+      if (errors.billing_postal_code === undefined && !BuyerValidator.POSTAL_SHAPE.test(details.billingPostalCode)) {
+        errors.billing_postal_code = 'Enter a ZIP code as five digits, or five plus four.';
+      }
+    }
+
     // Only once the address is locally well-formed, and only when the capability is actually
     // granted: a check that cannot run must not cost every buyer a round trip on every render.
     if (errors.email === undefined && verification.isEnabled() && (await verification.emailIsDeliverable(details.email)) === false) {
@@ -73,6 +86,14 @@ export class BuyerValidator {
       city: 'Enter your city.',
       territory: 'Choose your state.',
       postal_code: 'Enter your ZIP code.',
+      // Present in the field set only when the box is ticked (`BuyerDetails.toArray()`), so
+      // unticked asks for nothing.
+      billing_first_name: 'Enter the first name on your billing address.',
+      billing_last_name: 'Enter the last name on your billing address.',
+      billing_address_line: 'Enter your billing street address.',
+      billing_city: 'Enter your billing city.',
+      billing_territory: 'Choose your billing state.',
+      billing_postal_code: 'Enter your billing ZIP code.',
     };
 
     const missing: Record<string, string> = {};

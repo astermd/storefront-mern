@@ -28,9 +28,28 @@ export interface CheckoutBumpViewModel {
 }
 
 export interface CheckoutPlanOption {
+  /** True when the variant is sold on a subscription plan, so the picker never labels it billed once. */
+  subscription?: boolean;
   id: string;
   name: string;
   price_cents: number;
+}
+
+export interface CheckoutSubscriptionOption {
+  id: string;
+  name: string;
+  description: string;
+  /** The plan's first payment: what this order charges, not what it renews at. */
+  price_cents: number;
+}
+
+/** One line's subscription selector: the plans its chosen variant is sold on. */
+export interface CheckoutSubscriptionViewModel {
+  slug: string;
+  name: string;
+  variant_name: string;
+  chosen: string | null;
+  options: CheckoutSubscriptionOption[];
 }
 
 export interface CheckoutPlanViewModel {
@@ -57,6 +76,10 @@ export interface CheckoutPlanViewModel {
  * at least one provider, so it is rendered into this one response and never stored anywhere.
  */
 export class CheckoutViewModel {
+  static readonly NOTICE_HOLD = 'hold';
+
+  static readonly NOTICE_CHARGE = 'charge';
+
   constructor(
     public readonly prefill: Record<string, string>,
     public readonly errors: Record<string, string>,
@@ -75,5 +98,15 @@ export class CheckoutViewModel {
     public readonly planChoices: CheckoutPlanViewModel[] = [],
     public readonly postCheckoutSteps: boolean = false,
     public readonly paymentChallenge: string | null = null,
+    /** Every subscription line's plan selector, in cart order. */
+    public readonly subscriptionChoices: CheckoutSubscriptionViewModel[] = [],
+    /**
+     * Which promise the page makes about the money: `NOTICE_HOLD` — funds held until a doctor
+     * approves — unless the cart holds a subscription whose plan takes its first payment at once,
+     * which is `NOTICE_CHARGE`. A cart with no subscription is always told what it always was.
+     */
+    public readonly paymentNotice: string = CheckoutViewModel.NOTICE_HOLD,
+    /** What the payment adapter will actually do with this order's money, after any narrowing the provider applies. */
+    public readonly settlement: string = 'capture',
   ) {}
 }

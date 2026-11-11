@@ -88,10 +88,13 @@
   // or Stripe refuses the token -- the card is saved for renewals and for an
   // upsell on this journey. The PaymentIntent no longer names its payment
   // methods, so `allowedPaymentMethodTypes` here is what keeps the token a card.
+  // `captureMethod` must match too: a held order's PaymentIntent is manual
+  // capture, and Stripe refuses a token minted for automatic.
   var elements = stripe.elements({
     mode: 'payment',
     amount: amount > 0 ? amount : 50,
     currency: currency,
+    captureMethod: surface.getAttribute('data-settlement') === 'authorize' ? 'manual' : 'automatic',
     setupFutureUsage: 'off_session',
     allowedPaymentMethodTypes: ['card'],
   });
@@ -109,17 +112,24 @@
     return input && typeof input.value === 'string' ? input.value.trim() : '';
   }
 
+  // With "Use a different billing address" ticked the card is billed to the billing_* fields,
+  // otherwise to the delivery address. The server reads the same checkbox and validates the same
+  // fields (BuyerDetails), and the token is the only place this can be set: the PaymentIntent cannot
+  // add billing details to a card the server never sees.
   function billingDetails() {
+    var different = form.elements.namedItem('billing_different');
+    var prefix = different && different.checked ? 'billing_' : '';
+
     return {
-      name: (field('first_name') + ' ' + field('last_name')).trim(),
+      name: (field(prefix + 'first_name') + ' ' + field(prefix + 'last_name')).trim(),
       email: field('email'),
       phone: field('phone'),
       address: {
-        line1: field('address_line'),
+        line1: field(prefix + 'address_line'),
         line2: '',
-        city: field('city'),
-        state: field('territory'),
-        postal_code: field('postal_code'),
+        city: field(prefix + 'city'),
+        state: field(prefix + 'territory').toUpperCase(),
+        postal_code: field(prefix + 'postal_code'),
         country: 'US',
       },
     };
