@@ -65,9 +65,11 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
     private readonly events: EventRepository,
     private readonly orders: OrderRepository,
     private readonly log: OperatorLog,
-    private readonly journeyStoreFactory: JourneyStoreFactory,
+    /** Null for a sweep run outside any request (`emr:reconcile`): there is no journey to read. */
+    private readonly journeyStoreFactory: JourneyStoreFactory | null,
     private readonly config: ConfigService,
-    @Inject(REQUEST) private readonly request: Request,
+    /** Null outside a request, as for `journeyStoreFactory`; the user agent then comes from the order row. */
+    @Inject(REQUEST) private readonly request: Request | null,
     private readonly verification: VerificationGateway | null = null,
   ) {}
 
@@ -249,7 +251,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
    * required and non-empty, since the SDK rejects an empty one.
    */
   private async userAgentFor(references: string[]): Promise<string> {
-    const ambient = (this.request.get('User-Agent') ?? '').trim();
+    const ambient = (this.request?.get('User-Agent') ?? '').trim();
     if (ambient !== '') return ambient;
 
     for (const reference of references) {
@@ -269,7 +271,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
    * extra round trip.
    */
   private async verificationBlock(): Promise<VerificationBlock | null> {
-    const state = this.journeyStoreFactory.get().currentState();
+    const state = this.journeyStoreFactory?.get().currentState() ?? null;
     const email = (state?.buyer?.email ?? '').trim();
 
     const emailVerified =
@@ -309,7 +311,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
   }
 
   private utmSource(): string | null {
-    const attribution = this.journeyStoreFactory.get().currentState()?.attribution ?? null;
+    const attribution = this.journeyStoreFactory?.get().currentState()?.attribution ?? null;
     const source = attribution?.get('utm_source');
     return typeof source === 'string' && source.trim() !== '' ? source : null;
   }

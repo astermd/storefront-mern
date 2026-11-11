@@ -357,7 +357,16 @@
     var problem = fileProblem(wrapper);
     if (problem !== null) return problem === '';
 
-    if (wrapper.getAttribute('data-intake-required') !== '1') return true;
+    // Required as the conditions say right now, not as authored: a `make_optional` condition
+    // clears `data-intake-required-now`, and a question that cannot be answered (every control
+    // disabled by a `disable` condition) never holds the page. Checkbox groups carry no native
+    // `[required]`, so without this a required group made optional or disabled kept Next greyed
+    // out and the page could not be finished (lamp only checks controls marked required now).
+    var now = wrapper.getAttribute('data-intake-required-now');
+    if ((now === null ? wrapper.getAttribute('data-intake-required') : now) !== '1') return true;
+
+    var controls = wrapper.querySelectorAll('input, select, textarea');
+    if (controls.length > 0 && Array.prototype.every.call(controls, function (c) { return c.disabled; })) return true;
 
     var checkboxes = wrapper.querySelectorAll('input[type="checkbox"]');
     if (checkboxes.length > 0) {
