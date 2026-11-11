@@ -100,10 +100,12 @@ describe('SubscriptionPlans', () => {
         plan_id: PLAN_ID,
         name: 'tadalafil-monthly',
         display_name: 'Tadalafil — monthly',
+        description: '',
         product_id: PRODUCT_ID,
         variant_id: VARIANT_ID,
         first_payment_cents: 9900,
         allow_coupons: false,
+        settlement: 'capture',
       },
     ]);
   });

@@ -44,6 +44,35 @@ export class SubmitCheckoutDto {
   @IsString()
   postal_code?: string;
 
+  /** "Use a different billing address": `on` when ticked; the `billing_*` fields are read only then (`[13.2]`). */
+  @IsOptional()
+  @IsString()
+  billing_different?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_first_name?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_last_name?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_address_line?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_city?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_territory?: string;
+
+  @IsOptional()
+  @IsString()
+  billing_postal_code?: string;
+
   @IsOptional()
   @IsString()
   card_number?: string;

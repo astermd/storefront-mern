@@ -1,3 +1,4 @@
+import { SettlementMode } from '../payment/settlement-mode';
 import { CatalogProduct, ProductVariant } from '../domain/product-catalog';
 import { PlanRow } from './subscription-plans';
 
@@ -11,7 +12,7 @@ export interface BuiltCatalog {
 
 type RawRecord = Record<string, unknown>;
 
-type PlanAttachment = { id: string; name: string; first_payment_cents: number; allow_coupons: boolean };
+type PlanAttachment = { id: string; name: string; description: string; first_payment_cents: number; allow_coupons: boolean; settlement: string };
 
 /**
  * Ported from storefront-lamp/core/Catalog/CatalogBuilder.php. Pure transform: the `data` subtree
@@ -118,15 +119,18 @@ export class CatalogBuilder {
   }
 
   /**
-   * The channel's sellable subscription plans, keyed by the product and variant each one sells.
+   * The channel's sellable subscription plans, keyed by the product and variant each one sells,
+   * every plan for a variant kept and ordered by plan id.
    *
-   * Where two plans sell the same variant, the lower plan id wins, so a re-sync of the same plans
-   * always writes the same catalog. A row missing any identifier, or whose first payment is not a
-   * non-negative integer, is skipped rather than repaired: a plan the storefront cannot price is
-   * one it must not sell.
+   * The EMR lets several plans sell one variant — a monthly and a three-month plan of the same
+   * dose — and the checkout offers each of them, so none is dropped here. Ordering by id makes a
+   * re-sync of the same plans write the same catalog, and makes the lowest id the default the
+   * variant is priced on until the buyer picks another. A row missing any identifier, or whose
+   * first payment is not a non-negative integer, is skipped rather than repaired: a plan the
+   * storefront cannot price is one it must not sell.
    */
-  private static planIndex(plans: PlanRow[]): Map<string, PlanAttachment> {
-    const index = new Map<string, PlanAttachment>();
+  private static planIndex(plans: PlanRow[]): Map<string, PlanAttachment[]> {
+    const byId = new Map<string, Map<string, PlanAttachment>>();
 
     for (const plan of plans) {
       if (!plan || typeof plan !== 'object') continue;
@@ -136,39 +140,49 @@ export class CatalogBuilder {
       if (typeof firstPayment !== 'number' || !Number.isInteger(firstPayment) || firstPayment < 0) continue;
 
       const key = `${productId}|${variantId}`;
-      const existing = index.get(key);
-      if (existing && existing.id < id) continue;
-
       const name = plan.display_name ?? plan.name ?? '';
-      index.set(key, {
+      if (!byId.has(key)) byId.set(key, new Map());
+      byId.get(key)!.set(id, {
         id,
         name: typeof name === 'string' ? name : '',
+        description: typeof plan.description === 'string' ? plan.description : '',
         first_payment_cents: firstPayment,
         allow_coupons: plan.allow_coupons !== false,
+        // The EMR's own default when the plan says nothing is to take the money, so an unreadable
+        // mode is that and not a hold.
+        settlement: SettlementMode.parse(plan.settlement) ?? SettlementMode.Capture,
       });
+    }
+
+    const index = new Map<string, PlanAttachment[]>();
+    for (const [key, plansById] of byId) {
+      index.set(key, [...plansById.keys()].sort().map((id) => plansById.get(id)!));
     }
 
     return index;
   }
 
   /**
-   * Puts each variant the channel sells on a plan onto that plan.
+   * Puts each variant the channel sells on plans onto them.
    *
-   * A variant on a plan is sold at the plan's first payment, which is what the EMR's own checkout
-   * charges for it and what the buyer must be shown, so `price_cents` becomes that figure and the
-   * variant's own price is kept beside it as `list_price_cents`. Done here, once, rather than at
-   * each place a price is read, so the product page, the cart and the charge cannot disagree. A
-   * deployment that sells the variant one-off instead sets `plan` to null and `price_cents` back in
-   * the override layer.
+   * `plans` is every plan that sells the variant, and `plan` is the first of them: the default, and
+   * the one that says the variant is sold on a plan at all. A variant on a plan is sold at the
+   * plan's first payment, which is what the EMR's own checkout charges for it and what the buyer
+   * must be shown, so `price_cents` becomes the default's first payment and the variant's own price
+   * is kept beside it as `list_price_cents`. Done here, once, rather than at each place a price is
+   * read, so the product page, the cart and the charge cannot disagree. A buyer who picks another
+   * of the plans at checkout is priced on that one instead (`VariantPlans`). A deployment that sells
+   * the variant one-off instead sets `plan` to null and `price_cents` back in the override layer;
+   * `plans` is never read without `plan`.
    */
-  private static attachPlans(variants: ProductVariant[], productId: string, planIndex: Map<string, PlanAttachment>): ProductVariant[] {
+  private static attachPlans(variants: ProductVariant[], productId: string, planIndex: Map<string, PlanAttachment[]>): ProductVariant[] {
     if (planIndex.size === 0) return variants;
 
     return variants.map((variant) => {
-      const plan = planIndex.get(`${productId}|${variant.id}`);
-      if (!plan) return variant;
+      const plans = planIndex.get(`${productId}|${variant.id}`) ?? [];
+      if (plans.length === 0) return variant;
 
-      return { ...variant, list_price_cents: variant.price_cents, price_cents: plan.first_payment_cents, plan };
+      return { ...variant, list_price_cents: variant.price_cents, price_cents: plans[0].first_payment_cents, plan: plans[0], plans };
     });
   }
 

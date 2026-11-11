@@ -14,26 +14,23 @@ export class CheckoutChampPayload {
   /** POST /leads/import/ */
   static forLead(order: OrderEnvelope, salesUrl: string = ''): Record<string, unknown> {
     const buyer = order.buyer;
+    const billing = buyer.billing;
 
+    // The unprefixed name and address are the billing contact; the delivery name travels as
+    // `shipFirstName`/`shipLastName`. So a buyer who gave a separate billing address is billed under
+    // its name too (`[13.2]`: billing defaults to the delivery address).
     const body: Record<string, unknown> = {
       ...CheckoutChampPayload.shipping(order),
       campaignId: String(CheckoutChampPayload.campaignFor(order)),
-      firstName: buyer.firstName,
-      lastName: buyer.lastName,
+      firstName: billing?.firstName ?? buyer.firstName,
+      lastName: billing?.lastName ?? buyer.lastName,
       emailAddress: buyer.email,
       phoneNumber: buyer.phone,
-      address1: buyer.addressLine,
-      city: buyer.city,
-      state: buyer.territory,
-      postalCode: buyer.postalCode,
-      country: buyer.country,
-      billFirstName: buyer.firstName,
-      billLastName: buyer.lastName,
-      billAddress1: buyer.addressLine,
-      billCity: buyer.city,
-      billState: buyer.territory,
-      billPostalCode: buyer.postalCode,
-      billCountry: buyer.country,
+      address1: billing?.addressLine ?? buyer.addressLine,
+      city: billing?.city ?? buyer.city,
+      state: billing?.territory ?? buyer.territory,
+      postalCode: billing?.postalCode ?? buyer.postalCode,
+      country: billing?.country ?? buyer.country,
       ipAddress: order.clientIp ?? '',
     };
 

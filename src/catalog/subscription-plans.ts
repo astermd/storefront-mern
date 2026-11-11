@@ -1,3 +1,5 @@
+import { SettlementMode, SettlementModeValue } from '../payment/settlement-mode';
+
 type RawRecord = Record<string, unknown>;
 
 interface Schedule {
@@ -12,10 +14,13 @@ export interface PlanRow {
   plan_id: string;
   name: string;
   display_name: string;
+  description: string;
   product_id: string;
   variant_id: string;
   first_payment_cents: number;
   allow_coupons: boolean;
+  /** Whether the first payment is held or taken (`SubscriptionPlans.settlement()`). */
+  settlement: SettlementModeValue;
 }
 
 const OBJECT_ID = /^[a-f\d]{24}$/i;
@@ -36,6 +41,10 @@ const MAX_CYCLES_AHEAD = 60;
  * does (`src/lib/subscription/plan-product.ts` and `plan-first-payment.ts` there; the subscription
  * engine's rule). Keep the two in step: a figure that differs from the EMR's is a discount the EMR
  * prices on a different total.
+ *
+ * Each row also says whether that first payment is held or taken (`settlement()`). The EMR never
+ * reads that off the plan itself: the storefront decides when it creates the payment, so this row
+ * is the only place the plan's answer reaches the checkout.
  *
  * A plan that names no product, or whose first payment cannot be priced, is left out rather than
  * repaired: a plan the storefront cannot price is one it must not sell.
@@ -61,10 +70,12 @@ export class SubscriptionPlans {
         plan_id: id,
         name,
         display_name: displayName,
+        description: typeof plan.description === 'string' ? plan.description : '',
         product_id: ref.product_id,
         variant_id: ref.variant_id,
         first_payment_cents: payment.amount_cents,
         allow_coupons: payment.allow_coupons,
+        settlement: SubscriptionPlans.settlement(plan),
       });
     }
 
@@ -109,11 +120,7 @@ export class SubscriptionPlans {
   static firstPayment(plan: RawRecord): { amount_cents: number; allow_coupons: boolean } | null {
     const steps = SubscriptionPlans.rows(plan.steps);
 
-    const step =
-      steps.find((candidate) => {
-        const schedule = SubscriptionPlans.isRecord(candidate.schedule) ? candidate.schedule : {};
-        return candidate.type === 'charge' && SubscriptionPlans.num(schedule.start_day) === 0 && !candidate.captures_step_id;
-      }) ?? null;
+    const step = SubscriptionPlans.firstChargeStep(steps);
     if (step === null) return { amount_cents: 0, allow_coupons: true };
 
     let capture: RawRecord | null = null;
@@ -144,6 +151,31 @@ export class SubscriptionPlans {
     }
 
     return SubscriptionPlans.wholeCents(amount) ? { amount_cents: amount, allow_coupons: allowCoupons } : null;
+  }
+
+  /**
+   * Whether the plan holds its first payment or takes it: `authorize` when the charge that is the
+   * first payment (`firstPayment()`) is the engine's `pre_auth`, `capture` for its `charge_now` —
+   * the engine's default, so a step that names no mode takes the money — and for a plan that
+   * charges nothing at checkout, which has nothing to hold.
+   */
+  static settlement(plan: RawRecord): SettlementModeValue {
+    const step = SubscriptionPlans.firstChargeStep(SubscriptionPlans.rows(plan.steps));
+
+    return step?.payment_mode === 'pre_auth' ? SettlementMode.Authorize : SettlementMode.Capture;
+  }
+
+  /**
+   * The charge that is the plan's first payment: the first charge step, in step order, due on day 0
+   * that does not capture a pre-auth. Null when the plan charges nothing at checkout.
+   */
+  private static firstChargeStep(steps: RawRecord[]): RawRecord | null {
+    return (
+      steps.find((candidate) => {
+        const schedule = SubscriptionPlans.isRecord(candidate.schedule) ? candidate.schedule : {};
+        return candidate.type === 'charge' && SubscriptionPlans.num(schedule.start_day) === 0 && !candidate.captures_step_id;
+      }) ?? null
+    );
   }
 
   private static scheduleOf(step: RawRecord): Schedule | null {

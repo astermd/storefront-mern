@@ -45,6 +45,8 @@ export class ReceiptViewModel {
     public readonly itemCount: number,
     /** Whether the total on this page is reserved rather than taken — a bool, since the template's only question is which of two sentences to print. */
     public readonly authorizedOnly: boolean = false,
+    /** The separate billing address; null when billing was the shipping address, which the page then repeats. */
+    public readonly billing: ReceiptShipping | null = null,
   ) {}
 
   static fromReceipt(receipt: Receipt): ReceiptViewModel {
@@ -76,6 +78,7 @@ export class ReceiptViewModel {
       receipt.references[0] ?? null,
       itemCount,
       receipt.isAuthorizedOnly(),
+      receipt.billing,
     );
   }
 
@@ -87,6 +90,19 @@ export class ReceiptViewModel {
   /** Whether there is an order to show at all — the template's one structural branch. */
   hasOrder(): boolean {
     return this.references.length > 0;
+  }
+
+  /**
+   * The name the card was billed under: the separate billing name when the buyer gave one,
+   * otherwise the buyer's own — unticked, the card was billed to where the order ships.
+   */
+  billingName(): string {
+    return this.billing !== null ? this.billing.name : this.buyerName;
+  }
+
+  /** The billing address on one line; the shipping address again when billing was the shipping address. */
+  billingAddress(): string {
+    return this.billing !== null ? ReceiptViewModel.oneLine(this.billing) : this.shippingAddress;
   }
 
   /** Whether a discount row belongs on the summary — a zero one would show the buyer a saving they did not make. */

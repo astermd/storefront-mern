@@ -9,7 +9,8 @@
   The mockup's plan-selector/shipping/express-checkout/PayPal/Afterpay/upsell-add-on sections are
   presentational mockup content with no backing service yet in this port (shipping/wallets are
   declared gaps in `config/app.ts`'s `features` block; upsell add-ons are Phase 8) — omitted here
-  rather than wired to nothing. What IS wired: contact + delivery (the 8 BuyerDetails fields),
+  rather than wired to nothing. What IS wired: contact + delivery (the 8 BuyerDetails fields), an
+  optional separate billing address (the `billing_*` fields, read only when its box is ticked),
   the Rx plan selector when the cart has a prescription line, order bumps (§27), a discount code
   box, the line-item/consent/totals summary, and the card fields the adapter's capabilities call for.
 */
@@ -50,8 +51,26 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
   <div class="px-6 py-10 sm:px-10 lg:px-16 lg:py-14">
     <div class="mx-auto max-w-[500px] lg:mx-0 lg:ml-auto">
 
+      <%# ONE form for the whole checkout. Each sub-action (plan switch, promo apply/remove, bump) is a
+          submit button that redirects it with `formaction`, so it posts exactly what is in the boxes
+          right now, with no script involved ([27.10], [8.7]). They used to be sibling forms posting
+          only their own field, and every one of them overwrote the buyer's stored details with
+          blanks (lamp's checkout.twig made the same move). %>
       <form id="checkout-form" data-checkout-form method="post" action="<%= url('/checkout') %>" novalidate>
         <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
+
+        <%# Pressing Enter in a text field submits a form's *first* submit button, wherever the cursor
+            is. Every sub-action below (plan, bump, promo) is a submit button of this one form, so
+            without this the first of them, or Pay Now, would answer Enter. This button is first in
+            tree order: with discount codes it applies the code (Enter in the discount box does what
+            the buyer meant, and an empty box sends nothing, see checkout.js); without them it is
+            disabled, and a disabled default button means Enter submits nothing at all. Either way no
+            keystroke can place an order: paying is only ever a click on Pay Now. %>
+        <% if (checkout.capabilities.supportsPromotions) { %>
+        <button type="submit" formaction="<%= url('/checkout/promo') %>" data-promo-apply data-default-guard class="sr-only" tabindex="-1" aria-hidden="true">Apply discount code</button>
+        <% } else { %>
+        <button type="submit" disabled data-default-guard class="hidden" tabindex="-1" aria-hidden="true"></button>
+        <% } %>
 
         <h2 class="font-heading text-base font-bold sm:text-lg text-heading">Contact</h2>
         <div class="mt-4 flex flex-col gap-4">
@@ -112,23 +131,107 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
           </div>
         </div>
 
+        <%# Billing address. Unticked, billing is the delivery address above ([13.2]). The fields show
+            and hide on `:has()` rather than a script, so the page still works with no JavaScript. They
+            stay in the form while hidden, and the server reads them only when the box is ticked. %>
+        <div class="group mt-8">
+          <h2 class="font-heading text-base font-bold sm:text-lg text-heading">Billing address</h2>
+          <label class="mt-4 flex cursor-pointer items-center gap-3">
+            <input type="checkbox" id="checkout-billing-different" name="billing_different" value="on"<%= prefill.billing_different === 'on' ? ' checked' : '' %> />
+            <span class="text-sm text-body">Use a different billing address</span>
+          </label>
+
+          <div id="checkout-billing-fields" class="mt-4 hidden flex-col gap-4 group-has-[#checkout-billing-different:checked]:flex">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="checkout-billing-first-name" class="mb-1 block text-sm text-muted">Billing first name</label>
+                <input type="text" id="checkout-billing-first-name" name="billing_first_name" value="<%= prefill.billing_first_name || '' %>" autocomplete="billing given-name" class="h-12 w-full rounded-sm border <%= fieldError('billing_first_name') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+                <% if (fieldError('billing_first_name')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('billing_first_name') %></p><% } %>
+              </div>
+              <div>
+                <label for="checkout-billing-last-name" class="mb-1 block text-sm text-muted">Billing last name</label>
+                <input type="text" id="checkout-billing-last-name" name="billing_last_name" value="<%= prefill.billing_last_name || '' %>" autocomplete="billing family-name" class="h-12 w-full rounded-sm border <%= fieldError('billing_last_name') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+                <% if (fieldError('billing_last_name')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('billing_last_name') %></p><% } %>
+              </div>
+            </div>
+
+            <div>
+              <label for="checkout-billing-address" class="mb-1 block text-sm text-muted">Billing address</label>
+              <input type="text" id="checkout-billing-address" name="billing_address_line" value="<%= prefill.billing_address_line || '' %>" autocomplete="billing street-address" class="h-12 w-full rounded-sm border <%= fieldError('billing_address_line') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+              <% if (fieldError('billing_address_line')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('billing_address_line') %></p><% } %>
+            </div>
+
+            <div>
+              <label for="checkout-billing-city" class="mb-1 block text-sm text-muted">Billing city</label>
+              <input type="text" id="checkout-billing-city" name="billing_city" value="<%= prefill.billing_city || '' %>" autocomplete="billing address-level2" class="h-12 w-full rounded-sm border <%= fieldError('billing_city') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+              <% if (fieldError('billing_city')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('billing_city') %></p><% } %>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div>
+                <label for="checkout-billing-state" class="mb-1 block text-sm text-muted">Billing state</label>
+                <input type="text" id="checkout-billing-state" name="billing_territory" maxlength="2" placeholder="NY" value="<%= prefill.billing_territory || '' %>" autocomplete="billing address-level1" class="h-12 w-full rounded-sm border <%= fieldError('billing_territory') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm uppercase text-heading" />
+                <% if (fieldError('billing_territory')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('billing_territory') %></p><% } %>
+              </div>
+              <div>
+                <label for="checkout-billing-postal" class="mb-1 block text-sm text-muted">Billing postal code</label>
+                <input type="text" id="checkout-billing-postal" name="billing_postal_code" value="<%= prefill.billing_postal_code || '' %>" autocomplete="billing postal-code" class="h-12 w-full rounded-sm border <%= fieldError('billing_postal_code') ? 'border-danger' : 'border-border' %> bg-background px-4 text-sm text-heading" />
+                <% if (fieldError('billing_postal_code')) { %><p class="mt-1 text-sm text-danger"><%= fieldError('billing_postal_code') %></p><% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <% checkout.planChoices.forEach(function (plans, planIndex) { %>
         <h2 class="<%= planIndex === 0 ? 'mt-8' : 'mt-6' %> font-heading text-base font-bold sm:text-lg text-heading">Select Treatment Plan</h2>
         <p class="mt-0.5 text-xs text-muted"><%= plans.name %></p>
         <div class="mt-3.5 flex flex-col gap-2 rounded-md border border-border bg-background overflow-hidden">
-          <% /* Each radio names its own prescription as `plan[slug]`, so with several in the order
-                 only the option actually clicked is submitted, and it says which line it belongs to. */ %>
+          <% /* Each option is a submit button of the checkout form that names its own prescription as
+                 `plan[slug]`, so with several in the order only the option actually clicked is posted,
+                 it says which line it belongs to, and everything typed above goes with it. */ %>
           <% plans.options.forEach(function (option) { %>
-          <label class="flex w-full cursor-pointer items-center justify-between gap-3 border border-transparent p-3 has-[:checked]:border-primary has-[:checked]:bg-primary-light">
+          <button type="submit" formaction="<%= url('/checkout/plan') %>" name="plan[<%= plans.slug %>]" value="<%= option.id %>" aria-pressed="<%= option.id === plans.chosen ? 'true' : 'false' %>" class="group flex w-full cursor-pointer items-center justify-between gap-3 border border-transparent p-3 text-left aria-pressed:border-primary aria-pressed:bg-primary-light">
             <span class="flex items-center gap-3">
-              <input type="radio" name="plan[<%= plans.slug %>]" value="<%= option.id %>" form="plan-form" <%= option.id === plans.chosen ? 'checked' : '' %> onchange="document.getElementById('plan-form').submit()" />
-              <span class="text-sm font-semibold text-heading"><%= option.name %></span>
+              <span class="flex size-4 shrink-0 items-center justify-center rounded-full border border-border-darker bg-background group-aria-pressed:border-primary">
+                <span class="hidden size-2 rounded-full bg-primary group-aria-pressed:block"></span>
+              </span>
+              <span>
+                <span class="block text-sm font-semibold text-heading"><%= option.name %></span>
+                <span class="mt-1 block text-sm text-muted"><%= option.subscription ? 'Subscription' : 'Billed once' %></span>
+              </span>
             </span>
             <span class="shrink-0 text-sm font-semibold text-heading"><%= money(option.price_cents) %></span>
-          </label>
+          </button>
           <% }) %>
         </div>
         <% }) %>
+
+        <%# Subscription selector: the plans the chosen variant is sold on, under the variant picker so
+            the dose is chosen first. Each button names its own line as `subscription[slug]`, as the
+            variant picker's do. The price is the plan's first payment: what this order charges, not
+            what it renews at. %>
+        <% if (checkout.subscriptionChoices.length > 0) { %>
+        <h2 class="mt-8 font-heading text-base font-bold sm:text-lg text-heading">Select Subscription</h2>
+        <% checkout.subscriptionChoices.forEach(function (subscription, subscriptionIndex) { %>
+        <p class="<%= subscriptionIndex === 0 ? 'mt-0.5' : 'mt-6' %> text-xs text-muted"><%= subscription.name %><% if (subscription.variant_name) { %> · <%= subscription.variant_name %><% } %></p>
+        <div class="mt-3.5 flex flex-col gap-2 rounded-md border border-border bg-background overflow-hidden">
+          <% subscription.options.forEach(function (option) { %>
+          <button type="submit" formaction="<%= url('/checkout/subscription') %>" name="subscription[<%= subscription.slug %>]" value="<%= option.id %>" aria-pressed="<%= option.id === subscription.chosen ? 'true' : 'false' %>" class="group flex w-full cursor-pointer items-center justify-between gap-3 border border-transparent p-3 text-left aria-pressed:border-primary aria-pressed:bg-primary-light">
+            <span class="flex items-start gap-3">
+                <span class="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border border-border-darker bg-background group-aria-pressed:border-primary">
+                  <span class="hidden size-2 rounded-full bg-primary group-aria-pressed:block"></span>
+                </span>
+              <span>
+                <span class="block text-sm font-semibold text-heading"><%= option.name %></span>
+                <span class="mt-1 block text-sm text-muted"><%= option.description || 'Subscription' %></span>
+              </span>
+            </span>
+            <span class="shrink-0 text-sm font-semibold text-heading"><%= money(option.price_cents) %></span>
+          </button>
+          <% }) %>
+        </div>
+        <% }) %>
+        <% } %>
 
         <% if (checkout.postCheckoutSteps) { %>
         <%- include('../partials/post-checkout-steps', { note_class: 'mt-6' }) %>
@@ -149,7 +252,7 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
                 <% if (bump.discounted) { %><span class="ml-1 text-xs text-muted line-through"><%= money(bump.catalog_price_cents) %></span><% } %>
               </p>
             </div>
-            <button type="submit" form="bump-form-<%= bump.key %>" class="shrink-0 rounded-sm border border-border bg-background px-5 py-2 text-sm font-medium text-heading transition-colors hover:border-primary hover:text-primary">Add</button>
+            <button type="submit" formaction="<%= url('/checkout/bump') %>" name="bump_slug" value="<%= bump.slug %>" class="shrink-0 rounded-sm border border-border bg-background px-5 py-2 text-sm font-medium text-heading transition-colors hover:border-primary hover:text-primary">Add</button>
           </div>
           <% }) %>
         </div>
@@ -159,13 +262,13 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
         <div class="mt-8 flex flex-col gap-2">
           <label for="checkout-discount" class="sr-only">Discount code</label>
           <div class="flex gap-3">
-            <input type="text" id="checkout-discount" placeholder="Discount code" class="h-12 min-w-0 flex-1 rounded-sm border border-border bg-background px-4 text-sm text-heading" form="promo-form" name="discount_code" />
-            <button type="submit" form="promo-form" class="flex h-12 shrink-0 items-center justify-center rounded-sm border border-border bg-background px-6 text-sm font-medium text-heading hover:border-primary hover:text-primary">Apply</button>
+            <input type="text" id="checkout-discount" placeholder="Discount code" class="h-12 min-w-0 flex-1 rounded-sm border border-border bg-background px-4 text-sm text-heading" name="discount_code" />
+            <button type="submit" formaction="<%= url('/checkout/promo') %>" data-promo-apply class="flex h-12 shrink-0 items-center justify-center rounded-sm border border-border bg-background px-6 text-sm font-medium text-heading hover:border-primary hover:text-primary">Apply</button>
           </div>
           <% if (checkout.promotion) { %>
           <div class="flex items-center justify-between text-sm text-heading">
             <span>Code <strong><%= checkout.promotion.code %></strong> applied</span>
-            <button type="submit" form="promo-remove-form" class="text-primary underline">Remove</button>
+            <button type="submit" formaction="<%= url('/checkout/promo/remove') %>" class="text-primary underline">Remove</button>
           </div>
           <% } %>
         </div>
@@ -205,6 +308,7 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
             data-provider="<%= checkout.capabilities.providerCategory %>"
             data-client-config="<%= JSON.stringify(clientConfig) %>"
             data-amount="<%= checkout.totals.totalCents %>"
+            data-settlement="<%= checkout.settlement %>"
             data-currency="<%= String(checkout.currency).toLowerCase() %>"
             data-confirm-url="<%= url('/checkout/confirm/') %>"
             <% if (checkout.paymentChallenge) { %>data-challenge="<%= checkout.paymentChallenge %>"<% } %>></div>
@@ -234,51 +338,6 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
         </button>
       </form>
 
-      <%
-      /*
-        `[10.6]`-adjacent: HTML has no nested forms. Each of these used to sit inline, physically
-        inside the checkout `<form>` above (the plan selector's, right after the dosage radios; the
-        promo/promo-remove pair, right after the discount-code box; one bump form per line, right
-        next to its own "Add" button). A `<form>` opened while another is already open is dropped
-        by the parser entirely, and this file had exactly that: `plan-form`'s closing `</form>` tag
-        had nothing of its own to close, so it silently closed the *outer* checkout form instead --
-        orphaning everything after it, including the card fields, every consent checkbox, and the
-        Pay Now button itself. Confirmed live: for any product with a plan/dose selector (this
-        page's `checkout.plans` branch), Pay Now produced zero network activity at all -- the
-        button was never inside any form to submit. Every one of these already used `form="<id>"` on
-        its own inputs/buttons rather than relying on physical nesting (see the plan radios and the
-        discount box above), so moving the `<form>` tags themselves out here changes nothing about
-        how they're triggered — it only stops them from truncating the one that matters.
-      */
-      %>
-      <% if (checkout.planChoices.length > 0) { %>
-      <% /* Each radio already names its own prescription via `plan[<slug>]` (see the picker above),
-             so this form carries nothing beyond the token — unlike a single-plan form, it cannot
-             hardcode which line a submission is about. */ %>
-      <form id="plan-form" method="post" action="<%= url('/checkout/plan') %>" class="hidden">
-        <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
-      </form>
-      <% } %>
-
-      <% checkout.bumps.forEach(function (bump) { %>
-      <form id="bump-form-<%= bump.key %>" method="post" action="<%= url('/checkout/bump') %>" class="hidden">
-        <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
-        <input type="hidden" name="bump_slug" value="<%= bump.slug %>" />
-        <input type="hidden" name="first_name" value="<%= prefill.first_name || '' %>" />
-        <input type="hidden" name="last_name" value="<%= prefill.last_name || '' %>" />
-        <input type="hidden" name="email" value="<%= prefill.email || '' %>" />
-        <input type="hidden" name="phone" value="<%= prefill.phone || '' %>" />
-        <input type="hidden" name="address_line" value="<%= prefill.address_line || '' %>" />
-        <input type="hidden" name="city" value="<%= prefill.city || '' %>" />
-        <input type="hidden" name="territory" value="<%= prefill.territory || '' %>" />
-        <input type="hidden" name="postal_code" value="<%= prefill.postal_code || '' %>" />
-      </form>
-      <% }) %>
-
-      <% if (checkout.capabilities.supportsPromotions) { %>
-      <form id="promo-form" method="post" action="<%= url('/checkout/promo') %>" class="hidden"><% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %></form>
-      <form id="promo-remove-form" method="post" action="<%= url('/checkout/promo/remove') %>" class="hidden"><% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %></form>
-      <% } %>
     </div>
   </div>
 
@@ -300,6 +359,14 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
             <% if (line.variant_name) { %><p class="mt-0.5 text-sm text-muted"><%= line.variant_name %></p><% } %>
           </div>
           <p class="shrink-0 text-base font-medium text-heading"><%= line.is_free ? 'Free' : money(line.line_total_cents) %></p>
+          <%# Remove: a sub-action of the checkout form (this column sits outside it, hence `form=`), so
+              what the buyer typed is posted and kept. An attachment the cart added for another line
+              has none: it goes with that line. %>
+          <% if (!line.is_child) { %>
+          <button type="submit" form="checkout-form" formaction="<%= url('/checkout/remove') %>" name="remove_slug" value="<%= line.slug %>" class="shrink-0 text-body transition-colors hover:text-danger" aria-label="Remove <%= line.name %> from your order">
+            <i data-lucide="trash-2" class="size-4"></i>
+          </button>
+          <% } %>
         </div>
         <% }) %>
       </div>
@@ -321,7 +388,14 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
         <span class="text-base font-medium sm:text-lg text-heading"><span class="mr-1 text-sm font-normal text-muted align-middle"><%= checkout.currency %></span><%= money(checkout.totals.totalCents) %></span>
       </div>
 
-      <% if (checkout.capabilities.supportsAuthorizeCapture) { %>
+      <%# Only a subscription whose plan takes its first payment at once is told it is charged today;
+          every other order on a provider that can hold keeps the hold notice. %>
+      <% if (checkout.paymentNotice === 'charge') { %>
+      <div class="mt-6 flex items-start gap-3 rounded-sm border border-primary bg-primary-light px-4 py-4">
+        <i data-lucide="info" class="mt-0.5 size-5 shrink-0 text-primary"></i>
+        <p class="text-sm leading-relaxed text-heading">Your card will be charged today for the first payment of your subscription.</p>
+      </div>
+      <% } else if (checkout.capabilities.supportsAuthorizeCapture) { %>
       <div class="mt-6 flex items-start gap-3 rounded-sm border border-primary bg-primary-light px-4 py-4">
         <i data-lucide="info" class="mt-0.5 size-5 shrink-0 text-primary"></i>
         <p class="text-sm leading-relaxed text-heading">Payment authorization will be held; you will only be charged if approved and prescribed by a doctor.</p>

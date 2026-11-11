@@ -104,6 +104,7 @@ export class StripeOutcome {
       null,
       card === null ? null : (StripeOutcome.BRANDS[String(card.brand ?? '')] ?? null),
       card === null ? null : StripeOutcome.expiry(card),
+      card === null ? null : StripeOutcome.lastFour(card),
     );
   }
 
@@ -131,6 +132,13 @@ export class StripeOutcome {
     if (!Number.isInteger(month) || !Number.isInteger(year) || (month as number) < 1 || (month as number) > 12) return null;
 
     return `${String(month).padStart(2, '0')}/${String((year as number) % 100).padStart(2, '0')}`;
+  }
+
+  /** Stripe's `last4`, only when it is exactly four digits. */
+  private static lastFour(card: Row): string | null {
+    const last4 = card.last4;
+
+    return typeof last4 === 'string' && /^\d{4}$/.test(last4) ? last4 : null;
   }
 
   private static redirectUrl(paymentIntent: Row): string | null {

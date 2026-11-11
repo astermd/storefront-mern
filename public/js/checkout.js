@@ -136,7 +136,9 @@
       pay.textContent = idleLabel;
     }
 
-    form.querySelectorAll('button[type="submit"]').forEach(function (button) {
+    // Not the Enter-key guard: without discount codes it is disabled on purpose, so that Enter in a
+    // text field submits nothing (see the template).
+    form.querySelectorAll('button[type="submit"]:not([data-default-guard])').forEach(function (button) {
       button.disabled = false;
     });
   }
@@ -150,19 +152,7 @@
   // hunting for a way to retry.
   var RELEASE_AFTER_MS = 30000;
 
-  // Applying an empty discount box has nothing to send. The promo controls sit in their own form
-  // (`#promo-form`, associated by the `form` attribute), so this is a separate listener from the
-  // checkout form's. Staying put keeps the buyer where they were instead of reloading the page.
-  var promoForm = document.getElementById('promo-form');
   var discountBox = document.getElementById('checkout-discount');
-  if (promoForm && discountBox) {
-    promoForm.addEventListener('submit', function (event) {
-      if (discountBox.value.trim() === '') {
-        event.preventDefault();
-        discountBox.focus();
-      }
-    });
-  }
 
   form.addEventListener('submit', function (event) {
     // Which button was pressed is the whole question here, and `submitter` is
@@ -172,6 +162,15 @@
     // trip the placement state.
     var submitter = event.submitter;
     if (!submitter) return;
+
+    // Applying an empty discount box has nothing to send. That includes Enter pressed in any text
+    // field, which arrives through the hidden default button that applies a code; staying put keeps
+    // the buyer where they were instead of reloading the page.
+    if (submitter.hasAttribute('data-promo-apply') && discountBox && discountBox.value.trim() === '') {
+      event.preventDefault();
+      if (submitter.getAttribute('aria-hidden') !== 'true') discountBox.focus();
+      return;
+    }
 
     if (submitter === pay) {
       // Second click on an already-busy Pay Now: swallowed here rather than by
@@ -227,4 +226,46 @@
   // tokenizes the card, and hands Pay Now back through this event when it refuses -- an incomplete
   // card number, say -- rather than leaving it busy for the full timeout.
   form.addEventListener('checkout:release', release);
+})();
+
+// The billing name starts as the delivery name and follows it while the buyer types, because for
+// most buyers the two are the same person. The moment the buyer edits a billing name themselves it
+// stops following, so what they typed is never overwritten. A billing name that already differs on
+// load (a re-rendered page after a validation error) is theirs and is left alone. The fields stay
+// editable: the cardholder is often someone else, and without script nothing would ever fill them.
+(function () {
+  'use strict';
+
+  var toggle = document.getElementById('checkout-billing-different');
+
+  [
+    ['checkout-first-name', 'checkout-billing-first-name'],
+    ['checkout-last-name', 'checkout-billing-last-name'],
+  ].forEach(function (ids) {
+    var source = document.getElementById(ids[0]);
+    var target = document.getElementById(ids[1]);
+    if (!source || !target) return;
+
+    var following = target.value === '' || target.value === source.value;
+
+    target.addEventListener('input', function () {
+      following = false;
+    });
+
+    source.addEventListener('input', function () {
+      if (following) target.value = source.value;
+    });
+
+    // Ticking the box reveals the fields already holding the delivery name.
+    if (toggle) {
+      toggle.addEventListener('change', function () {
+        if (toggle.checked && following) target.value = source.value;
+      });
+    }
+
+    // Typing the billing name back to match the delivery name hands control back.
+    target.addEventListener('blur', function () {
+      if (target.value === source.value) following = true;
+    });
+  });
 })();

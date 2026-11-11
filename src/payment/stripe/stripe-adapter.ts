@@ -14,6 +14,7 @@ import { PaymentCredential } from '../payment-credential';
 import { PlacementOutcome } from '../placement-outcome';
 import { PromotionQuote } from '../promotion-quote';
 import { ProviderOrder } from '../provider-order';
+import { SettlementModeValue } from '../settlement-mode';
 import { StripeApiFactory } from './stripe-api-factory';
 import { StripeCredentials } from './stripe-credentials';
 import { StripeOutcome } from './stripe-outcome';
@@ -214,8 +215,12 @@ export class StripeAdapter implements PaymentAdapter {
     return StripeOutcome.from(paymentIntent);
   }
 
+  settlementFor(order: OrderEnvelope): SettlementModeValue {
+    return StripePayload.settlementFor(order);
+  }
+
   async quotePromotion(order: OrderEnvelope, code: string): Promise<PromotionQuote> {
-    return this.coupons.quote(code, order.lines);
+    return this.coupons.quote(code, order.lines, order.buyer.email);
   }
 
   /**
@@ -334,7 +339,7 @@ export class StripeAdapter implements PaymentAdapter {
     const code = order.promotionCode;
     if (code === null || code === '') return null;
 
-    const quote = await this.coupons.quote(code, order.lines);
+    const quote = await this.coupons.quote(code, order.lines, order.buyer.email);
 
     if (!quote.accepted && quote.reason === 'unavailable') {
       this.log.warning('payment.promotion_unconfirmed', { code, anchor: order.anchorSlug });

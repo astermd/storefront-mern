@@ -96,13 +96,9 @@ export class FieldViewModel {
       category: field.type === 'bmi' ? FieldViewModel.optionalText(composite[`${field.name}_category`]) : null,
       image_url: field.type === 'image' ? FieldViewModel.imageUrl(field) : null,
       button_action: field.type === 'button' ? FieldViewModel.buttonAction(field.properties.buttonAction, field.label) : null,
-      // A two-button field ([`buttonCount: 2`]) — a real, live-authored pattern (a "Back"/"Next"
-      // pair sharing one field slot) that PHP's own FieldViewModel.php never reads either (only
-      // `buttonAction`/the generic `label`), silently rendering one button and dropping the other.
-      // This port renders both rather than reproducing that gap. No PHP template to port from for
-      // the secondary slot — see field-button.ejs's own doc comment.
-      secondary_label: field.type === 'button' && field.properties.buttonCount === 2 ? FieldViewModel.optionalText(field.properties.secondaryButtonLabel) : null,
-      secondary_action: field.type === 'button' && field.properties.buttonCount === 2 ? FieldViewModel.buttonAction(field.properties.secondaryButtonAction, FieldViewModel.optionalText(field.properties.secondaryButtonLabel) ?? '') : null,
+      // A two-button field (`buttonCount: 2`): the builder's Back-beside-Next row, one field slot
+      // (lamp 4e32b5e). See `secondaryButton()`.
+      ...FieldViewModel.secondaryButton(field),
       max_length: FieldViewModel.constraint(field, 'maxLength'),
       min_value: FieldViewModel.constraint(field, 'minValue'),
       max_value: FieldViewModel.constraint(field, 'maxValue'),
@@ -286,6 +282,26 @@ export class FieldViewModel {
     }
     const text = FieldViewModel.scalarText(value);
     return text === null ? [] : [text];
+  }
+
+  /**
+   * The second button of a two-button field, after lamp's `FieldViewModel::buttons()`. Any authored
+   * button hides the form's own Back / Continue row, so a dropped second button is a page with no
+   * way forward. `buttonCount` is the switch, not the presence of the secondary keys: the builder
+   * keeps them after the count drops back to one, and a button the author removed must not come
+   * back. A second button with no label of its own is named by what it does.
+   */
+  private static secondaryButton(field: Field): { secondary_label: string | null; secondary_action: string | null } {
+    const count = Number(FieldViewModel.scalarText(field.properties.buttonCount) ?? 1);
+    if (field.type !== 'button' || !Number.isFinite(count) || count < 2) {
+      return { secondary_label: null, secondary_action: null };
+    }
+
+    const authored = FieldViewModel.optionalText(field.properties.secondaryButtonLabel);
+    const action = FieldViewModel.buttonAction(field.properties.secondaryButtonAction, authored ?? '');
+    const fallback: Record<string, string> = { previous_page: 'Back', next_page: 'Next', submit: 'Submit' };
+
+    return { secondary_label: authored ?? fallback[action] ?? 'Next', secondary_action: action };
   }
 
   /**

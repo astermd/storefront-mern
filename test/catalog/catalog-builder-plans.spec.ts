@@ -49,7 +49,7 @@ function channel(provider: string, extra: Record<string, unknown> = {}): Record<
 }
 
 function row(overrides: Partial<PlanRow> = {}): PlanRow {
-  return { plan_id: PLAN_ID, name: 'n', display_name: 'Display', product_id: PRODUCT_ID, variant_id: VARIANT_ID, first_payment_cents: 9900, allow_coupons: true, ...overrides };
+  return { plan_id: PLAN_ID, name: 'n', display_name: 'Display', description: '', product_id: PRODUCT_ID, variant_id: VARIANT_ID, first_payment_cents: 9900, allow_coupons: true, settlement: 'capture', ...overrides };
 }
 
 function variants(data: Record<string, unknown>, plans: PlanRow[]) {
@@ -59,7 +59,8 @@ function variants(data: Record<string, unknown>, plans: PlanRow[]) {
 describe('CatalogBuilder plans', () => {
   it('sells a variant on its plan at the plan\'s first payment, keeping its own price as list price', () => {
     const [onPlan, oneOff] = variants(channel('stripe'), [row()]);
-    expect(onPlan.plan).toEqual({ id: PLAN_ID, name: 'Display', first_payment_cents: 9900, allow_coupons: true });
+    expect(onPlan.plan).toEqual({ id: PLAN_ID, name: 'Display', description: '', first_payment_cents: 9900, allow_coupons: true, settlement: 'capture' });
+    expect(onPlan.plans).toEqual([onPlan.plan]);
     expect(onPlan.price_cents).toBe(9900);
     expect(onPlan.list_price_cents).toBe(4900);
     expect(oneOff.plan).toBeUndefined();
@@ -71,10 +72,23 @@ describe('CatalogBuilder plans', () => {
     expect(product.price_cents).toBe(9900);
   });
 
-  it('lets the lower plan id win when two plans sell the same variant', () => {
-    const [v] = variants(channel('stripe'), [row({ plan_id: 'b'.repeat(24), first_payment_cents: 1 }), row({ plan_id: 'a'.repeat(24), first_payment_cents: 2 })]);
+  it('keeps every plan that sells a variant, lowest id first and the default, priced on the default', () => {
+    const [v] = variants(channel('stripe'), [
+      row({ plan_id: 'b'.repeat(24), first_payment_cents: 1, description: 'Every 3 months', settlement: 'authorize' }),
+      row({ plan_id: 'a'.repeat(24), first_payment_cents: 2 }),
+    ]);
     expect(v.plan?.id).toBe('a'.repeat(24));
+    expect(v.plans?.map((plan) => plan.id)).toEqual(['a'.repeat(24), 'b'.repeat(24)]);
+    expect(v.plans?.[1]).toMatchObject({ description: 'Every 3 months', settlement: 'authorize', first_payment_cents: 1 });
     expect(v.price_cents).toBe(2);
+  });
+
+  it("reads a plan's settlement from its first charge step", () => {
+    const plan = (mode?: string) => ({ steps: [{ step_id: 'c1', type: 'charge', schedule: { start_day: 0 }, ...(mode ? { payment_mode: mode } : {}) }] });
+    expect(SubscriptionPlans.settlement(plan('pre_auth'))).toBe('authorize');
+    expect(SubscriptionPlans.settlement(plan('charge_now'))).toBe('capture');
+    expect(SubscriptionPlans.settlement(plan())).toBe('capture');
+    expect(SubscriptionPlans.settlement({ steps: [] })).toBe('capture');
   });
 
   it('skips a plan it cannot price', () => {

@@ -17,9 +17,10 @@ import { PromotionQuote } from '../payment/promotion-quote';
 export interface CouponGateway {
   /**
    * Prices a code against the lines it would discount. An accepted quote carries the coupon's id as
-   * its reference, which is what the order names the discount by.
+   * its reference, which is what the order names the discount by. `email` names the buyer, when the
+   * checkout holds one, so a patient-only coupon can match.
    */
-  quote(code: string, lines: OrderLine[]): Promise<PromotionQuote>;
+  quote(code: string, lines: OrderLine[], email?: string | null): Promise<PromotionQuote>;
 
   /** Whether codes can be priced at all, so the storefront hides the control rather than refusing every code. */
   available(): boolean;

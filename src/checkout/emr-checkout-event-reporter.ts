@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import type { Request } from 'express';
+import type { TreatmentSyncOptions } from '@astermd-hq/sdk';
 import { CheckoutEvent, Response as AsterMDResponse } from '@astermd-hq/sdk';
 import { EmrClientFactory } from '../emr/client-factory';
 import { JourneyStoreFactory } from '../journey/journey-store-factory';
@@ -13,7 +14,7 @@ import { CheckoutEventReporter, SyncedPayment } from './checkout-event-reporter'
 import { PaymentDescriptor } from '../payment/payment-descriptor';
 import { Totals } from './totals';
 import { VerificationGateway } from '../emr/verification-gateway';
-import { ExtendedTreatmentSyncOptions, VerificationBlock } from '../emr/treatment-sync-options';
+import { toSdkVerification, toSyncPayment, VerificationBlock } from '../emr/treatment-sync-options';
 import { VerificationRecord } from '../journey/journey-state';
 
 /** What an import with no browser behind it is attributed to — a sweep has no buyer device. */
@@ -52,9 +53,9 @@ const NO_SESSION = '';
  *
  * **`payment` and `verification` ride the treatments sync, as in PHP** (`payment` is
  * `PaymentDescriptor.toArray()`, omitted when there is none; `verification` is
- * `{ email: true, address: false }` only for a deliverable buyer email). The installed
- * `@astermd-hq/sdk` 0.0.2 has no such fields and drops them — a release matching PHP astermd/sdk
- * 0.0.3 is required; see {@link ExtendedTreatmentSyncOptions}. Only `orderPlaced` has a descriptor
+ * `{ email: true, address: false }` only for a deliverable buyer email). `@astermd-hq/sdk` 0.0.4
+ * serialises both; the descriptor is mapped onto its camelCase shape by `toSyncPayment()` in
+ * `src/emr/treatment-sync-options.ts`. Only `orderPlaced` has a descriptor
  * to thread; the receipt batch and the reconciliation sweep sync without one, exactly as lamp does.
  */
 @Injectable()
@@ -215,13 +216,13 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
     let response: AsterMDResponse<Record<string, unknown>[]>;
     try {
       const verification = await this.verificationBlock();
-      const options: ExtendedTreatmentSyncOptions = {
+      const options: TreatmentSyncOptions = {
         session: sessionUuid,
         orderIds: references,
         utmSource: this.utmSource() ?? undefined,
         userAgent: await this.userAgentFor(references),
-        ...(payment === null ? {} : { payment: payment instanceof PaymentDescriptor ? payment.toArray() : payment }),
-        ...(verification === null ? {} : { verification }),
+        ...(payment === null ? {} : { payment: toSyncPayment(payment instanceof PaymentDescriptor ? payment.toArray() : payment) }),
+        ...(verification === null ? {} : { verification: toSdkVerification(verification) }),
       };
       response = await this.clients.create().treatments().sync<Record<string, unknown>[]>(options);
     } catch (e) {
@@ -273,7 +274,10 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
 
     const emailVerified =
       email !== '' && this.verification !== null && this.verification.isEnabled() && (await this.verification.emailIsDeliverable(email)) === true;
-    const id = EmrCheckoutEventReporter.identityBlock(state?.verification ?? null, state?.identityDocument ?? null);
+    // An uploaded ID document is reported only when identity verification is on for this deployment;
+    // with it off, nothing about identity is reported, so `verification.id` is never sent.
+    const documentPath = this.config.verification?.enabled ? (state?.identityDocument ?? null) : null;
+    const id = EmrCheckoutEventReporter.identityBlock(state?.verification ?? null, documentPath);
 
     if (!emailVerified && id === null) return null;
 

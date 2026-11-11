@@ -16,6 +16,7 @@ export class VrioPayload {
 
   static forOrder(order: OrderEnvelope, credential: PaymentCredential, credentials: VrioCredentials, shippingProfileId: number): Record<string, unknown> {
     const buyer = order.buyer;
+    const billing = buyer.billing;
     const [attributionSlots] = VrioAttribution.map(order.attribution as Record<string, unknown>);
 
     const body: Record<string, unknown> = {
@@ -34,14 +35,17 @@ export class VrioPayload {
       ship_state: buyer.territory,
       ship_zipcode: buyer.postalCode,
       ship_country: buyer.country,
-      shipping_same: true,
-      bill_fname: buyer.firstName,
-      bill_lname: buyer.lastName,
-      bill_address1: buyer.addressLine,
-      bill_city: buyer.city,
-      bill_state: buyer.territory,
-      bill_zipcode: buyer.postalCode,
-      bill_country: buyer.country,
+      // Billing is the shipping address unless the buyer gave a different one (`[13.2]`). The flag
+      // and the full set are both sent because the payload known to work sends both, and the
+      // provider is silent about which it honours, so the flag must agree with the fields.
+      shipping_same: billing === null,
+      bill_fname: billing?.firstName ?? buyer.firstName,
+      bill_lname: billing?.lastName ?? buyer.lastName,
+      bill_address1: billing?.addressLine ?? buyer.addressLine,
+      bill_city: billing?.city ?? buyer.city,
+      bill_state: billing?.territory ?? buyer.territory,
+      bill_zipcode: billing?.postalCode ?? buyer.postalCode,
+      bill_country: billing?.country ?? buyer.country,
       offers: VrioOffers.forCharge(order),
       ip_address: order.clientIp ?? '',
       user_agent: order.userAgent ?? '',

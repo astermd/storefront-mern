@@ -21,6 +21,8 @@ export interface CartLineData {
   quantity: number;
   unit_price_cents: number;
   variant_id: string | null;
+  /** The EMR plan the buyer chose among the variant's; absent on a line stored before plans could be chosen. */
+  plan_id?: string | null;
 }
 
 export interface CartData {

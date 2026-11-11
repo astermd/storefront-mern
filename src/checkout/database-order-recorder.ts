@@ -46,7 +46,10 @@ export class DatabaseOrderRecorder implements OrderRecorder {
           discount_cents: order.discountCents,
           promotion_code: order.promotionCode,
           payment_method: 'card',
-          card_last_four: credential.lastFour() || null,
+          // A token collected in the provider's own fields (Stripe) carries no number, so the
+          // provider's reading of the card is the only last four there is — already checked to be
+          // exactly four digits by the adapter's outcome.
+          card_last_four: credential.lastFour() || outcome.providerCardLastFour || null,
           idempotency_key: order.idempotencyKey,
           provider_category: providerCategory,
           is_upsell: isUpsell,

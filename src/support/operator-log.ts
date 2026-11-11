@@ -29,6 +29,8 @@ export class OperatorLog {
     'card_cvc', 'card_expiry',
     'card_cvv', 'card_exp_month', 'card_exp_year',
     'buyer_email', 'buyer_name',
+    // The separate billing address, as the checkout form and journey state name it.
+    'billing_first_name', 'billing_last_name', 'billing_address_line', 'billing_city', 'billing_postal_code',
     'bill_fname', 'bill_lname', 'bill_address1', 'bill_address2', 'bill_city', 'bill_zipcode',
     'ship_fname', 'ship_lname', 'ship_address1', 'ship_address2', 'ship_city', 'ship_zipcode',
     'handle', 'customer_id', 'customer_card_id',

@@ -1,3 +1,4 @@
+import { BuyerDetails } from '../checkout/buyer-details';
 import { PlacementOutcome } from '../payment/placement-outcome';
 import { SettlementMode, SettlementModeValue } from '../payment/settlement-mode';
 
@@ -75,6 +76,8 @@ export class Receipt {
     public readonly placedAt: string | null,
     public readonly pendingReview: boolean,
     public readonly settlement: SettlementModeValue = SettlementMode.Capture,
+    /** The separate billing address, keyed like `shipping`; null when billing was the shipping address (`[13.2]`). */
+    public readonly billing: ReceiptShipping | null = null,
   ) {}
 
   isAuthorizedOnly(): boolean {
@@ -133,7 +136,27 @@ export class Receipt {
       Receipt.firstOf(placed, (r) => r.placedAt),
       true,
       Receipt.settlementOf(placed),
+      Receipt.billingOf(buyer),
     );
+  }
+
+  /**
+   * The separate billing address, or null when the buyer did not give one. Null rather than a copy
+   * of the shipping block, so a stored receipt says which of the two it was: "billed to the delivery
+   * address" and "billed to an address that happens to match" are different facts.
+   */
+  private static billingOf(buyer: Record<string, string>): ReceiptShipping | null {
+    if ((buyer.billing_different ?? '').trim() !== BuyerDetails.BILLING_DIFFERENT) return null;
+
+    return {
+      name: `${(buyer.billing_first_name ?? '').trim()} ${(buyer.billing_last_name ?? '').trim()}`.trim(),
+      address_line: (buyer.billing_address_line ?? '').trim(),
+      city: (buyer.billing_city ?? '').trim(),
+      territory: (buyer.billing_territory ?? '').trim(),
+      postal_code: (buyer.billing_postal_code ?? '').trim(),
+      // Not collected, as for shipping (`[13.36]`).
+      country: '',
+    };
   }
 
   /** The same "authorize wins" rule the cart resolves with, applied again — a journey can place more than one order (a checkout, then an upsell), and they settle independently. */
@@ -162,6 +185,7 @@ export class Receipt {
       placed_at: this.placedAt,
       pending_review: this.pendingReview,
       settlement: this.settlement,
+      billing: this.billing,
     };
   }
 
@@ -173,6 +197,18 @@ export class Receipt {
       shippingFields[field] = Receipt.text(rawShipping[field]);
     }
     const shipping = shippingFields as unknown as ReceiptShipping;
+
+    // Absent on a receipt stored before a billing address could be given, which is the same answer
+    // as "billed to the shipping address".
+    let billing: ReceiptShipping | null = null;
+    if (stored.billing && typeof stored.billing === 'object') {
+      const rawBilling = stored.billing as Record<string, unknown>;
+      const billingFields: Record<string, string> = {};
+      for (const field of Receipt.SHIPPING_FIELDS) {
+        billingFields[field] = Receipt.text(rawBilling[field]);
+      }
+      billing = billingFields as unknown as ReceiptShipping;
+    }
 
     return new Receipt(
       Receipt.references(stored.references),
@@ -192,6 +228,7 @@ export class Receipt {
       Receipt.nullableText(stored.placed_at),
       true,
       SettlementMode.parse(stored.settlement) ?? SettlementMode.Capture,
+      billing,
     );
   }
 

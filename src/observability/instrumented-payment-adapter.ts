@@ -1,3 +1,4 @@
+import { SettlementModeValue } from '../payment/settlement-mode';
 import { AdapterCapabilities } from '../payment/adapter-capabilities';
 import { CaptureOutcome } from '../payment/capture-outcome';
 import { CaptureRequest } from '../payment/capture-request';
@@ -62,6 +63,10 @@ export class InstrumentedPaymentAdapter implements PaymentAdapter {
       (outcome) => ({ outcome: outcome.state, raw_status: outcome.rawStatus, reference: outcome.reference, settlement: outcome.settlement }),
       { reference },
     );
+  }
+
+  settlementFor(order: OrderEnvelope): SettlementModeValue {
+    return this.inner.settlementFor?.(order) ?? order.settlement;
   }
 
   async quotePromotion(order: OrderEnvelope, code: string): Promise<PromotionQuote> {

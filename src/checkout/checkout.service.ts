@@ -25,6 +25,7 @@ import { PaymentCredential } from '../payment/payment-credential';
 import { PaymentDescriptor } from '../payment/payment-descriptor';
 import { PlacementOutcome } from '../payment/placement-outcome';
 import { SettlementMode, SettlementModeValue } from '../payment/settlement-mode';
+import { VariantPlans } from '../domain/variant-plans';
 import { CardScrubber } from '../support/card-scrubber';
 import { ConfigService } from '../support/config';
 import { DatabaseRateLimiter } from '../support/database-rate-limiter';
@@ -38,7 +39,7 @@ import { CheckoutAttempt } from './checkout-attempt';
 import { CheckoutAttemptRepository, CheckoutAttemptTakenOver } from '../repository/checkout-attempt-repository';
 import { CheckoutEventReporter } from './checkout-event-reporter';
 import { CheckoutResult } from './checkout-result';
-import { CheckoutBumpViewModel, CheckoutLineViewModel, CheckoutPlanViewModel, CheckoutViewModel } from './checkout-view-model';
+import { CheckoutBumpViewModel, CheckoutLineViewModel, CheckoutPlanViewModel, CheckoutSubscriptionViewModel, CheckoutViewModel } from './checkout-view-model';
 import { ConsentRecord } from './consent-record';
 import { Consents } from './consents';
 import { IdempotencyKey } from './idempotency-key';
@@ -168,6 +169,11 @@ export class CheckoutService {
     let prefill = await this.prefill(cart, state);
     if (submitted !== null) {
       prefill = { ...prefill, ...submitted.toArray() };
+      // Unticked, the submission carries no billing keys; a billing address remembered from an
+      // earlier render must not re-tick the box the buyer just cleared.
+      if (!submitted.billingDifferent) {
+        prefill = Object.fromEntries(Object.entries(prefill).filter(([field]) => !field.startsWith('billing_')));
+      }
     }
 
     if (state === null || !state.hasEmrEvent(CHECKOUT_VISITED_EVENT)) {
@@ -176,6 +182,14 @@ export class CheckoutService {
     }
 
     const plans = this.planViewModels(cart);
+    const subscriptions = this.subscriptionViewModels(cart);
+    const quote = this.quoteEnvelope(cart, state);
+    const settlement = this.adapter.settlementFor?.(quote) ?? quote.settlement;
+
+    // The page promises a hold on every order. An order whose subscription plan takes its first
+    // payment at once would be told it is held, so only a cart holding a subscription is told
+    // otherwise — and only when the money really is taken.
+    const paymentNotice = subscriptions.length > 0 && !SettlementMode.isAuthorize(settlement) ? CheckoutViewModel.NOTICE_CHARGE : CheckoutViewModel.NOTICE_HOLD;
 
     return new CheckoutViewModel(
       prefill,
@@ -193,6 +207,9 @@ export class CheckoutService {
       plans,
       cart.rxLines().length > 1,
       paymentChallenge,
+      subscriptions,
+      paymentNotice,
+      settlement,
     );
   }
 
@@ -427,7 +444,7 @@ export class CheckoutService {
     const claimedAt = pending.claimed_at;
     state.pendingPayment = null;
 
-    const buyer = new BuyerDetails(CheckoutService.buyerArguments(state.buyer));
+    const buyer = BuyerDetails.fromStored(state.buyer);
     const envelope = this.envelopeFor(cart, state, buyer, totals, promotion, key, context);
     const credential = PaymentCredential.token(pending.reference);
 
@@ -559,6 +576,49 @@ export class CheckoutService {
     return outcome;
   }
 
+  /**
+   * Removes a line from the checkout's order summary, by the cart's own rule (`CartRules.remove()`):
+   * an attachment the cart added for another product is refused with the cart's notice, and its
+   * parent takes it with it. Not in storefront-lamp, whose checkout has no remove control (lines are
+   * removed from the cart drawer there); added so a buyer who arrives with something they no longer
+   * want is not sent away from checkout to drop it. An accepted order bump removed this way is no
+   * longer counted as accepted.
+   */
+  removeLine(slug: string): CartOutcome {
+    if (this.hasPendingPayment()) {
+      return CartOutcome.rejected(CheckoutService.PAYMENT_PENDING_NOTICE);
+    }
+
+    const cartStore = this.cartStoreFactory.get();
+    const cart = cartStore.currentCart();
+    const outcome = this.rules.remove(cart, slug);
+
+    if (outcome.accepted) {
+      const state = this.journeyStoreFactory.get().currentState();
+      if (state !== null) state.acceptedBumps = state.acceptedBumps.filter((accepted) => accepted !== slug);
+      cartStore.save(cart);
+    }
+
+    return outcome;
+  }
+
+  /** `[12.4]`: choosing which subscription plan a line is sold on re-prices it. */
+  chooseSubscription(slug: string, planId: string): CartOutcome {
+    if (this.hasPendingPayment()) {
+      return CartOutcome.rejected(CheckoutService.PAYMENT_PENDING_NOTICE);
+    }
+
+    const cartStore = this.cartStoreFactory.get();
+    const cart = cartStore.currentCart();
+    const outcome = this.rules.chooseSubscription(cart, slug, planId);
+
+    if (outcome.accepted) {
+      cartStore.save(cart);
+    }
+
+    return outcome;
+  }
+
   /** Keeps what the buyer has typed, so a sub-action does not cost them the form (`[27.10]`). */
   rememberBuyer(buyer: BuyerDetails): void {
     // The stored buyer is the one the pending payment was sent for, and the order is finished
@@ -649,7 +709,7 @@ export class CheckoutService {
       authorize,
       outcome.preAuthQa,
       held && authorize ? totals.totalCents : null,
-      CardDescriptor.fromCredential(credential, outcome.providerCardBrand, outcome.providerCardExpiry),
+      CardDescriptor.fromCredential(credential, outcome.providerCardBrand, outcome.providerCardExpiry, outcome.providerCardLastFour),
     );
   }
 
@@ -786,8 +846,9 @@ export class CheckoutService {
         // is the product's own for a product without variants, which is how the EMR names one.
         line.emrProductId,
         CheckoutService.text(variant?.id) ?? line.variantId,
-        // The catalog's plan for the variant, when it is sold on one — where the line's price came from.
-        CheckoutService.text(variant?.plan?.id),
+        // The plan the buyer chose for the variant, or its default, when the variant is sold on one —
+        // the same plan the line's price and settlement came from (`VariantPlans`).
+        CheckoutService.text(VariantPlans.chosen(variant, line.planId)?.id),
       );
     });
   }
@@ -799,13 +860,7 @@ export class CheckoutService {
 
   /** The chosen variant, or the first one when nothing was chosen. */
   private variantFor(slug: string, variantId: string | null): ProductVariant | null {
-    const product = this.catalog.product(slug);
-    const variants = product?.variants ?? [];
-    if (variants.length === 0) return null;
-
-    if (variantId === null || variantId === '') return variants[0];
-
-    return variants.find((v) => v.id === variantId) ?? variants[0];
+    return VariantPlans.variant(this.catalog.product(slug), variantId);
   }
 
   /** The promotion that may be shown and charged against the cart in hand. */
@@ -913,14 +968,16 @@ export class CheckoutService {
       context?.userAgent ?? null,
       key,
       CheckoutService.anchorSlug(cart),
-      this.settlement.forSlugs(...cart.lines().map((line) => line.slug)),
+      // Resolved from the cart about to be charged; a line on a subscription plan settles as its
+      // plan says.
+      this.settlement.forLines(...cart.lines()),
       promotion?.reference ?? null,
     );
   }
 
-  /** A cheap envelope for pricing a discount code. */
+  /** A cheap envelope for pricing a discount code, and for asking the adapter how it will settle the cart before the page is rendered. */
   private quoteEnvelope(cart: Cart, state: JourneyState | null): OrderEnvelope {
-    const buyer = new BuyerDetails(CheckoutService.buyerArguments(state?.buyer ?? {}));
+    const buyer = BuyerDetails.fromStored(state?.buyer ?? {});
     const totals = Totals.of(cart.subtotalCents(), null);
 
     return new OrderEnvelope(
@@ -937,20 +994,9 @@ export class CheckoutService {
       null,
       '',
       CheckoutService.anchorSlug(cart),
+      // As envelopeFor() resolves it, so the page is set up for the settlement the submit will ask for.
+      this.settlement.forLines(...cart.lines()),
     );
-  }
-
-  private static buyerArguments(stored: Record<string, string>): Record<string, string> {
-    return {
-      firstName: stored.first_name ?? '',
-      lastName: stored.last_name ?? '',
-      email: stored.email ?? '',
-      phone: stored.phone ?? '',
-      addressLine: stored.address_line ?? '',
-      city: stored.city ?? '',
-      territory: stored.territory ?? '',
-      postalCode: stored.postal_code ?? '',
-    };
   }
 
   /**
@@ -1072,8 +1118,44 @@ export class CheckoutService {
       slug: line.slug,
       name: line.name,
       chosen: line.variantId,
-      options: variants.map((variant) => ({ id: variant.id, name: variant.name, price_cents: variant.price_cents })),
+      // A variant sold on a plan renews, so it must not be labelled as billed once; which plan is chosen beneath.
+      options: variants.map((variant) => ({ id: variant.id, name: variant.name, price_cents: variant.price_cents, subscription: VariantPlans.of(variant).length > 0 })),
     };
+  }
+
+  /**
+   * One subscription selector per line sold on a plan, in cart order: the plans its variant is sold
+   * on, the one it is on marked chosen.
+   *
+   * Beside the variant selector rather than instead of it, so the dose is still chosen first and the
+   * plans offered are always the chosen dose's. A prescription with no variant chosen yet gets none
+   * until it has one (`[12.9]`); a non-prescription line is on its first variant until told
+   * otherwise, which is the variant it is priced on, so it gets that one's.
+   */
+  private subscriptionViewModels(cart: Cart): CheckoutSubscriptionViewModel[] {
+    const selectors: CheckoutSubscriptionViewModel[] = [];
+    for (const line of cart.lines()) {
+      if (line.isChild() || (line.kind === 'rx' && line.variantId === null)) continue;
+
+      const variant = this.variantFor(line.slug, line.variantId);
+      const plans = VariantPlans.of(variant);
+      if (plans.length === 0) continue;
+
+      selectors.push({
+        slug: line.slug,
+        name: line.name,
+        variant_name: variant?.name ?? '',
+        chosen: VariantPlans.chosen(variant, line.planId)?.id ?? null,
+        options: plans.map((plan) => ({
+          id: plan.id,
+          name: plan.name ?? '',
+          description: plan.description ?? '',
+          price_cents: plan.first_payment_cents ?? 0,
+        })),
+      });
+    }
+
+    return selectors;
   }
 
   /** The territory the geo gate has already been applied with, or the one the buyer last told us. */
