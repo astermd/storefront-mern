@@ -12,7 +12,7 @@ function present(value: unknown): boolean {
 }
 
 /**
- * Ported from storefront-lamp/core/Verification/IdentityVerificationSequence.php. Runs
+ * Runs
  * `config/verification.ts`'s `checks` list against one identity, in order, until one comes back
  * decisive.
  *

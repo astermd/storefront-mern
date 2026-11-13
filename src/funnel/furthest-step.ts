@@ -1,7 +1,7 @@
 import { JourneyState } from '../journey/journey-state';
 
 /**
- * Ported from storefront-lamp/core/Funnel/FurthestStep.php. The one place that decides whether a
+ * The one place that decides whether a
  * journey has got further than it had, and the only writer of `JourneyState.furthestStep`'s
  * advance rule (`[21.7]`).
  *

@@ -56,7 +56,7 @@ const CHECKOUT_VISITED_EVENT = 'checkout_visited';
 const ORDER_DECLINED_EVENT = 'order_declined';
 
 /**
- * Ported from storefront-lamp/core/Checkout/CheckoutService.php. The checkout page's whole decision
+ * The checkout page's whole decision
  * surface: what to render, and what happens when it is submitted.
  *
  * The **order of operations inside `submit()` is the specification's, not a convenience**, and
@@ -579,8 +579,7 @@ export class CheckoutService {
   /**
    * Removes a line from the checkout's order summary, by the cart's own rule (`CartRules.remove()`):
    * an attachment the cart added for another product is refused with the cart's notice, and its
-   * parent takes it with it. Not in storefront-lamp, whose checkout has no remove control (lines are
-   * removed from the cart drawer there); added so a buyer who arrives with something they no longer
+   * parent takes it with it. Added so a buyer who arrives with something they no longer
    * want is not sent away from checkout to drop it. An accepted order bump removed this way is no
    * longer counted as accepted.
    */

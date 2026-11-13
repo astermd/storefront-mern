@@ -52,7 +52,7 @@ export interface UnsyncedOrderRow {
 }
 
 /**
- * Ported from storefront-lamp/core/Repository/OrderRepository.php. The `orders`, `order_lines` and
+ * The `orders`, `order_lines` and
  * `order_consents` tables: the storefront's own record of what was bought, for how much, and what
  * the buyer agreed to.
  *
@@ -143,9 +143,9 @@ export class OrderRepository {
   /**
    * The orders the EMR was never told about, oldest first, bounded — `ForwardReconciliation`'s one
    * read. `treatmentReference IS NULL` is the durable signal `markTreatmentSynced()` writes;
-   * `placedAt` falls back to `createdAt` (the PHP original's `COALESCE`) for a row written before a
-   * placement time was ever recorded — in practice every row this port writes sets `placedAt` at
-   * insert, so the fallback exists for parity rather than a live case. `status` is returned, not
+   * `placedAt` falls back to `createdAt` (a `COALESCE`) for a row written before a placement time
+   * was ever recorded — in practice every row written today sets `placedAt` at insert, so the
+   * fallback covers older rows rather than a live case. `status` is returned, not
    * filtered on — the caller decides what's sendable.
    */
   async findUnsyncedPlacedBefore(placedBefore: string, limit: number): Promise<UnsyncedOrderRow[]> {

@@ -7,7 +7,7 @@ import { VrioCredentials } from './vrio-credentials';
 import { VrioOffers } from './vrio-offers';
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioPayload.php. Builds the `POST /orders` body,
+ * Builds the `POST /orders` body,
  * and the payment block `place()` uses to short-circuit before the wire when a credential this
  * provider cannot charge is handed to it.
  */

@@ -17,7 +17,7 @@ export interface ConsentConfig {
 }
 
 /**
- * Ported from storefront-lamp/core/Checkout/Consents.php. The consent set a deployment shows at
+ * The consent set a deployment shows at
  * checkout (§26).
  *
  * Consent is an explicit affirmative action (`[26.2]`): nothing here has a default of "granted",

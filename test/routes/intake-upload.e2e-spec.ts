@@ -18,7 +18,7 @@ import { FakeTeleformGateway } from '../support/fake-teleform-gateway';
 import { createTestApp } from '../support/test-app';
 
 /**
- * Ported from storefront-lamp/tests/Http/IntakeUploadTest.php: the `/intake/upload/…` relay to the
+ * The `/intake/upload/…` relay to the
  * EMR, and what a save and a submit then store and send.
  *
  * The EMR is `FakeIntakeUploads`, which files every upload under the session it was sent for,
@@ -71,7 +71,7 @@ describe('Intake file uploads', () => {
   const recorded = jest.fn().mockResolvedValue(true);
 
   beforeAll(async () => {
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-intake-upload-db-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-intake-upload-db-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], { cwd: process.cwd(), stdio: 'ignore' });
     prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url }) });

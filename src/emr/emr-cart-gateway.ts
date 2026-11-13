@@ -6,7 +6,7 @@ import { CartMirrorResult } from './cart-mirror-result';
 import { EmrClientFactory } from './client-factory';
 
 /**
- * Ported from storefront-lamp/core/Emr/EmrCartGateway.php. {@link CartGateway} over the SDK's
+ * {@link CartGateway} over the SDK's
  * `carts()` resource.
  *
  * `NotFound` is separated from every other failure because it is the one the caller can repair:
@@ -68,7 +68,7 @@ export class EmrCartGateway implements CartGateway {
     }
   }
 
-  /** `CartMirrorItem`'s camelCase fields, translated to the wire shape `CartMirror.php` sends. */
+  /** `CartMirrorItem`'s camelCase fields, translated to the snake_case wire shape the API expects. */
   private static toWireItems(items: CartMirrorItem[]): Record<string, unknown>[] {
     return items.map((item) => ({
       product_id: item.productId,

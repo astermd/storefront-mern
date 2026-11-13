@@ -8,7 +8,7 @@ import { IdentityVerdict } from './identity-verdict';
 const VALID_CHECKS: string[] = Object.values(IdentityCheck);
 
 /**
- * Ported from storefront-lamp/core/Verification/EmrIdentityGateway.php. {@link IdentityGateway}
+ * {@link IdentityGateway}
  * over the SDK's `verification().verifyIdentity()` resource.
  *
  * Every failure degrades to `inconclusive` rather than throwing — a verification outage must

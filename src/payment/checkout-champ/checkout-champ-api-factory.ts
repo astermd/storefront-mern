@@ -2,8 +2,8 @@ import { API, ClientOptions, HttpClientInterface } from '@astermd-hq/checkoutcha
 import { CheckoutChampCredentials } from './checkout-champ-credentials';
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampApiFactory.php. `timeout`
- * and `connectTimeout` are hardcoded, not read from config, matching the PHP original. The
+ * `timeout`
+ * and `connectTimeout` are hardcoded, not read from config. The
  * package's own debug logging is deliberately never turned on here; wire logging (when enabled)
  * decorates whichever transport this factory is given — see `CheckoutChampWireLog`.
  */

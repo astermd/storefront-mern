@@ -9,7 +9,7 @@ import { ConfigService } from '../support/config';
 import { SettlementMode, SettlementModeValue } from '../payment/settlement-mode';
 
 /**
- * Ported from storefront-lamp/core/Checkout/SettlementPolicy.php. Whether an order takes the money
+ * Whether an order takes the money
  * or reserves it — decided once, here.
  *
  * Three layers: the deployment default (`config/payment.ts`) answers "how does this storefront

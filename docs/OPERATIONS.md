@@ -10,8 +10,12 @@ not run. That is deliberate: a storefront that schedules its own jobs has two
 sources of truth about when they ran. It also means that the four jobs in the
 first section are, today, jobs nobody is running.
 
-Commands are shown as `bin/console <name>`, run from the application root.
-All output in this document was produced by running the command shown.
+Commands are shown as `npm run console -- <name>`, run from the application root.
+`npm run console` rebuilds the app first (its `preconsole` hook) and prints npm's own
+banner, so a scheduled job should instead call the built entry point directly —
+`node dist/src/console/main.js <name>` — against the build the deploy already made; that
+keeps a command's stdout to exactly what the command printed. Sample output below uses
+the exact lines each command prints; counts and timestamps are illustrative.
 
 A few sentences cite behaviour rules like `[21.9a]`. Those ids are resolved in
 [`SPEC-REFERENCE.md`](SPEC-REFERENCE.md); you can read this document without
@@ -47,7 +51,7 @@ application retries that.
 **Real output:**
 
 ```
-$ bin/console emr:reconcile
+$ npm run console -- emr:reconcile
 Orders the EMR was never told about: 0
   reconciliation backlog: 0
   unreconcilable (no analytics session): 0
@@ -82,16 +86,17 @@ day has failed roughly twenty-four times, not once.
 **Exit codes.**
 
 - **0** — the backlog was measured. Printed for an empty backlog, a full one,
-  and one full of orders the EMR refused this run.
-- **1** — the `orders` table could not be read; nothing is printed at all.
+  and one full of orders the EMR refused this run. Orders still unsynced 24 hours
+  after placement are additionally listed under "Repeat failures".
+- **1** — the `orders` table could not be read; only the failure line is printed.
 
 An order the EMR keeps refusing does **not** fail the run, and that is
 deliberate: re-running changes nothing about it, so a non-zero exit would page
 somebody on every run until a human acted.
 
 **When it fails.** Exit 1 means the database, not the EMR. The failure line
-names the exception class and, for a driver error, its SQLSTATE — never the
-driver's message, because this command's stdout ends up in a mail spool and the
+names the exception class and, for a Prisma error, its error code (e.g.
+`PrismaClientKnownRequestError (P2002)`) — never the driver's message, because this command's stdout ends up in a mail spool and the
 message can quote row contents back. Check the database this job reads, then
 re-run; the sweep is idempotent.
 
@@ -110,7 +115,7 @@ from a local row that does not exist.
 **Real output:**
 
 ```
-$ bin/console provider:reconcile
+$ npm run console -- provider:reconcile
 Orders placed at the provider but not recorded locally: 0
   examined this run: 0 of 0, matched: 0
   unmatched but never charged: 0
@@ -157,11 +162,11 @@ between them.
   Printed for a clean window and for a window full of orphans alike. Also
   printed, with an explanatory line, when the configured provider has no order
   search at all — that is a deployment fact, not an outage.
-- **1** — the number above is a floor rather than a total. Four causes, and the
-  message says which: the provider was not answered; a local row could not be
-  read; the window held more orders than one run reads (truncation); or the
-  requested window was unusable (`--hours` not a number, or shorter than the
-  sweep's own 15-minute grace period).
+- **1** — the number above is a floor rather than a total, or nothing was
+  measured. Four causes, and the message says which: the provider was not
+  answered; a local row could not be read; the window held more orders than one
+  run reads (truncation); or the requested window was unusable (`--hours` not a
+  number, or not longer than the sweep's own 15-minute grace period).
 
 **When it fails.** Read the message, not just the code. A provider outage
 clears itself on the next run — the 48-hour window covers the run that failed.
@@ -171,13 +176,16 @@ local row prints `reconcile.local_read_failed` log lines naming each order.
 ### 1.3 `abandonment:signals` — the abandoned-journey feed
 
 **What it does.** Prints one JSON document on stdout describing every journey
-that has stopped moving for long enough to count as abandoned. It writes
-nothing, anywhere. Running it twice produces the same document; each signal
-carries a `signal_key` so the consumer deduplicates across polls without this
-command remembering anything.
+that has stopped moving for long enough to count as abandoned. The only thing it
+writes is one append-only `access.abandonment_signal` row in `events` per signal
+(see the warning below). Running it twice produces the same document; each
+signal carries a `signal_key` so the consumer deduplicates across polls without
+this command remembering anything.
 
 A journey counts as abandoned after **one hour** of no movement, and the sweep
-looks back **30 days** (both configurable in `config/abandonment.php`).
+looks back **30 days** and emits at most **500** signals per run (all three
+configurable in `config/abandonment.ts`: `ABANDONMENT_IDLE_SECONDS`,
+`ABANDONMENT_LOOKBACK_SECONDS`, `ABANDONMENT_LIMIT`).
 
 **What it protects against.** Nothing, directly — this is a revenue feed, not a
 safety net. It exists so the marketing platform can send a "you left something
@@ -186,23 +194,23 @@ behind" email. The storefront exposes the state; the platform does the sending.
 **Real output** (session identifiers redacted — see the warning below):
 
 ```
-$ bin/console abandonment:signals
+$ npm run console -- abandonment:signals
 {
-    "count": 15,
-    "generated_at": "2026-08-30T20:06:14+00:00",
-    "signals": [
-        {
-            "signal_key": "<session-uuid>:cart_abandoned:2026-08-20T17:05:56+00:00",
-            "state": "cart_abandoned",
-            "session_uuid": "<session-uuid>",
-            "opportunity_id": null,
-            "furthest_step": null,
-            "resume_url": "http://127.0.0.1:8080/?amd_session=<session-uuid>",
-            "marketing_consent": "not_asked",
-            "last_moved_at": "2026-08-20T17:05:56+00:00",
-            "idle_seconds": 874818
-        }
-    ]
+  "count": 15,
+  "generated_at": "2026-08-30T20:06:14.000Z",
+  "signals": [
+    {
+      "signal_key": "<session-uuid>:cart_abandoned:2026-08-20T17:05:56.000Z",
+      "state": "cart_abandoned",
+      "session_uuid": "<session-uuid>",
+      "opportunity_id": null,
+      "furthest_step": null,
+      "resume_url": "http://localhost:8080/?amd_session=<session-uuid>",
+      "marketing_consent": "not_asked",
+      "last_moved_at": "2026-08-20T17:05:56.000Z",
+      "idle_seconds": 874818
+    }
+  ]
 }
 ```
 
@@ -214,11 +222,14 @@ ran".
 
 > ### This command's output is health information. Treat it as such.
 >
-> Every signal carries a `resume_url`, and **in this deployment a resume link
-> never expires and is not revoked when the journey completes.** The link is
-> the raw analytics session identifier: `?amd_session=<uuid>`. Anyone holding
-> that URL holds indefinite access to that person's intake answers — the
-> medical questionnaire they filled in.
+> Every signal carries a `resume_url`, and **the identifier in it never
+> expires and is not revoked when the journey completes.** The link carries
+> the raw analytics session identifier: `?amd_session=<uuid>`. That identifier
+> is also the value of the `amd_session` cookie, and a request presenting it as
+> that cookie is trusted and handed the journey — so anyone holding it holds
+> indefinite access to that person's intake answers, the medical questionnaire
+> they filled in. (`SessionResolver` does not yet adopt a session from the
+> query parameter itself; the cookie route is enough.)
 >
 > **This is a deliberate design decision, not an oversight, and it is not to be
 > "fixed" into revoking.** What follows from it is an operational obligation:
@@ -234,10 +245,9 @@ ran".
 > `resume_url` and `session_uuid` before you paste it anywhere — as this
 > document does.
 >
-> The compensating control is the audit trail: every use of a resume link and
-> every sweep that serialises a journey into a signal is recorded in the
-> `events` table as an access to health information. With no expiry, that log
-> is the only record that a link was used.
+> The compensating control is the audit trail: every sweep that serialises a
+> journey into a signal records an `access.abandonment_signal` row in the
+> `events` table as an access to health information.
 
 **Cadence: hourly**, matching the one-hour idle threshold. More often only
 produces the same document; much less often and a recovery email arrives too
@@ -272,13 +282,13 @@ places:
 |---|---|---|
 | `checkout_attempts` | `--attempt-days` | 30 days |
 | `rate_limits` | `--rate-limit-hours` | 24 hours |
-| `sessions` | `retention.operational.session_days` | 90 days |
-| `events` | `retention.operational.event_days` | 365 days |
-| files under `storage/logs/` | `retention.operational.log_days` | 30 days |
+| `sessions` | `retention.operational.sessionDays` | 90 days |
+| `events` | `retention.operational.eventDays` | 365 days |
+| files under `storage/logs/` | `retention.operational.logDays` | 30 days |
 
 The first two are command options because they are mechanical — how long an
 idempotency key or a rate-limit counter is still useful to the software. The
-last three come from `config/retention.php` and **cannot** be overridden from
+last three come from `config/retention.ts` and **cannot** be overridden from
 the command line: how long a person's journey is kept is a policy decision that
 belongs somewhere reviewable, not in a crontab flag.
 
@@ -290,12 +300,12 @@ that is merely *supposed* to expire does not expire.
 **Real output:**
 
 ```
-$ bin/console db:prune
+$ npm run console -- db:prune
 checkout_attempts older than 30d — would delete: 0
 rate_limits with windows closed over 24h ago — would delete: 0
-sessions last moved before 2026-06-01T20:04:50+00:00 — would delete: 0
-events older than 2025-08-30T20:04:50+00:00 — would delete: 0
-storage/logs files last written before 2026-07-31T20:04:50+00:00 — would delete: 0
+sessions last moved before 2026-06-01T20:04:50.000Z — would delete: 0
+events older than 2025-08-30T20:04:50.000Z — would delete: 0
+storage/logs files last written before 2026-07-31T20:04:50.000Z — would delete: 0
 
 (dry run — use --apply to delete)
 ```
@@ -358,7 +368,7 @@ This is the interesting half of the command.
 
 - **`orders`, `order_lines` and `order_consents` are never touched, at any
   age.** Transaction records are retained for financial obligations. The period
-  is declared in `config/retention.php` (7 years by default) so it is stated
+  is declared in `config/retention.ts` (7 years by default) so it is stated
   rather than implied by the absence of a job, but nothing in this application
   acts on it — archival is your procedure, not the software's.
 
@@ -377,13 +387,15 @@ The strictness on options is the point of having a floor. `--attempt-days
 thirty` is not silently cast to `0`; a typo in a crontab must not be able to
 spell "delete everything" and then be forgiven with a zero exit.
 
+`--dry-run` forces a report even when `--apply` is also given.
+
 **When it fails.** Read the whole failure block, not just the first line. **The
 sweeps are not one transaction**, and they run in the order printed. Under
 `--apply`, a failure in the log sweep means every database delete has already
 happened. The command therefore names what it deleted before it stopped:
 
 ```
-Prune failed: <exception class> (<SQLSTATE>)
+Prune failed: <exception class> (<Prisma error code>)
 checkout_attempts older than 30d — deleted: 41
 rate_limits with windows closed over 24h ago — deleted: 900
 (this run stopped after that, so re-running it resumes rather than repeats)
@@ -403,7 +415,7 @@ the shared figures are read from the same repository, not re-derived.
 **Real output:**
 
 ```
-$ bin/console ops:status
+$ npm run console -- ops:status
 Orders placed at the provider but not recorded locally: not checked
   (--provider asks the provider; it makes an outbound call)
 
@@ -455,7 +467,7 @@ proportion of buyers reach payment without one. Every such order is a future
 entry in the "no session" count above. A ratio that climbs is a bug in session
 handling.
 
-**Declines: N of M charge attempts,** measured over the last **30 days**. When
+**Declines: N of M charge attempts (rate%),** measured over the last **30 days**. When
 non-zero it breaks down by the provider's stated reason, with at most 20
 distinct reasons before the tail is folded into `(other)` and any decline whose
 reason went missing filed under `(no reason recorded)` — so the breakdown
@@ -486,77 +498,81 @@ error as an all-clear. A figure nobody asked for is not a failed one: skipping
 
 The full set:
 
-```
-$ bin/console list
-  abandonment:signals  Emit the current set of abandoned-journey signals as JSON, for an external system to poll
-  cache:clear          Wipe the storage cache directory contents
-  config:validate      Validate the merged catalog structurally, optionally against the live EMR
-  db:migrate           Create the database (if needed) and apply pending migrations
-  db:prune             Report (and, with --apply, delete) operational data past its retention period
-  emr:ping             Fetch the configured EMR channel and print a connectivity summary
-  emr:reconcile        Report (and, with --apply, sync) orders the EMR was never told about
-  forms:cache-purge    Remove every cached teleform definition
-  forms:record         Capture a teleform metadata record and definition to disk
-  media:prune          List (or, with --force, delete) orphaned files in public/assets/media
-  ops:status           Report the monitored counts that represent money or clinical risk
-  provider:ping        Resolve the configured payment adapter and print a connectivity summary
-  provider:reconcile   Report orders the payment provider took that are not recorded locally
-  theme:sync           Sync the generated catalog and channel config from the configured EMR channel
-```
+| command | what it does |
+|---|---|
+| `abandonment:signals` | Emit the current set of abandoned-journey signals as JSON, for an external system to poll |
+| `cache:clear` | Wipe the storage cache directory contents |
+| `config:validate` | Validate the merged configuration structurally |
+| `db:migrate` | Apply pending database migrations |
+| `db:prune` | Report (and, with --apply, delete) operational data past its retention period |
+| `emr:ping` | Fetch the configured EMR channel and print a connectivity summary |
+| `emr:reconcile` | Report (and, with --apply, sync) orders the EMR was never told about |
+| `forms:cache-purge` | Remove every cached teleform definition |
+| `forms:record` | Capture a teleform metadata record and definition to disk |
+| `media:prune` | List (or, with --force, delete) orphaned files in public/assets/media |
+| `ops:status` | Report the monitored counts that represent money or clinical risk |
+| `payment:capture` | Capture an order that was authorized at checkout rather than charged |
+| `provider:ping` | Resolve the configured payment adapter and print a connectivity summary |
+| `provider:reconcile` | Report orders the payment provider took that are not recorded locally |
+| `theme:sync` | Sync the generated catalog and channel config from the configured EMR channel |
+
+`npm run console -- --help` prints the same list.
 
 ### `db:migrate`
 
-Creates the database if it is missing and applies pending migrations. Run it on
-every deploy, before traffic reaches the new code.
+Runs `prisma migrate deploy`, which creates the SQLite file if it is missing and
+applies pending migrations from `prisma/migrations/`. Run it on every deploy,
+before traffic reaches the new code. It prints Prisma's own output.
 
-```
-$ bin/console db:migrate
-Nothing to migrate.
-```
-
-Exit: **0**, or **1** if a migration failed. Migrations are tracked by filename,
-so an applied file is never re-run.
+Exit: **0**, or **1** if a migration failed. Applied migrations are tracked in
+Prisma's `_prisma_migrations` table, so an applied migration is never re-run.
 
 ### `cache:clear`
 
-Wipes the contents of the storage cache directory: compiled templates, cached
-teleform definitions, and **the cached EMR bearer token**. That last one is why
-this command appears in §4.2.
+Wipes the contents of `storage/cache/`: cached teleform definitions
+(`storage/cache/forms/`) and **the cached EMR bearer token**
+(`storage/cache/emr-token.json`). That last one is why this command appears in
+§4.2.
 
-Exit: **0**.
+```
+$ npm run console -- cache:clear
+Cache cleared (3 entries removed).
+```
+
+Exit: **0** when nothing survived; **1** when any entry could not be removed —
+the cache was not fully cleared, and whatever it was holding is still being
+served. The surviving paths are listed.
 
 ### `config:validate`
 
-Validates the merged catalog — the synced catalog plus the override layer —
-structurally, and checks the deployment's configuration for things that must
-not ship.
+Checks the deployment's configuration for the mistakes a type checker cannot
+see: the wire log left on, the abandonment settings and their consent
+cross-reference, the identity-verification placement and checks when the step
+is enabled, the patient-portal URL (warning only), and whether the settlement
+the catalog asks for can be honoured by the configured payment provider. The
+shape of each `config/*.ts` file is already enforced by `npm run typecheck`.
 
 ```
-$ bin/console config:validate
-ERROR: debug: app.debug.wire_log is ON — every provider and EMR call is being written to
-storage/logs/ unredacted: card numbers, bearer tokens, and the identity-check payloads
-carrying Social Security Numbers and dates of birth. Unset WIRE_LOG before this deployment
-takes a real payment or runs a real identity check.
-warning: product 6a8a88-nad-500mg: variants differ in price — verify prices vary by plan
-length only, never by dose (spec [29.3])
-warning: product 6a8a86-tesamorelin-3mg-ml-35-days: 1 variant(s) need provider identifiers
-in the override layer — Tesamorelin (3mg/ml | 35 Days)
-warning: payment: 3 catalog variants have no provider mapping and cannot be ordered
-note: payment: PCI posture — Reduced scope via reference-order reuse: [...]
+$ npm run console -- config:validate
+warning: app.portal.url is not set — the header's Sign In link and the receipt's portal
+button will not render.
+ERROR: app.debug.wireLog is on — every provider/EMR call is logged unredacted (card numbers,
+bearer tokens, SSNs, DOBs).
 ```
+
+A clean run prints `Configuration valid.`
 
 > **`config:validate` exits `2` on error, not `1`.**
 >
-> Verified: the run above returned exit code **2**. There is no `1` for a
-> validation error — the command returns `0` (clean, or warnings only) or `2`
-> (at least one ERROR line).
+> There is no `1` for a validation error — the command returns `0` (clean, or
+> warnings only) or `2` (at least one ERROR line).
 >
 > **This is how it gets got wrong:**
 >
 > ```
-> $ bin/console config:validate | tail -3
-> warning: payment: 3 catalog variants have no provider mapping and cannot be ordered
-> note: payment: PCI posture — [...]
+> $ npm run console -- config:validate | tail -3
+> warning: app.portal.url is not set — the header's Sign In link and the receipt's portal
+> button will not render.
 > $ echo $?
 > 0
 > ```
@@ -567,9 +583,8 @@ note: payment: PCI posture — Reduced scope via reference-order reuse: [...]
 > holds card numbers in a log file. Run it unpiped and check `$?`, or in bash
 > use `set -o pipefail`, or capture to a variable first.
 
-Warnings are informational; a warning does not fail the run. `note:` lines are
-purely descriptive. The PCI posture line is printed on every run and is a
-statement of the deployment's payment architecture, not a finding.
+Warnings are informational; a warning does not fail the run. Warnings go to
+stdout and ERROR lines to stderr.
 
 ### `emr:ping` / `provider:ping`
 
@@ -577,85 +592,91 @@ Connectivity checks. These are the correct way to ask "is the integration up" �
 see §4.1.
 
 ```
-$ bin/console emr:ping
+$ npm run console -- emr:ping
 Channel: Demo Store
 Products: 5
 Provider: vrio
 ```
 
 ```
-$ bin/console provider:ping
+$ npm run console -- provider:ping
 Provider: vrio
-vrio api.vrio.app — campaign 147, 20 items, connection 1
+<the adapter's connectivity detail>
 PCI posture: Reduced scope via reference-order reuse: [...]
 ```
 
-Both exited **0**. Both return **1** when the call fails or the adapter cannot
-be resolved. `emr:ping` proves that credentials work, the channel resolves and
+Both exit **0** on success and **1** when the call fails or the provider does
+not answer. `emr:ping` proves that credentials work, the channel resolves and
 the catalog is readable; `provider:ping` proves the payment adapter is
 configured and the provider answers.
 
 ### `theme:sync`
 
-Fetches the configured EMR channel and regenerates the catalog files.
+Fetches the configured EMR channel (or `--channel <id>`) and regenerates the
+catalog files.
 
 > **Dry-run by default. `--apply` overwrites this deployment's catalog.**
 
-Both files it writes are gitignored; the committed `*.generated.example.php`
-files beside them are shape references, not a catalog to run on.
+Both files it writes are gitignored; the committed
+`config/products.generated.example.ts` beside them is a shape reference, not a
+catalog to run on.
 
-Without flags it prints unified diffs of what *would* be written and touches
-nothing:
+Without flags it reports what *would* be written and touches nothing:
 
 ```
-$ bin/console theme:sync
---- a/products.generated.php
-+++ b/products.generated.php
-@@ -25,9 +25,9 @@
-             'price_cents' => 10000,
-             'price_unit' => '/ month',
--            'image' => '/assets/media/example-monthly-therapy.4afac944.jpg',
-+            'image' => '/assets/img/product-placeholder.svg',
-[...]
+$ npm run console -- theme:sync
+products.generated.ts would change — 5 products.
+channel.generated.ts would change.
 media: 6 images would be localised
 warning: 2 variants lack provider identifiers
 ```
 
 Exit: **0**.
 
-`--apply` writes two files. `config/products.generated.php` is **overwritten
-wholesale** — every hand edit in it is lost. Customisations belong in
-`config/products.overrides.php`, which this command never touches.
-`config/channel.generated.php` is merged rather than replaced: hand-added keys
-the new payload does not mention survive.
+`--apply` localises remote product images into `public/assets/media/`, then
+writes two files. `config/products.generated.ts` is **overwritten wholesale** —
+every hand edit in it is lost. Customisations belong in
+`config/products.overrides.ts`, which this command never touches.
+`config/channel.generated.ts` is merged rather than replaced: hand-added keys
+outside `payment_processor` survive a re-sync of the same channel, while
+`payment_processor` is always replaced and a different channel replaces the
+whole file.
 
-**Read the dry-run diff before applying.** The diff above is a real example of
-why: it shows the sync replacing localised media paths with placeholders,
-because media localisation only runs under `--apply`. A diff you did not read
-is a catalog change you did not review.
+**Both files are TypeScript source.** A sync takes effect only once the app is
+rebuilt and restarted (`npm start` rebuilds through its `prestart` hook).
 
-Exit codes for `--apply`: **0** clean, **1** if the channel could not be fetched
-or the catalog could not be built, and **2** if the files were written and the
-structural validator then found errors in them. Exit 2 there means the same
-thing it means for `config:validate` — and carries the same piping trap.
+Exit codes for `--apply`: **0** clean, **1** if no channel is configured or the
+channel could not be fetched, and **2** if the files were written and the
+structural catalog validator then found errors in them. Exit 2 there means the
+same thing it means for `config:validate` — and carries the same piping trap.
 
 ### `media:prune`
 
 Lists files under `public/assets/media` that no catalog entry references.
 
 ```
-$ bin/console media:prune
-No orphaned media.
+$ npm run console -- media:prune
+No orphaned media files.
 ```
 
 Exit: **0**. Listing only; `--force` deletes. Run the listing form after a
 `theme:sync --apply` that removed products.
 
+### `payment:capture`
+
+`payment:capture <reference>` settles an order that checkout **authorized**
+rather than charged, for a provider that supports authorize-and-capture. It
+refuses (exit **1**) an empty reference, a reference with no local order, an
+order recorded as captured rather than authorized, and a provider without
+authorize-and-capture. On success it prints `Captured order <reference>.` and
+deliberately writes nothing back to the local `orders` row — the state after a
+capture lives in the provider's own record.
+
 ### `forms:record` and `forms:cache-purge`
 
 Two intake-form utilities, neither of which belongs in a schedule.
 
-- **`forms:record --teleform=<id> --out=<dir>`** captures one teleform's
+- **`forms:record --teleform <id> --out <dir>`** captures one teleform's
   metadata record and definition to disk. A diagnostic: it is how you get the
   EMR's actual form definition in front of a developer when a form renders
   wrongly. Exit **0**, or **1** for a missing option, an unreadable teleform or
@@ -680,7 +701,7 @@ If you check reachability by curling the token endpoint you will conclude the
 EMR is down while it is serving traffic normally, and you will do it during an
 incident when that conclusion is most expensive.
 
-**Use `bin/console emr:ping`.** It performs a real authenticated call with the
+**Use `npm run console -- emr:ping`.** It performs a real authenticated call with the
 deployment's real credentials against the real channel, which is the question
 you actually meant to ask.
 
@@ -698,8 +719,8 @@ take.
 **After any permission change:**
 
 ```
-bin/console cache:clear        # or: rm storage/cache/emr-token.json
-bin/console emr:ping
+npm run console -- cache:clear        # or: rm storage/cache/emr-token.json
+npm run console -- emr:ping
 ```
 
 *Then* conclude something. Three separate investigations here read 403 from a
@@ -709,7 +730,7 @@ expires.
 
 ### 4.3 `WIRE_LOG` must never be enabled anywhere real
 
-`app.debug.wire_log` writes every EMR and payment-provider call to
+`app.debug.wireLog` (`WIRE_LOG`) writes every EMR and payment-provider call to
 `storage/logs/`, request and response, **verbatim and unredacted**. That is the
 entire point of it — a redacted transcript cannot be replayed by hand, and
 replaying the exact bytes is how a disagreement with a provider gets settled.
@@ -722,10 +743,11 @@ While it is on, those files hold, in clear text:
 - the buyer's name, address and telephone number, alongside all of it.
 
 That is cardholder data at rest in this application's own storage, which its
-payment architecture otherwise never holds. The SDK's own redactor — which
-would drop the identity-verify body as a known PHI path — is **switched off
-along with it**, deliberately, because redaction is what makes a transcript
-unreplayable. So the wire log spills identity documents as well as cards.
+payment architecture otherwise never holds. The SDK's own redaction is
+**switched off along with it** (`debugRedact: false` in
+`src/emr/client-factory.ts`), deliberately, because redaction is what makes a
+transcript unreplayable. So the wire log spills identity documents as well as
+cards.
 
 It is a local debugging switch, against sandbox test cards, and **never
 something a deployment taking real payments or running real identity checks may
@@ -747,7 +769,7 @@ them gone in a day.
 ### 4.4 The reverse sweep's order-search limit, and what truncation means
 
 The reverse sweep reads at most **200 orders** per run
-(`OrderSearch::DEFAULT_LIMIT`). Its default window is **48 hours** with a
+(`OrderSearch.DEFAULT_LIMIT`, `src/payment/order-search.ts`). Its default window is **48 hours** with a
 **15-minute** grace period at the near end.
 
 **Those numbers are close together, not comfortably apart.** The account these
@@ -778,7 +800,7 @@ windows still meet end to end:
 
 ```
 # instead of one daily run over 48 hours:
-0 */4 * * *   bin/console provider:reconcile --hours 6
+0 */4 * * *   node dist/src/console/main.js provider:reconcile --hours 6
 ```
 
 Shortening the window without increasing the frequency opens a gap between
@@ -791,10 +813,11 @@ prune**, not the other way round.
 
 ### 4.5 `storage/logs/` is as sensitive as the abandonment feed
 
-The operator log stamps the analytics session identifier on every line written
-inside a journey. That is `[20.13]` and it is the point of the log: one
-correlation identifier is what joins a storefront log line to the EMR record
-and to the provider order, and it is what makes a "this exists at the provider
+Operator log lines written inside a journey carry the analytics session
+identifier in their context (`journey.save_failed`, `http.unhandled_exception`
+and others). That is `[20.13]` and it is the point of the log: one correlation
+identifier is what joins a storefront log line to the EMR record and to the
+provider order, and it is what makes a "this exists at the provider
 but nowhere in our own records" investigation tractable — which is the kind of
 investigation the two reconcile sweeps in §1 exist to open.
 
@@ -810,8 +833,9 @@ identifier has to be recognised and pasted into a URL first. But close enough
 that the handling rules from §1.3 apply unchanged, and for the same reason.
 
 Where the exposure is *not*: in what the lines say. Nothing health-, identity-
-or credential-shaped is written to the operator log, and the redaction pass
-that ensures that is value-based rather than key-based, so it catches card data
+or credential-shaped is meant to be written to the operator log: its context is
+redacted by key on the way in, and the checkout and payment code scrubs provider
+text by value (`CardScrubber`) before logging it, which catches card data
 sitting under a key whose name means nothing. The exposure is the
 correlatability, not the content.
 
@@ -823,7 +847,7 @@ What that asks of you:
   that deliberately rather than by default.
 - **The retention period is the mitigation, so let it run.** Files under
   `storage/logs/` expire on `retention.operational.log_days` — 30 days by
-  default — and `bin/console db:prune --apply` is what enforces it (§1.4).
+  default — and `npm run console -- db:prune --apply` is what enforces it (§1.4).
   A deployment that never runs the prune keeps every resume identifier it has
   ever logged, indefinitely.
 - **A deletion request has to reach the logs too.** They are named in the
@@ -840,7 +864,7 @@ redaction working exactly as designed.
 
 ## 5. Data retention and deletion requests
 
-`config/retention.php` is the policy, written down. It divides the data into
+`config/retention.ts` is the policy, written down. It divides the data into
 four categories that behave differently on purpose.
 
 | category | what it is | on a deletion request | period |
@@ -869,17 +893,17 @@ followed by a scheduled prune is a period that does not exist.
 this application cannot delete a clinical record, and there is no transport by
 which it could ask the EMR to.**
 
-The EMR SDK exposes **exactly one deletion route across its entire `Resource/`
-directory**. Verified:
+The EMR SDK (`@astermd-hq/sdk`) exposes **exactly one deletion route across all
+of its resources**:
 
 ```
-$ grep -rn "function delete" vendor/astermd/sdk/src/Resource/
-vendor/astermd/sdk/src/Resource/Sessions.php:156:    public function delete(string $session): Response
+$ grep -n "delete<" node_modules/@astermd-hq/sdk/dist/index.d.ts
+1913:    delete<T = Record<string, unknown>>(session: string): Promise<Response$1<T>>;
 ```
 
 One route, on `Sessions`. It removes an **analytics session** — a tracking
-record — **not a clinical record.** There is no `Treatments::delete()`, no
-`Patients::delete()`, no `IntakeSubmissions::delete()`. Nothing in this
+record — **not a clinical record.** There is no `treatments().delete()`, no
+`patients().delete()`, no `intakeSubmissions().delete()`. Nothing in this
 application can reach a clinical record to remove it, and inventing a receiver
 that nothing shows the EMR would call would be a worse answer than saying so.
 
@@ -892,7 +916,7 @@ categories it owns:
    attribution, derived source category, abandonment state and consent all live
    inside those rows, so they go together.
 2. Remove them. `db:prune` does this by age; a targeted request is a database
-   deletion against the identified rows, and `sessions()->delete()` removes the
+   deletion against the identified rows, and `sessions().delete()` removes the
    corresponding analytics session at the EMR.
 3. **Check `storage/logs/` and any log aggregator the deployment ships to.**
    Deletion has to reach the copies that are easy to forget, and a deployment
@@ -917,8 +941,7 @@ Two things constrain the operational half in practice:
   `DELETE`.
 - **The audit trail is retained longer than the sessions it describes** (365
   days against 90) because it is the record of who read health information and
-  when. With resume links that never expire (§1.3), that log is the only record
-  a link was used. Deleting it to satisfy a request removes the evidence of the
+  when. Deleting it to satisfy a request removes the evidence of the
   exposure along with the exposure.
 
 ---
@@ -933,39 +956,40 @@ daily reverse sweep suits your volume.
 # Nothing in the application runs these; this file is the scheduler.
 
 APP=/srv/storefront
+CONSOLE="node dist/src/console/main.js"
 MAILTO=ops@example.com
 
 # Orders the EMR was never told about. Hourly: a failed sync is retried within
 # the hour, and the 24-hour repeat-failure threshold then means ~24 attempts.
-17 * * * *   cd $APP && bin/console emr:reconcile --apply
+17 * * * *   cd $APP && $CONSOLE emr:reconcile --apply
 
 # Charges the provider took that were never recorded here. Daily; the default
 # window is 48h, so this overlaps by a day. If a run reports truncation,
 # switch to a shorter --hours AND a matching frequency (see §4.4).
-40 3 * * *   cd $APP && bin/console provider:reconcile
+40 3 * * *   cd $APP && $CONSOLE provider:reconcile
 
 # Retention. Daily, after the reverse sweep — the sweep reads sessions the
 # prune may remove, so its window must be read before the prune runs.
-15 4 * * *   cd $APP && bin/console db:prune --apply
+15 4 * * *   cd $APP && $CONSOLE db:prune --apply
 
 # Monitored counts, for whatever scrapes them. Exit 1 means the REPORT is
 # incomplete, not that the storefront is unhealthy.
-*/15 * * * * cd $APP && bin/console ops:status --json > /var/lib/storefront/status.json
+*/15 * * * * cd $APP && $CONSOLE ops:status --json > /var/lib/storefront/status.json
 
 # Abandoned-journey feed. Hourly, matching the one-hour idle threshold.
 # ┌─────────────────────────────────────────────────────────────────────────┐
 # │ THIS COMMAND'S STDOUT IS HEALTH INFORMATION.                            │
-# │ Every signal carries a resume link that never expires and is not         │
-# │ revoked when the journey completes. Anyone holding one holds indefinite  │
-# │ access to that person's intake answers.                                  │
-# │                                                                          │
-# │ It must be piped STRAIGHT INTO the marketing automation platform and     │
-# │ nowhere else. Not a file. Not a log. Not a CI artefact. Not this         │
-# │ crontab's MAILTO — set MAILTO='' on this line so a failure does not      │
-# │ mail a document full of live links to a shared inbox.                    │
+# │ Every signal carries a resume link that never expires and is not        │
+# │ revoked when the journey completes. Anyone holding one holds indefinite │
+# │ access to that person's intake answers.                                 │
+# │                                                                         │
+# │ It must be piped STRAIGHT INTO the marketing automation platform and    │
+# │ nowhere else. Not a file. Not a log. Not a CI artefact. Not this        │
+# │ crontab's MAILTO — set MAILTO='' on this line so a failure does not     │
+# │ mail a document full of live links to a shared inbox.                   │
 # └─────────────────────────────────────────────────────────────────────────┘
 MAILTO=""
-25 * * * *   cd $APP && bin/console abandonment:signals | /usr/local/bin/import-abandonment
+25 * * * *   cd $APP && $CONSOLE abandonment:signals | /usr/local/bin/import-abandonment
 MAILTO=ops@example.com
 ```
 

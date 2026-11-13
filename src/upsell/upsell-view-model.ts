@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Upsell/UpsellViewModel.php. Everything the upsell page renders,
+ * Everything the upsell page renders,
  * assembled once on the server — the template resolves nothing.
  *
  * `acceptPath`/`declinePath` are on the model rather than hardcoded in the template so the page is

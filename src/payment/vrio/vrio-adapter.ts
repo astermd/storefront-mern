@@ -29,12 +29,12 @@ function searchDate(date: Date): string {
 }
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioAdapter.php. Real Vrio integration, wrapping
- * `@astermd-hq/vrio-client` (the npm sibling of the PHP original's `astermd/vrio-client` Composer
- * package — both explicitly unofficial, published by the same author as `@astermd-hq/sdk`).
+ * Real Vrio integration, wrapping
+ * `@astermd-hq/vrio-client` (explicitly unofficial, published by the same author as
+ * `@astermd-hq/sdk`).
  *
  * A fresh client is built per call via `apiFactory.create()` (never cached on the adapter) —
- * matching the PHP original exactly, and cheap since it's just wiring credentials + a transport.
+ * cheap, since it's just wiring credentials + a transport.
  */
 export class VrioAdapter implements PaymentAdapter {
   constructor(

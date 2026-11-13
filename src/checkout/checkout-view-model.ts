@@ -60,7 +60,7 @@ export interface CheckoutPlanViewModel {
 }
 
 /**
- * Ported from storefront-lamp/core/Checkout/CheckoutViewModel.php. Everything the checkout page
+ * Everything the checkout page
  * renders, assembled once on the server — the template does no resolution of its own.
  *
  * `prefill` is keyed by checkout field name, the same keys `BuyerDetails.toArray()`/`Prefill.from()`

@@ -7,7 +7,7 @@ import { EmrClientFactory } from './client-factory';
 const MAX_SUGGESTIONS = 5;
 
 /**
- * Ported from storefront-lamp/core/Emr/EmrAddressAutofill.php. {@link AddressAutofill} over the
+ * {@link AddressAutofill} over the
  * SDK's `verification()` resource.
  *
  * **Suggestions are not restricted to the US by the EMR**, and are biased toward wherever the

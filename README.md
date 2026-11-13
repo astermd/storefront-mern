@@ -1,6 +1,14 @@
+<p align="center">
+  <a href="https://www.astermd.com/"><img src="https://raw.githubusercontent.com/astermd/storefront-node/main/.github/assets/astermd-logo.svg" alt="AsterMD" height="48"></a>
+</p>
+
 # AsterMD Storefront (Node / NestJS)
 
-A server-rendered storefront for telehealth. It carries a visitor from a product page to a paid,
+Node 22 / NestJS storefront for the [AsterMD](https://www.astermd.com/) platform, built on the
+AsterMD telehealth API: sessions, intake forms and orders. AsterMD is a white-label, API-first
+telehealth platform.
+
+The storefront is server-rendered and carries a visitor from a product page to a paid,
 clinically-reviewable order: catalog and cart, a definition-driven intake questionnaire, an optional
 identity check, checkout against a payment aggregator, post-purchase upsells, and a receipt.
 
@@ -8,36 +16,31 @@ Node 22+ on **NestJS 11**, **EJS** templates, **Prisma** over SQLite, **nest-com
 and Tailwind v4 for the theme. No JavaScript framework on the client, no queue, no separate
 application server: one Node process in front of a database, plus a cron table.
 
-It is a port of the PHP/Slim storefront and keeps its behaviour — the nine-slot middleware pipeline,
-the journey/funnel logic, the checkout order of operations, the database schema and the Port/Null
-gateway pattern — while using Node-native tooling where that makes sense.
-
-> **Why "MERN"?** The project label is historical. There is no MongoDB and no React: storage is
-> relational and pages are server-rendered. See [`MERN.md`](MERN.md#naming-this-is-not-literally-mern-and-not-plain-express-either).
-
 It talks to two external systems:
 
-- **the EMR**, through the official `@astermd-hq/sdk` — product catalog, analytics sessions, teleform
+- **the AsterMD platform**, through the official
+  [`@astermd-hq/sdk`](https://github.com/astermd/node-sdk) — product catalog, analytics sessions, teleform
   (questionnaire) definitions, intake submissions and checkout-funnel events;
-- **a payment aggregator**, through `@astermd-hq/vrio-client` or `@astermd-hq/checkoutchamp-client`,
-  chosen per the synced channel's payment processor — the charge itself, promotions, and the
+- **a payment aggregator**, through
+  [`@astermd-hq/vrio-client`](https://github.com/astermd/node-vrio-client) or
+  [`@astermd-hq/checkoutchamp-client`](https://github.com/astermd/node-checkoutchamp-client), chosen per the synced channel's payment processor — the charge itself, promotions, and the
   reference order that later upsell charges reuse.
 
 The two are kept apart on purpose. **Card data reaches the payment adapter and nothing else.** It is
-never sent to the EMR and never written to this application's database.
+never sent to the AsterMD platform and never written to this application's database.
 
 ---
 
 ## Features
 
 - Product catalog, cart and cross-sells, with several prescriptions allowed in one order
-- Intake questionnaire rendered from EMR teleform definitions
+- Intake questionnaire rendered from AsterMD teleform definitions
 - Optional identity verification step
 - Checkout with an idempotency key (a `UNIQUE` constraint is what prevents a double charge)
 - Post-purchase upsells and a receipt page
 - SEO: `robots.txt`, sitemap, structured data, per-route indexing rules
 - Console commands for catalog sync, reconciliation, pruning and ops reporting
-- Real EMR and payment integrations behind ports, with Null implementations so tests never touch
+- Real AsterMD and payment integrations behind ports, with Null implementations so tests never touch
   the network
 
 ## Requirements
@@ -46,7 +49,7 @@ never sent to the EMR and never written to this application's database.
 |---|---|
 | Node | `>= 22` (see `engines` in `package.json`, `.nvmrc`) |
 | npm | any current version |
-| Database | SQLite by default (`prisma/schema.prisma`). Postgres/MySQL are not yet validated on this port. |
+| Database | SQLite by default (`prisma/schema.prisma`). Postgres/MySQL are not yet validated. |
 
 ## Quick start
 
@@ -87,21 +90,21 @@ it is meant to be read: settings carry doc comments explaining not just what the
 | `PORT`, `APP_URL` | listen port and public base URL |
 | `DATABASE_URL` | Prisma connection string (SQLite file by default) |
 | `SESSION_SECRET` | signs the session cookie. **Set a real value in every real environment.** |
-| `ASTERMD_CLIENT_ID`, `ASTERMD_CLIENT_SECRET` | EMR API credentials, issued to your deployment |
-| `ASTERMD_BASE_HOST`, `ASTERMD_CHANNEL_ID` | which EMR host and sales channel this storefront sells |
+| `ASTERMD_CLIENT_ID`, `ASTERMD_CLIENT_SECRET` | AsterMD API credentials, issued to your deployment |
+| `ASTERMD_BASE_HOST`, `ASTERMD_CHANNEL_ID` | which AsterMD host and sales channel this storefront sells |
 | `AMD_TRACKING_KEY` (+ `_PREVIOUS`) | affiliate-link payload key, issued to you; leave empty if unused |
 | `PATIENT_PORTAL_URL` | optional "manage your care" links |
-| `GOOGLE_MAPS_API_KEY` | optional: checkout address suggestions come from Google Places when set, from the EMR otherwise; also the receipt map |
-| `EMR_VERIFY_EMAIL`, `EMR_VERIFY_ADDRESS`, `VERIFICATION_ENABLED` | optional verification features, all off by default (`EMR_VERIFICATION`, the older single switch, still sets both EMR checks when neither is given) |
-| `WIRE_LOG` | logs every EMR/provider call **unredacted**. Never enable on a real deployment. |
+| `GOOGLE_MAPS_API_KEY` | optional: checkout address suggestions come from Google Places when set, from the AsterMD API otherwise; also the receipt map |
+| `EMR_VERIFY_EMAIL`, `EMR_VERIFY_ADDRESS`, `VERIFICATION_ENABLED` | optional verification features, all off by default (`EMR_VERIFICATION`, the older single switch, still sets both checks when neither is given) |
+| `WIRE_LOG` | logs every AsterMD/provider call **unredacted**. Never enable on a real deployment. |
 
-Real credentials live only in `.env`, which is gitignored. With the EMR credentials blank, the
+Real credentials live only in `.env`, which is gitignored. With the AsterMD credentials blank, the
 gateways degrade gracefully (logged errors instead of a crash).
 
 ### Generated vs. hand-edited config
 
 `npm run console -- theme:sync --apply` regenerates `config/products.generated.ts` and
-`config/channel.generated.ts` from the EMR channel. Both are one channel's data and the second holds
+`config/channel.generated.ts` from the AsterMD sales channel. Both are one channel's data and the second holds
 payment-provider credentials, so **both are gitignored and must never be committed.** Sync is a dry
 run unless you pass `--apply`.
 
@@ -127,12 +130,12 @@ npm run console -- <command>
 | `db:migrate` | applies pending Prisma migrations |
 | `theme:sync [--channel <id>] [--apply]` | pulls the channel's catalog and payment config. Dry run without `--apply`. |
 | `config:validate` | validates the loaded config; **exit code 2** on error |
-| `emr:ping` / `provider:ping` | connectivity checks against the EMR / the payment adapter |
+| `emr:ping` / `provider:ping` | connectivity checks against the AsterMD API / the payment adapter |
 | `emr:reconcile` / `provider:reconcile` | reconciliation sweeps |
 | `payment:capture` | settles an order that was authorized rather than charged |
 | `forms:record --teleform=<id> --out=<dir>` | dumps a teleform's raw metadata and definition |
 | `forms:cache-purge` | clears the teleform-definition cache |
-| `cache:clear` | clears the EMR bearer-token cache |
+| `cache:clear` | clears the AsterMD bearer-token cache |
 | `media:prune` | removes orphaned synced product images |
 | `abandonment:signals` | abandoned-journey sweep |
 | `db:prune` | retention/log pruning |
@@ -156,8 +159,8 @@ npm run lint          # eslint
 npm test              # jest — unit + e2e specs
 ```
 
-**No test reaches the network.** `NODE_ENV=test` turns EMR sessions and verification off, so every
-EMR gateway is Null-bound under the suite.
+**No test reaches the network.** `NODE_ENV=test` turns AsterMD sessions and verification off, so
+every AsterMD gateway is Null-bound under the suite.
 
 ---
 
@@ -199,17 +202,29 @@ docs/            architecture, operations, middleware, journey notes
 
 | | |
 |---|---|
-| [`MERN.md`](MERN.md) | target architecture and the reasoning behind every stack decision |
-| [`STATUS.md`](STATUS.md) | build progress, what is real vs. Null-backed, known gaps |
+| [`docs/STACK.md`](docs/STACK.md) | the stack, request lifecycle, container and the reasoning behind each choice |
+| [`STATUS.md`](STATUS.md) | development log: build phases, what is real vs. Null-backed, known gaps |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | how the funnel, journey store, catalog and gateways fit together |
 | [`docs/MIDDLEWARE.md`](docs/MIDDLEWARE.md) | the nine-slot middleware pipeline, slot by slot |
 | [`docs/JOURNEY.md`](docs/JOURNEY.md) | one customer journey traced end to end |
 | [`docs/OPERATIONS.md`](docs/OPERATIONS.md) | runbook: scheduled jobs and what each report means |
-| [`docs/INTEGRATION-NOTES.md`](docs/INTEGRATION-NOTES.md) | what the EMR and payment provider actually do, as measured |
+| [`docs/INTEGRATION-NOTES.md`](docs/INTEGRATION-NOTES.md) | what the AsterMD API and payment provider actually do, as measured |
 | [`docs/SPEC-REFERENCE.md`](docs/SPEC-REFERENCE.md) | resolves the `[n.n]` rule citations found in the source |
 
 ## Version
 
 **1.0.0** — first release. `package.json` and the release tag should always agree.
 
-<!-- push test: harmless README change, safe to revert -->
+## License
+
+[MIT](LICENSE) © 2026 CodeClouds™ DBA AsterMD
+
+## Trademarks
+
+The AsterMD name and logo are proprietary to AsterMD. The MIT license covers the source code in
+this repository only and does not grant rights to use the AsterMD brand.
+
+## About AsterMD
+
+AsterMD is a telehealth platform that helps healthcare brands launch and grow virtual care services. It includes intake builders, patient portals and your choice of providers and pharmacy, with no vendor lock-in.
+[astermd.com](https://www.astermd.com/) · hello@astermd.com

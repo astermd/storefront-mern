@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/FormUnavailable.php. Thrown when a definition can be
+ * Thrown when a definition can be
  * neither fetched nor served from cache.
  *
  * Exists so the controller can render an explicit "form unavailable" page (`[10.3]`) rather than an

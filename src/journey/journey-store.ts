@@ -3,7 +3,7 @@ import { JourneyState, JourneyStateData } from './journey-state';
 import { JourneyWriteFailed } from './journey-write-failed';
 
 /**
- * Ported from storefront-lamp/core/Journey/JourneyStore.php. Request-scoped access to the current
+ * Request-scoped access to the current
  * journey's durable state: load it once, hand the same instance to everyone who asks, and write it
  * back once at the end of the request.
  *

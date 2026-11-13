@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/CardBrand.php. Prefix-based brand detection —
+ * Prefix-based brand detection —
  * unrecognised returns null (not a guess).
  *
  * Order matters: JCB is tested before Diners Club, since JCB's 3528-3589 range overlaps Diners'

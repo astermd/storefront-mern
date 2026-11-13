@@ -2,7 +2,7 @@ import { Field } from '../../src/forms/field';
 import { FileRules } from '../../src/forms/file-rules';
 
 /**
- * Ported from storefront-lamp/tests/Forms/FileRulesTest.php. A file-upload question's limits, read
+ * A file-upload question's limits, read
  * the way the hosted form reads them and held to what the EMR stores.
  */
 function rules(properties: Record<string, unknown>): FileRules {

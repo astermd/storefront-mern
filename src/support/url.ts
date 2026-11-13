@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Support/Url.php. Path canonicalisation, shared by
+ * Path canonicalisation, shared by
  * `CanonicalUrlMiddleware` (which redirects non-canonical requests) and every `url()` call
  * templates make (which should never need a redirect in the first place). The canonical form is
  * always lowercase, has slash-runs collapsed, and — the root path aside — always ends in a single

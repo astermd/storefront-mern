@@ -1,6 +1,5 @@
 import { FileReference } from '../../src/forms/file-reference';
 
-/** Ported from storefront-lamp/tests/Forms/FileReferenceTest.php. */
 const SESSION = '550e8400-e29b-41d4-a716-446655440000';
 
 describe('FileReference', () => {

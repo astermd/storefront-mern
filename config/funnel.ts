@@ -1,5 +1,5 @@
 /**
- * Ported verbatim from storefront-lamp/config/funnel.php — which URL is which step, and what must
+ * Which URL is which step, and what must
  * already be true before a visitor may enter it. Requirement names must exist in
  * `src/funnel/step-preconditions.ts`; an unknown name is an error, never a silently-skipped check.
  *

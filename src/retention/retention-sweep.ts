@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { DATABASE_CONNECTION } from '../core/tokens';
 
 /**
- * Ported from storefront-lamp/core/Retention/RetentionSweep.php. `[30.6]`'s expiry of the two
+ * `[30.6]`'s expiry of the two
  * operational tables that live in the database: `sessions` and `events`.
  *
  * **Why this is not a method on each repository.** Expiring a session is not a question about
@@ -20,8 +20,8 @@ import { DATABASE_CONNECTION } from '../core/tokens';
  * `[30.7]` makes the trail the record of who read health information, and a breach investigation that
  * starts after the sessions have aged out still needs it.
  *
- * The `orders.none`/`orders.some` relation filters below are the direct equivalent of the PHP
- * original's `session_uuid NOT IN (SELECT session_uuid FROM orders WHERE session_uuid IS NOT NULL)`
+ * The `orders.none`/`orders.some` relation filters below express
+ * `session_uuid NOT IN (SELECT session_uuid FROM orders WHERE session_uuid IS NOT NULL)`
  * — a relation only forms for a non-null `sessionUuid`, so an order with no session link can never
  * make this sweep a no-op the way a raw `NOT IN` with a NULL in the list would.
  *

@@ -1,16 +1,14 @@
 /**
- * Ported from storefront-lamp/core/Domain/ProductCatalog.php. The single read the cart/funnel
+ * The single read the cart/funnel
  * rules make against the catalog — declared as a port so the domain layer stays free of I/O and
  * of the config cascade: the rules are exercised against an in-memory implementation in their own
  * tests, and `CatalogProvider` (Phase 5) satisfies it in production without either side knowing
  * about the other.
  *
- * `ProductVariant`/`CatalogProduct` are typed here (the PHP original passes untyped associative
- * arrays) since TypeScript makes that free. Phase 4 only needed the fields `CartRules`/
+ * `ProductVariant`/`CatalogProduct` are typed here since TypeScript makes that free. Phase 4 only needed the fields `CartRules`/
  * `FunnelRules` read; Phase 5 adds everything the catalog/product-page templates display
  * (`subtitle`, `categories`, `description`, `image`, `gallery`, `badges`, `price_unit`, ...) —
- * matching the shape `CatalogBuilder::build()`'s output and `products.generated.example.php`
- * document on the PHP side.
+ * matching the shape of `CatalogBuilder.build()`'s output and `config/products.generated.example.ts`.
  */
 export interface ProductVariant {
   id: string;

@@ -48,7 +48,7 @@ const DOB_PATH = 'opportunity.dob';
 const SELF_DECLARED = ['ssn'];
 
 /**
- * Ported from storefront-lamp/core/Verification/VerificationStep.php. What the `/verify/` step
+ * What the `/verify/` step
  * does: assemble an identity out of what the journey already knows, run the configured checks over
  * it, and write the outcome down (`[22.20]`).
  *

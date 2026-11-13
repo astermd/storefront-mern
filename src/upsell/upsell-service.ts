@@ -30,7 +30,7 @@ import { UpsellResult } from './upsell-result';
 import { UpsellViewModel } from './upsell-view-model';
 
 /**
- * Ported from storefront-lamp/core/Upsell/UpsellService.php. The post-purchase upsell step: what to
+ * The post-purchase upsell step: what to
  * render, and what happens when the buyer answers (§16).
  *
  * **A declined upsell is not a failure the buyer has to act on** (`[16.11]`). Everything below the

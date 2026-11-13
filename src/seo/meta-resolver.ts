@@ -12,7 +12,7 @@ export interface SocialCard {
 }
 
 /**
- * Ported from storefront-lamp/core/Seo/MetaResolver.php. Builds every page's metadata from
+ * Builds every page's metadata from
  * configuration and catalog data, so a client gets correct titles, descriptions, canonical links
  * and social cards without writing any code (`[24.4]`).
  *

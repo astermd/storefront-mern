@@ -20,7 +20,7 @@ const TOO_MANY_REQUESTS = 429;
 const CHECKOUT_PATH = '/checkout/';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/CheckoutController.php. Thin by construction:
+ * Thin by construction:
  * every method reads the posted body, hands the decision to `CheckoutService`, and either renders
  * the view model or redirects. No rule is evaluated here.
  *

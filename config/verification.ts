@@ -1,12 +1,12 @@
 import { IdentityCheckConfig } from '../src/verification/identity-verification-sequence';
 
 /**
- * Ported from storefront-lamp/config/verification.php — identity verification: where the step
+ * Identity verification: where the step
  * sits, whether it stops anybody, and (Phase 6) which identity checks run, in what order, against
  * which fields.
  *
  * Ships disabled: recorded against the live provider integration on 2026-08-25, the real check
- * failed every real identity tested — see the PHP original's docblock for the measurement. Turning
+ * failed every real identity tested. Turning
  * this on is a decision that needs a fresh measurement of a real provider, not a config flip.
  */
 export interface VerificationConfig {

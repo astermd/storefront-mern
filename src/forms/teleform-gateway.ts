@@ -1,7 +1,7 @@
 import { TeleformMetadata } from './teleform-metadata';
 
 /**
- * Ported from storefront-lamp/core/Forms/TeleformGateway.php. The storefront's view of the EMR's
+ * The storefront's view of the EMR's
  * teleform resource, split in two because the two halves fail differently and are cached
  * differently: the metadata is a cheap authenticated read that yields the cache key, and the
  * definition is a large document behind a short-lived signed URL.

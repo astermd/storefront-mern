@@ -3,7 +3,7 @@ import { PromotionQuote } from '../payment/promotion-quote';
 import { CouponGateway } from './coupon-gateway';
 
 /**
- * Ported from storefront-lamp/core/Emr/NullCouponGateway.php. No coupons: bound under the test
+ * No coupons: bound under the test
  * suite, so no run reaches the EMR, and the answer a provider that depends on this gives when it
  * cannot price codes.
  *

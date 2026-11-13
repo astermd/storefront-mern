@@ -3,14 +3,14 @@
 Every single request this app answers — a home page GET, a checkout POST, a 404 — runs through the
 same fixed chain of 10 steps before a controller ever sees it (9 "pinned" Nest middlewares, plus
 `cookie-parser` ahead of all of them). This is not incidental request setup; it is where most of
-this port's actual business rules live: session identity, CSRF, the funnel/step-guard logic, and
+the storefront's actual business rules live: session identity, CSRF, the funnel/step-guard logic, and
 the durable-state write-back. `src/app.module.ts`'s `configure()` is the *only* place that wires
 this order, and the order is load-bearing — several of these middlewares only work correctly
 because of exactly what sits inside/outside them.
 
 Source of truth for everything below: `src/app.module.ts` (registration + ordering) and
 `src/middleware/*.middleware.ts` (each slot's own implementation). This file explains *why* each
-one exists and *why it sits where it sits*, plus every real bug this port found while building it
+one exists and *why it sits where it sits*, plus every real bug found while building it
 — several of them only became visible once real (non-Null) EMR/payment integrations existed to
 actually exercise the failure path.
 
@@ -33,43 +33,22 @@ runs, even on a mid-pipeline redirect" true regardless of which slot decided to 
 Browser
   │
   ▼
-cookie-parser()              ← plain Express middleware, not a Nest class; must run first
-  │
-  ▼
-1. CanonicalUrlMiddleware     ← outermost pinned slot
-  │
-  ▼
+cookie-parser()                plain Express middleware, not a Nest class; must run first
+1. CanonicalUrlMiddleware      outermost pinned slot
 2. SeoMiddleware
-  │
-  ▼
 3. SessionMiddleware
-  │
-  ▼
 4. RetiredSessionMiddleware
-  │
-  ▼
 5. AttributionMiddleware
-  │
-  ▼
 6. CsrfMiddleware
+7. JourneySaveBackMiddleware   wraps 8, 9 and everything Nest runs after them
+8. StepGuardMiddleware
+9. TemplateGlobalsMiddleware   innermost pinned slot
   │
   ▼
-7. JourneySaveBackMiddleware  ← wraps 8 and 9; flushes durable state on the way OUT
-  │    ┌─────────────────────────────────────┐
-  ▼    │                                     │
-  8. StepGuardMiddleware                     │
-  │                                          │
-  ▼                                          │
-  9. TemplateGlobalsMiddleware                │
-  │                                          │
-  ▼                                          │
-Nest's own guard → interceptor → pipe → Controller
-  │                                          │
-  └──────────────────────────────────────────┘
-                    │
-                    ▼
-             (response leaves — slot 7's flush has already
-              completed by this point, see its own section)
+Nest routing → ValidationPipe → controller
+  │
+  ▼
+response — held until slot 7's flush has completed (see its own section)
 ```
 
 Registered via one call in `AppModule#configure()`:
@@ -108,7 +87,7 @@ a cookie without this — no Nest class does this on its own.
 middleware isn't registered, `req.cookies` is `undefined` and that read always fails.
 
 **A real, previously-invisible bug this exact gap caused:** `cookie-parser` was missing entirely
-for most of this port's life, and it was completely unobservable — because `SESSION_GATEWAY` was
+for most of the project's early life, and it was completely unobservable — because `SESSION_GATEWAY` was
 Null-bound the whole time, `create()` always returned `null`, so no `amd_session` cookie was ever
 actually issued, and there was never a real cookie for the "cookie present → trust it" branch to
 fail to recognize. The instant `EmrSessionGateway` started minting real session ids (a real
@@ -150,10 +129,9 @@ but *every* response — including one no controller ever rendered, like a guard
 `StepGuardMiddleware` deep inside this pipeline — should still carry the header. That rules out
 sitting inside any slot that might short-circuit the request itself.
 
-**How the header actually gets set — a real "there's no such moment in Express" problem:** the PHP
-original applies this header *after* the handler returns, checking whether a header was already
-set. Express has no equivalent "response built, not yet sent" hook to copy that pattern onto. This
-middleware solves it by monkey-patching `res.writeHead` — the one call every response path (a
+**How the header actually gets set — a real "there's no such moment in Express" problem:** the
+header must be applied *after* the handler has run, and only if one isn't already set. Express has
+no "response built, not yet sent" hook for that. This middleware solves it by monkey-patching `res.writeHead` — the one call every response path (a
 normal render, a redirect, an error page) funnels through immediately before bytes go out — so the
 header check happens at the true last possible moment, regardless of which code path produced the
 response.
@@ -162,10 +140,9 @@ response.
 
 ## 3. `SessionMiddleware` — slot 3 of 9
 
-**Business logic:** wraps `express-session` (Node's rough equivalent of PHP's native
-`$_SESSION`), configured for a long telehealth checkout journey (30-day cookie, `httpOnly`,
-`sameSite: lax`, `secure: 'auto'` — trusts `X-Forwarded-Proto`, matching the nginx/apache configs
-this app is deployed behind).
+**Business logic:** wraps `express-session`, configured for a long telehealth checkout journey
+(30-day cookie, `httpOnly`, `sameSite: lax`, `secure: 'auto'` — trusts `X-Forwarded-Proto`, since
+the app is deployed behind a TLS-terminating reverse proxy).
 
 **A deliberate, documented scope limit:** `MemoryStore` (express-session's own default) is used
 on purpose, not a placeholder for "add Redis later." Nothing durable is ever meant to live in this
@@ -248,8 +225,8 @@ completely invisible bug (see `public/js/intake.js`'s history): every fetch-driv
 header this middleware already accepted as a fallback, and by adding a multipart-body interceptor
 (`AnyFilesInterceptor()`) on the routes that need the *other* fields out of that same body.
 
-**Timing-safe comparison:** `crypto.timingSafeEqual`, matching PHP's `hash_equals()` — guards
-against a timing attack on the token comparison itself.
+**Timing-safe comparison:** `crypto.timingSafeEqual` guards against a timing attack on the token
+comparison itself.
 
 ---
 
@@ -380,7 +357,7 @@ which sits *outside* `JourneySaveBackMiddleware` (slot 7, wrapping this one). Th
 this middleware existing inside slot 7 rather than as a guard is so a guard-redirected visitor's
 journey state still gets flushed.
 
-**A real bug this exact middleware surfaced (the most serious one this port has found so far — see
+**A real bug this exact middleware surfaced (the most serious one found so far — see
 the plan's "Corrections found during implementation" section for the full account):**
 `MiddlewareConsumer.forRoutes('*')` (the seemingly-obvious "match every route" spelling) silently
 corrupted every pinned middleware's view of the request path, since **Phase 1** — invisible the

@@ -1,7 +1,7 @@
 import { TerminationRule } from './termination-rule';
 
 /**
- * Ported from storefront-lamp/core/Forms/DisqualificationOutcome.php. What the disqualification
+ * What the disqualification
  * rules said about one set of answers.
  *
  * A hard stop is at most one rule — the first that matched — because the visitor is shown a single

@@ -9,7 +9,7 @@ interface MediaPruneOptions {
 }
 
 /**
- * Ported from storefront-lamp/core/Console/MediaPruneCommand.php. `media:prune` — lists (or, with
+ * `media:prune` — lists (or, with
  * `--force`, deletes) files under `public/assets/media` that `MediaLocalizer` wrote for a product
  * no longer in the synced catalog.
  *
@@ -47,7 +47,7 @@ export class MediaPruneCommand extends CommandRunner {
         try {
           unlinkSync(join(mediaDir, orphan));
         } catch {
-          // Silently suppressed, matching the PHP original's @unlink — a file that resists
+          // Silently suppressed — a file that resists
           // deletion is reported by its continued presence on the next run, not by a failure here.
         }
       }

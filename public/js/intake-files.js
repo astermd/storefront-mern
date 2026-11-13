@@ -14,7 +14,7 @@
  *
  * Parts go three at a time rather than all at once. Each one is a request
  * this server holds open while it relays ten megabytes, and a whole video's
- * worth at once would take every PHP worker a small server has.
+ * worth at once would tie up every connection a small server can hold.
  *
  * A file is checked against the question's rules before a byte is sent --
  * its kind by extension, its size, how many the question takes -- and a

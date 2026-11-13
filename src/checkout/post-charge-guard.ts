@@ -3,7 +3,7 @@ import { CardScrubber } from '../support/card-scrubber';
 import { OperatorLog } from '../support/operator-log';
 
 /**
- * Ported from storefront-lamp/core/Checkout/PostChargeGuard.php. The discipline every write that
+ * The discipline every write that
  * happens after the money may have moved is subject to.
  *
  * **Past the charge that reverses completely.** Once the payment adapter has returned, the money

@@ -6,8 +6,7 @@ import { OrderLine } from '../../src/payment/order-line';
 import { capturedLog, response } from '../support/fake-emr-client';
 
 /**
- * Coupon gateway coverage, after the cases storefront-lamp exercises through its Stripe adapter
- * tests: the EMR's `POST /coupons/validate` answers {discount_cents, coupon_id}, 404 for an unknown
+ * Coupon gateway coverage: the EMR's `POST /coupons/validate` answers {discount_cents, coupon_id}, 404 for an unknown
  * code and 422 with a buyer-facing message for every other refusal. The client here is a stand-in
  * exposing the SDK 0.0.4 coupons resource (`validate({ code, items, email? })`).
  */

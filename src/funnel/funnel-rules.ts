@@ -4,7 +4,7 @@ import { ProductCatalog } from '../domain/product-catalog';
 import { JourneyState } from '../journey/journey-state';
 
 /**
- * Ported from storefront-lamp/core/Funnel/FunnelRules.php. What a cart and a journey settle
+ * What a cart and a journey settle
  * between them: whether every prescription can be priced, and which questionnaires are still
  * outstanding.
  *

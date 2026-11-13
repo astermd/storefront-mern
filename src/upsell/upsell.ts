@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Upsell/Upsell.php. One resolved post-purchase offer, ready to
+ * One resolved post-purchase offer, ready to
  * render (Phase 8 builds the page that renders it — `Upsells.queueFor()` is what Phase 7's
  * `CheckoutService` needs today).
  */

@@ -5,14 +5,13 @@ import { CatalogProduct, ProductCatalog } from '../domain/product-catalog';
 import { CatalogMerger } from './catalog-merger';
 
 /**
- * Ported from storefront-lamp/core/Catalog/CatalogProvider.php — the only catalog class
+ * The only catalog class
  * controllers/`CartRules` touch at runtime, and the real `ProductCatalog` implementation Phase 4's
  * `EmptyProductCatalog` placeholder stood in for.
  *
- * The merge is computed once, at construction, rather than re-run per request: PHP memoizes it for
- * one request's lifetime because `Config` is read fresh each time; here `products.generated.ts`/
- * `products.overrides.ts` are static TS modules baked in at process start, so "once per request"
- * and "once per process" are the same guarantee.
+ * The merge is computed once, at construction, rather than re-run per request:
+ * `products.generated.ts`/`products.overrides.ts` are static TS modules baked in at process start,
+ * so "once per request" and "once per process" are the same guarantee.
  */
 export interface CatalogChannel {
   id: string;

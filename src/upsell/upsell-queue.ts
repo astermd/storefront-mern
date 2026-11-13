@@ -5,7 +5,7 @@ import { Upsell } from './upsell';
 import { Upsells } from './upsells';
 
 /**
- * Ported from storefront-lamp/core/Upsell/UpsellQueue.php. Where in its upsell queue one journey
+ * Where in its upsell queue one journey
  * has got to (`[16.3]`–`[16.6]`).
  *
  * **The queue is the record of what was planned; the cursor is the record of what is left.**

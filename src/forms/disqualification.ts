@@ -21,7 +21,7 @@ const ALERT_MODES: Record<string, string> = {
 const COMPARAND_OPERATORS = ['equals', 'not_equals', 'contains', 'not_contains', 'in', 'not_in', 'notEquals', 'notContains', 'notIn', ''];
 
 /**
- * Ported from storefront-lamp/core/Forms/Disqualification.php. Reads a form's disqualification
+ * Reads a form's disqualification
  * rules and says whether a set of answers may proceed.
  *
  * Real forms do not declare a "termination rules" block; what authors actually write is an

@@ -29,7 +29,7 @@ const OBJECT_ID = /^[a-f\d]{24}$/i;
 const MAX_CYCLES_AHEAD = 60;
 
 /**
- * Ported from storefront-lamp/core/Catalog/SubscriptionPlans.php. Pure transform: the
+ * Pure transform: the
  * `subscriptions` of an EMR Channel Details response -> the plan rows `CatalogBuilder.build()`
  * sells variants on.
  *

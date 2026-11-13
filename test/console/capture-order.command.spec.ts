@@ -58,10 +58,10 @@ class StubAdapter implements PaymentAdapter {
 }
 
 /**
- * Proves Phase 10's `payment:capture` command against the PHP original's own test scenarios:
+ * Proves Phase 10's `payment:capture` command against its scenarios:
  * missing reference, no local order, an order not recorded as an authorization, an adapter that
  * can't authorize-and-capture, a successful capture, and a provider refusal — each asserted by
- * exit code, matching the PHP CLI's own "exit code is the interface" design.
+ * exit code, since the exit code is the command's interface.
  */
 describe('CaptureOrderCommand', () => {
   let prisma: PrismaClient;
@@ -69,7 +69,7 @@ describe('CaptureOrderCommand', () => {
   let orders: OrderRepository;
 
   beforeAll(() => {
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-capture-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-capture-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], { cwd: process.cwd(), stdio: 'ignore' });
     prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url }) });

@@ -40,7 +40,7 @@ describe('Intake + verify + not-eligible routes', () => {
     // surfacing an error. A real migrated database is what lets `[10.42]`-style journey state
     // (`markFormCompleted`) actually survive across requests, the same way
     // `checkout-to-receipt.e2e-spec.ts` needs one for order placement to survive its own redirects.
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-intake-db-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-intake-db-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], { cwd: process.cwd(), stdio: 'ignore' });
     prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url }) });

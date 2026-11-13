@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/Bmi.php. The body-mass-index arithmetic, as a pure
+ * The body-mass-index arithmetic, as a pure
  * function of a unit system, a height and a weight.
  *
  * A class of its own rather than a private helper on `AnswerSet` because the score is a *clinical*

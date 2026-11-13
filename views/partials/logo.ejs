@@ -1,6 +1,6 @@
 <%
-/* Ported from storefront-lamp/theme/templates/partials/logo.twig — pure static inline SVG. Takes
-   one optional local, `logoClass` (Twig's `logo_class`), defaulting to the header's own sizing.
+/* Pure static inline SVG. Takes
+   one optional local, `logoClass`, defaulting to the header's own sizing.
    Resolved into a differently-named variable — EJS wraps templates in `with(locals) {...}`, so a
    `const logoClass = typeof logoClass !== 'undefined' ? logoClass : ...` here would shadow the
    outer local with itself, throwing "Cannot access 'logoClass' before initialization" (confirmed

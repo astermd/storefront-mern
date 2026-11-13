@@ -7,8 +7,8 @@ import { RuleEvaluator } from '../../src/forms/rule-evaluator';
 import { OperatorLog } from '../../src/support/operator-log';
 
 /**
- * Ported from the file-upload / signature cases lamp 0.0.6 added to AnswerSetTest, AnswerValidatorTest,
- * AnswerEncoder, DefinitionTest and FieldTypesTest.
+ * File-upload and signature answers across `AnswerSet`, `AnswerValidator`, `AnswerEncoder`,
+ * `Definition` and the field types.
  */
 const SESSION = '550e8400-e29b-41d4-a716-446655440000';
 const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';

@@ -3,7 +3,7 @@ import { Boundary } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedLeadGateway.php. `[20.9]` over the
+ * `[20.9]` over the
  * opportunity boundary.
  *
  * `[20.10]` names this one specifically: a rising rate of swallowed opportunity writes means leads

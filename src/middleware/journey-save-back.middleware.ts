@@ -6,20 +6,19 @@ import { OperatorLog } from '../support/operator-log';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/JourneyStateMiddleware.php. Writes the
+ * Writes the
  * journey's durable state back once, after everything downstream — `stepGuard`, `templateGlobals`,
  * Nest's own guard -> interceptor -> pipe -> controller stage — is truly finished with it.
  *
  * **This is the load-bearing middleware the whole "keep the pinned pipeline as middleware, not
- * guards" decision exists to protect (MERN.md's "The middleware pipeline" section).** If
+ * guards" decision exists to protect (docs/STACK.md's "The middleware pipeline" section).** If
  * `stepGuard` were a Nest `CanActivate` guard instead of middleware, guards run in a fixed position
  * *after* all middleware — so a guard-redirected visitor's journey state would never reach this
  * flush, because middleware's completion signal fires the moment the guard short-circuits, with
  * nothing left downstream to await.
  *
  * **Implementation note — this is NOT `try { await next() } finally { flush() }`, and that isn't
- * a style choice.** MERN.md's own snippet proposes exactly that pattern, and it is wrong for
- * Express-style Nest middleware with an async downstream handler: `next()` is a plain callback,
+ * a style choice.** That pattern is wrong for Express-style Nest middleware with an async downstream handler: `next()` is a plain callback,
  * not a promise tied to when the response is actually finished, so `await next()` resolves as soon
  * as the synchronous part of dispatching the next layer returns — typically *before* an async
  * controller has done any of its work. This was verified empirically before writing this file: a
@@ -27,7 +26,7 @@ import { addTrace } from './trace';
  * `await sleep(50)` before mutating state runs its `finally` block before the controller's mutation
  * happens, every time.
  *
- * **A second, real race sat in this file's first fix.** The original approach flushed from
+ * **A second, real race sat in this file's first fix.** The first approach flushed from
  * `res.on('finish', ...)` — fine for *whether* the flush runs (it fires after a normal async
  * controller, a redirect-without-`next()`, or a thrown exception all fully resolve), but `finish`
  * means the response has already been sent, and `intake.js`'s `save()`/`submit()` post through

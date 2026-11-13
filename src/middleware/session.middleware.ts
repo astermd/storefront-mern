@@ -4,16 +4,15 @@ import session from 'express-session';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/SessionMiddleware.php — starts the session
+ * Starts the session
  * with cookie settings tuned for this storefront's long checkout journey. Wraps `express-session`
- * (Node's equivalent of PHP's native session mechanism) rather than reimplementing it; MERN.md
- * calls this out explicitly ("session (express-session, wrapped as Nest middleware)").
+ * rather than reimplementing it.
  *
  * `MemoryStore` (express-session's default) is used deliberately — see the plan's open design
  * decisions: nothing durable lives in this session, only a CSRF token and whatever
  * `AttributionMiddleware` reads off the cookie itself; durable journey state lives in
- * `sessions.journey_state` (Phase 3), not here. `secure` trusts `X-Forwarded-Proto` for the same
- * reason the PHP original does — the shipped nginx/apache configs front the app this way.
+ * `sessions.journey_state` (Phase 3), not here. `secure` trusts `X-Forwarded-Proto` because the app is
+ * deployed behind a TLS-terminating reverse proxy.
  *
  * Pinned slot 3 of 9.
  */

@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/LeadOutcome.php. The result of one `LeadWriter.capture()`
+ * The result of one `LeadWriter.capture()`
  * call — whether a *new* opportunity was created this call, and whichever id (new or existing) the
  * lead now has.
  */

@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/FieldTypes.php. Which authored field types this renderer
+ * Which authored field types this renderer
  * implements, and — the part that matters — which it refuses.
  *
  * `[10.13]` is the failure this class exists to prevent: a form authored with a type the renderer

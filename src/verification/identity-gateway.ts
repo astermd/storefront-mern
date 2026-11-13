@@ -1,7 +1,7 @@
 import { IdentityVerdict } from './identity-verdict';
 
 /**
- * Ported from storefront-lamp/core/Verification/IdentityGateway.php. KYC-style identity checks at
+ * KYC-style identity checks at
  * `/verify/` — distinct from `EMR_VERIFICATION_GATEWAY` (email/address checks), never conflate the
  * two tokens.
  */

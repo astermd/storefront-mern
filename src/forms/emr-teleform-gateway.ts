@@ -8,7 +8,7 @@ import { TeleformMetadata } from './teleform-metadata';
 /** Keys an envelope may carry the definition under, when it isn't the envelope itself. */
 const INLINE_KEYS = ['pages', 'form', 'definition', 'form_json', 'data'];
 
-/** Ported from storefront-lamp/core/Forms/EmrTeleformGateway.php's fetch timeout. */
+/** The teleform definition fetch timeout. */
 const FETCH_TIMEOUT_MS = 10_000;
 
 function isDefinitionShaped(value: unknown): value is Record<string, unknown> {
@@ -16,7 +16,7 @@ function isDefinitionShaped(value: unknown): value is Record<string, unknown> {
 }
 
 /**
- * Ported from storefront-lamp/core/Forms/EmrTeleformGateway.php. {@link TeleformGateway} over the
+ * {@link TeleformGateway} over the
  * SDK's `teleforms()` resource.
  *
  * `metadata()` is a cheap authenticated read. `definition()` is a large document behind a

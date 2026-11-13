@@ -9,7 +9,7 @@ import { OperatorLog } from '../support/operator-log';
 import { ReverseReconciliationReport } from './reverse-reconciliation-report';
 
 /**
- * Ported from storefront-lamp/core/Reconciliation/ReverseReconciliation.php. `[21.9a]`'s reverse
+ * `[21.9a]`'s reverse
  * sweep: the orders the provider took that this storefront has no record of at all.
  *
  * **This is not the mirror of the forward sweep, and the difference is the whole point.**

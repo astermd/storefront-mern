@@ -8,7 +8,7 @@ const EMAIL_VALID = 'valid';
 const EMAIL_INVALID = 'invalid';
 
 /**
- * Ported from storefront-lamp/core/Emr/EmrVerificationGateway.php. {@link VerificationGateway}
+ * {@link VerificationGateway}
  * over the SDK's `verification()` resource.
  *
  * Bound when `features.emrVerifyEmail` or `features.emrVerifyAddress` is on, and each check runs

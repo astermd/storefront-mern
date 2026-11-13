@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/TerminationRule.php. One disqualification rule: the three
+ * One disqualification rule: the three
  * things `[10.42]` requires a rule to declare — a condition, a message and a mode — held together
  * as a value.
  *

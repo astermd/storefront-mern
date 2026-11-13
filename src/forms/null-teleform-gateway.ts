@@ -3,7 +3,7 @@ import { TeleformGateway } from './teleform-gateway';
 import { TeleformMetadata } from './teleform-metadata';
 
 /**
- * Ported from storefront-lamp/core/Forms/NullTeleformGateway.php. Both methods return `null` — a
+ * Both methods return `null` — a
  * different degrade-shape from Cart/Session's "report success" — `null` here means "form
  * unavailable", which `TeleformSource`/`IntakeSession` turn into the `form-unavailable` page.
  */

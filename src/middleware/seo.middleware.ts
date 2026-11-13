@@ -7,7 +7,7 @@ import { Url } from '../support/url';
 import { addTrace } from './trace';
 
 /**
- * Full port of storefront-lamp/core/Http/Middleware/SeoMiddleware.php. Publishes the request's SEO
+ * Publishes the request's SEO
  * context as a `seo` template local and enforces the indexing directive as a response header.
  *
  * `[24.2]` requires the indexing decision to be enforced **twice** — as a header and as a meta tag
@@ -52,9 +52,9 @@ export class SeoMiddleware implements NestMiddleware {
       refused: RobotsPolicy.REFUSED,
     };
 
-    // The PHP original applies the header after the handler returns, checking whether the response
-    // already carries one. Express has no "response object, still unsent" moment to hook the same
-    // way, so this patches the last point before headers actually go out instead.
+    // The header must be applied after the handler has run, and only if the response doesn't
+    // already carry one. Express has no "response object, still unsent" moment to hook, so this
+    // patches the last point before headers actually go out instead.
     const originalWriteHead = res.writeHead.bind(res);
     res.writeHead = ((...args: Parameters<typeof res.writeHead>) => {
       if (directive !== null && !res.hasHeader('X-Robots-Tag')) {

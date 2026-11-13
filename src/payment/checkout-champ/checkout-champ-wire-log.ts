@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { HttpClientInterface, Request, Response } from '@astermd-hq/checkoutchamp-client';
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampWireLog.php. Decorates
+ * Decorates
  * whichever transport it is given rather than replacing it. Off by default, gated by
  * `config.app.debug.wireLog`.
  *

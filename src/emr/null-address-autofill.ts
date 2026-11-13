@@ -2,7 +2,7 @@ import { ParsedAddress } from '../checkout/formatted-address';
 import { AddressAutofill } from './address-autofill';
 
 /**
- * Ported from storefront-lamp/core/Emr/NullAddressAutofill.php. The port bound when
+ * The implementation bound when
  * `features.addressAutofill` is off — always the case under the test suite, whose runs must never
  * reach the network.
  *

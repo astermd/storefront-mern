@@ -3,7 +3,7 @@ import { OrderLine } from './order-line';
 import { SettlementMode, SettlementModeValue } from './settlement-mode';
 
 /**
- * Ported from storefront-lamp/core/Payment/OrderEnvelope.php. The whole cart, assembled once per
+ * The whole cart, assembled once per
  * checkout submit, that `PaymentAdapter.place()` receives.
  */
 export class OrderEnvelope {

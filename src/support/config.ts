@@ -11,10 +11,8 @@ import { loadRetentionConfig, RetentionConfig } from '../../config/retention';
 import { loadVerificationConfig, VerificationConfig } from '../../config/verification';
 
 /**
- * Thin wrapper over the typed `config/*.ts` modules — the direct equivalent of `require
- * 'config/app.php'` in the PHP original, just resolved once instead of per-`require`. One
- * `config/*.ts` file per PHP `config/*.php` file; this service grows a getter for each as its
- * owning phase lands (payment, consent, ...).
+ * Thin wrapper over the typed `config/*.ts` modules, resolved once. One getter per `config/*.ts`
+ * file, added as each owning phase lands (payment, consent, ...).
  */
 @Injectable()
 export class ConfigService {
@@ -42,7 +40,7 @@ export class ConfigService {
     this.retention = loadRetentionConfig(process.env);
   }
 
-  /** Direct-key reads, mirroring the PHP original's `Config::get('a.b.c', $default)`. Phase 7 needs only these two paths so far. */
+  /** Direct-key reads by dotted path, with a fallback. Phase 7 needs only these two paths so far. */
   get(path: 'payment.currency' | 'payment.attempt_stale_after_seconds', fallback: string | number): string | number {
     if (path === 'payment.currency') return this.payment.currency ?? fallback;
     if (path === 'payment.attempt_stale_after_seconds') return this.payment.attemptStaleAfterSeconds ?? fallback;

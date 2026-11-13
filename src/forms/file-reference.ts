@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/FileReference.php. One uploaded file as the EMR named it:
+ * One uploaded file as the EMR named it:
  * the `{path, name, mime_type}` its upload endpoints answer, which is exactly what a file-upload
  * answer carries into the intake submission.
  *

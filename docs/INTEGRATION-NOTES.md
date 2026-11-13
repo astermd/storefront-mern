@@ -1,8 +1,8 @@
 # Integration notes
 
-This storefront talks to two external systems: an EMR, through the
-`astermd/sdk` package, and a payment provider, through an adapter in
-`core/Payment/`.
+This storefront talks to two external systems: the AsterMD API (the EMR), through the
+`@astermd-hq/sdk` package, and a payment provider, through an adapter in
+`src/payment/`.
 
 **Everything in this document is a place where those systems behave differently
 from what their own documentation says.** Each was established by calling the
@@ -23,16 +23,16 @@ schedules, exit codes, what to do at three in the morning — are in
 
 ## The EMR
 
-### 1. `treatments()->sync()` returns a **list**, not an object
+### 1. `treatments().sync()` returns a **list**, not an object
 
 The sync response envelope's `data` is a **list of records**, holding one
 element per treatment. The treatment's fields are at `data()[0]`, not at
 `data()`.
 
-```php
-$response->data()[0]['_id']              // correct
-$response->data()['_id']                 // null, on every order, forever
-$response->data()['summary']['cycle_status']  // null, on every order, forever
+```ts
+response.data()[0]._id                   // correct
+response.data()._id                      // undefined, on every order, forever
+response.data().summary.cycle_status     // undefined, on every order, forever
 ```
 
 **This is the most expensive mistake available in this integration**, because
@@ -42,12 +42,12 @@ that way renders an empty clinical status permanently and looks like a display
 bug for as long as anyone cares to look.
 
 Written summaries of this API flatten the record's fields to top-level paths.
-They are wrong. `core/Checkout/EmrCheckoutEventReporter.php` indexes the list,
+They are wrong. `src/checkout/emr-checkout-event-reporter.ts` indexes the list,
 and a test pins the flattened shape as one it must refuse — that test exists
 specifically to stop someone "simplifying" the index away.
 
 The EMR treatment id — the thing `[19.2]` and `[19.9]` call the treatment
-reference — is at `data()[0]['_id']` and is free to read from a response the
+reference — is at `data()[0]._id` and is free to read from a response the
 storefront already receives.
 
 **The value is not unique per order, and that is the EMR's model rather than a
@@ -61,7 +61,7 @@ the same session does not create a second clinical record. That is what makes
 the reconciliation sweep safe to run on a schedule and safe to overlap with
 itself.
 
-### 2. `treatments()->list()` cannot be filtered at all
+### 2. `treatments().list()` cannot be filtered at all
 
 Every filter this endpoint accepts is **inert**. Verified against a channel
 holding exactly one treatment:
@@ -103,7 +103,7 @@ one record. Choosing the wrong one is silent, in the way §1 describes.
 | analytics session id | `attribution.session_id` | absent | absent |
 | money | `12000` — integer cents | — | `"240.00"` — decimal **string** |
 
-`patients()->view()` is a fourth projection and carries none of the treatment
+`patients().view()` is a fourth projection and carries none of the treatment
 fields at all.
 
 Note the money row: the **same amount** is an integer in one projection and a
@@ -125,7 +125,7 @@ value, in the clinical system, with every call returning success. It is
 invisible everywhere except in a test that asserts the stored figure.
 
 This codebase holds money in integer cents throughout.
-`core/Checkout/Totals.php` has the only two exits from that representation —
+`src/checkout/totals.ts` (`Totals`) has the only two exits from that representation —
 `dollars()` for the EMR and `decimalString()` for the payment provider. Both
 are named, both are tested, and neither is inlined anywhere. **Do not inline
 them.** A conversion written at a call site is a conversion nobody can grep for
@@ -214,7 +214,7 @@ unflattened means every opportunity update fails, for every buyer, permanently.
 This was the difference between edits flowing back to the EMR and nothing
 flowing back at all.
 
-`core/Forms/RecordMapper.php` therefore writes a one-element list as the value
+`src/forms/record-mapper.ts` therefore writes a one-element list as the value
 it holds, logging `intake.multi_value_flattened` so a flatten that is ever
 wrong stays traceable rather than invisible. **A genuine multi-selection — two
 or more values — stays a list.**
@@ -235,13 +235,13 @@ added.
 
 ### 9. Polling is the only mechanism; there is one delete route
 
-**There is no webhook or notification resource anywhere in the SDK.** The
-`Resource/` directory is Carts, Categories, Channels, CheckoutEvents,
+**There is no webhook or notification resource anywhere in the SDK.** Its resources
+are Carts, Categories, Channels, CheckoutEvents,
 DoctorsNetworks, Geo, IntakeSubmissions, LabTests, Medications, Opportunities,
 Patients, Products, Sessions, Shippings, Teleforms, Treatments, Verification —
 and nothing else. Nothing in the contract names an inbound transport either.
 
-Polling `treatments()->sync` or `treatments()->view` is the only mechanism
+Polling `treatments().sync` or `treatments().view` is the only mechanism
 demonstrated on the wire. An inbound authenticated receiver is a legitimate
 thing to build, but it is an invention: nothing shows the EMR would ever call
 it.
@@ -252,11 +252,11 @@ outcome from this side. The record does move on its own — a treatment's cycle
 count advances between reads with no call from here — which makes the EMR the
 owner and this storefront a mirror.
 
-**Exactly one deletion route exists across the whole `Resource/` directory:**
+**Exactly one deletion route exists across the whole SDK:**
 
 ```
-$ grep -rn "function delete" vendor/astermd/sdk/src/Resource/
-vendor/astermd/sdk/src/Resource/Sessions.php:156:    public function delete(string $session): Response
+$ grep -n "delete<" node_modules/@astermd-hq/sdk/dist/index.d.ts
+1913:    delete<T = Record<string, unknown>>(session: string): Promise<Response$1<T>>;
 ```
 
 It removes an analytics session, not a clinical record. See
@@ -269,7 +269,7 @@ The EMR bakes a permission snapshot into the bearer token — its JWT carries a
 expiry, measured at exactly **24 hours** from issue.
 
 A permission granted or revoked server-side therefore has no effect here until
-the token is re-issued. Run `bin/console cache:clear` before concluding
+the token is re-issued. Run `npm run console -- cache:clear` before concluding
 anything about a 403. Full procedure in [`OPERATIONS.md`](OPERATIONS.md) §4.2.
 
 ---
@@ -391,7 +391,7 @@ Both of these are accepted, produce no error, and quietly do the wrong thing.
 The consequence of the second is that a quote and the charge it produced can
 disagree about how many of something the buyer bought, with both calls
 reporting success. The two key names are named constants in
-`core/Payment/Vrio/VrioOffers.php` for that reason.
+`src/payment/vrio/vrio-offers.ts` for that reason.
 
 ### 16. Money encodings differ by direction
 

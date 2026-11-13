@@ -1,7 +1,7 @@
 import { BillingAddress } from './billing-address';
 
 /**
- * Ported from storefront-lamp/core/Payment/Buyer.php. The buyer as the provider needs them
+ * The buyer as the provider needs them
  * (`[13.1]`).
  *
  * Billing is taken to be the shipping address (`[13.2]`) unless `billing` says otherwise: it is set

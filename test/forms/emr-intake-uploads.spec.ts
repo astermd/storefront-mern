@@ -2,7 +2,6 @@ import { EmrIntakeUploads } from '../../src/forms/emr-intake-uploads';
 import { NullIntakeUploads } from '../../src/forms/null-intake-uploads';
 import { apiError, capturedLog, fakeClients, response } from '../support/fake-emr-client';
 
-/** Ported from storefront-lamp/tests/Forms/EmrIntakeUploadsTest.php. */
 const SESSION = '550e8400-e29b-41d4-a716-446655440000';
 const STORED = { path: `acct/org/intake_submissions/${SESSION}/id-3f9a.jpg`, name: 'id-3f9a.jpg', mime_type: 'image/jpeg' };
 

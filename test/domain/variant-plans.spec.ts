@@ -6,7 +6,7 @@ import { SettlementPolicy } from '../../src/checkout/settlement-policy';
 import { capturedLog } from '../support/fake-emr-client';
 import { FakeCatalog } from '../support/fake-catalog';
 
-/** A variant sold on two plans (lamp's VariantPlans): the buyer chooses, and price, plan and settlement follow. */
+/** A variant sold on two plans (`VariantPlans`): the buyer chooses, and price, plan and settlement follow. */
 const MONTHLY = { id: 'plan-a', name: 'Monthly', description: 'Billed monthly', first_payment_cents: 2000, settlement: 'capture' };
 const QUARTERLY = { id: 'plan-b', name: 'Quarterly', description: 'Billed every 3 months', first_payment_cents: 3000, settlement: 'authorize' };
 

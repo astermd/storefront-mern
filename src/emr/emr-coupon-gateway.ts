@@ -12,7 +12,7 @@ interface CouponsResource {
 }
 
 /**
- * Ported from storefront-lamp/core/Emr/EmrCouponGateway.php. {@link CouponGateway} over the EMR's
+ * {@link CouponGateway} over the EMR's
  * `POST /coupons/validate`.
  *
  * Each line is named the way the EMR's order will name it — by the plan it is sold on, or by the

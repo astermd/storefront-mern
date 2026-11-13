@@ -2,7 +2,7 @@ import { IntakeUploads } from './intake-uploads';
 import { UploadOutcome } from './upload-outcome';
 
 /**
- * Ported from storefront-lamp/core/Forms/NullIntakeUploads.php. Bound when EMR analytics are off,
+ * Bound when EMR analytics are off,
  * which is also the test suite.
  *
  * A file answer reaches the clinician only inside the intake submission, and with analytics off no

@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 
 /**
- * Ported from storefront-lamp/core/Support/FailureDigest.php. How a failure is named where its
+ * How a failure is named where its
  * message may not be repeated.
  *
  * Several boundaries in this application must report that something failed without reporting what
@@ -18,9 +18,8 @@ import { Prisma } from '@prisma/client';
 export class FailureDigest {
   /**
    * The exception's class, plus Prisma's error code when there is one — shaped for a human reading
-   * a console line: `PrismaClientKnownRequestError (P2002)`. This port's equivalent of the PHP
-   * original's `PDOException (SQLSTATE HY000)`, since Prisma reports a fixed code rather than a
-   * SQLSTATE.
+   * a console line: `PrismaClientKnownRequestError (P2002)` — Prisma reports a fixed code rather
+   * than a SQLSTATE.
    */
   static describe(error: unknown): string {
     const name = FailureDigest.className(error);

@@ -6,15 +6,14 @@ import { OperatorLog } from '../support/operator-log';
 const execFileAsync = promisify(execFile);
 
 /**
- * Ported from storefront-lamp's `bin/console db:migrate`. Runs through the same `nest-commander`
- * application context as the web process (`CommandFactory.run(ConsoleModule)` in `console/main.ts`
- * imports `AppModule`, not a second bootstrap path) — see MERN.md's Toolchain table.
+ * `db:migrate`. Runs through the same `nest-commander` wiring as the web process
+ * (`CommandFactory.run(ConsoleModule)` in `console/main.ts`; `ConsoleModule` imports the same
+ * `CoreModule` as `AppModule`, not a second bootstrap path) — see docs/STACK.md's Toolchain table.
  *
  * Shells out to Prisma's own migration runner (`prisma migrate deploy`) rather than driving
  * migrations through `DATABASE_CONNECTION` directly — Prisma's migration history and its
  * `_prisma_migrations` tracking table are owned entirely by the Prisma CLI, not by application
- * code, since Phase 3's original hand-rolled `Migrator` was replaced by Prisma (see MERN.md's
- * Persistence section).
+ * code (see docs/STACK.md's Persistence section).
  */
 @Command({ name: 'db:migrate', description: 'Apply pending database migrations' })
 export class DbMigrateCommand extends CommandRunner {

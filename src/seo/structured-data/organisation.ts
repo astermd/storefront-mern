@@ -1,7 +1,7 @@
 import { Emitter } from './emitter';
 
 /**
- * Ported from storefront-lamp/core/Seo/StructuredData/Organisation.php. The organisation behind the
+ * The organisation behind the
  * storefront, as schema.org `Organization` (`[24.8]`).
  *
  * Everything it publishes is already public on the site itself. The `@id` is stable and absolute so

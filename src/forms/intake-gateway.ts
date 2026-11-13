@@ -2,7 +2,7 @@ import { Event } from '@astermd-hq/sdk';
 import { EncodedAnswer } from './answer-encoder';
 
 /**
- * Ported from storefront-lamp/core/Forms/IntakeGateway.php. The storefront's view of the EMR's
+ * The storefront's view of the EMR's
  * intake-submission resource.
  */
 export interface IntakeGateway {

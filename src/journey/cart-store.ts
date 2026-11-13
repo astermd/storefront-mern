@@ -15,7 +15,7 @@ export interface CartCarryingSession {
 }
 
 /**
- * Ported from storefront-lamp/core/Journey/CartStore.php. Where the cart actually lives: the
+ * Where the cart actually lives: the
  * session holds the working copy, and every save mirrors it into durable journey state.
  *
  * Two stores rather than one, because each covers the other's hole. Durable journey state is keyed

@@ -23,7 +23,7 @@ const FIELD_FOR_PATH: Record<string, string> = {
 const UPPERCASED = ['territory'];
 
 /**
- * Ported from storefront-lamp/core/Checkout/Prefill.php. Checkout fields, filled from what the
+ * Checkout fields, filled from what the
  * intake already asked (`[13.5b]`).
  *
  * The intake's own `db_fields` map is read **backwards**. That map says which record path each

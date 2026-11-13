@@ -5,7 +5,7 @@ import { RobotsPolicy } from '../../seo/robots-policy';
 import { ConfigService } from '../../support/config';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/RobotsController.php. `robots.txt`, generated
+ * `robots.txt`, generated
  * from the same configuration the meta tags and the sitemap read (`[24.4]`).
  *
  * `[24.7]` — under `discourageIndexing` this is a blanket `Disallow: /` for every agent, because

@@ -13,7 +13,7 @@ export interface CheckoutAttemptRow {
 }
 
 /**
- * Ported from storefront-lamp/core/Repository/CheckoutAttemptRepository.php. The `checkout_attempts`
+ * The `checkout_attempts`
  * table: one row per checkout submission, and the thing that stops a second submission becoming a
  * second charge.
  *
@@ -83,8 +83,7 @@ export class CheckoutAttemptRepository {
 
   /**
    * Takes over a claim old enough to have been abandoned, in place — an in-place conditional update
-   * rather than a delete-then-insert, which is what caused a real double charge (see PHP source
-   * comment history): the row itself is the serialisation point, so exactly one concurrent taker
+   * rather than a delete-then-insert, which is a known cause of a real double charge: the row itself is the serialisation point, so exactly one concurrent taker
    * wins. Only a `claimed` row is ever eligible, whatever `observedAt` says — a `sent` row belongs
    * to a request that has already reached a provider with no idempotency of its own.
    */
@@ -153,8 +152,8 @@ export class CheckoutAttemptRepository {
 
   /**
    * Gives the key back, so the same submission may be tried again. Only the request that owns the
-   * row may delete it (`claimedAt` is the ownership token) — an unconditional delete was the root
-   * cause of a real double charge in the PHP original's history. No count check, deliberately: a
+   * row may delete it (`claimedAt` is the ownership token) — an unconditional delete is a known
+   * cause of a real double charge. No count check, deliberately: a
    * release that matched nothing is the correct no-op.
    */
   async release(key: string, claimedAt: string): Promise<void> {
@@ -162,8 +161,7 @@ export class CheckoutAttemptRepository {
   }
 
   /**
-   * Ported for `db:prune` (Phase 10, deferred from Phase 7's original build — see this class's own
-   * doc comment history). Deletes aged `claimed` rows outright, plus aged `complete` rows that are
+   * Used by `db:prune` (Phase 10). Deletes aged `claimed` rows outright, plus aged `complete` rows that are
    * "replaceable" — see `replaceableCompletionKeys()`. A `sent` row is never deleted at any age: the
    * provider was contacted and never answered, and no amount of time settles whether money moved.
    */

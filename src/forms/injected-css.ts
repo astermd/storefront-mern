@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/InjectedCss.php. The form author's own stylesheet
+ * The form author's own stylesheet
  * (`settings.injectCss`), made safe to put inside a `<style>` element.
  *
  * **Why this is not HTML escaping.** CSS cannot survive it: `>` is the child combinator, `&` is

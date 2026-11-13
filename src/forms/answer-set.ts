@@ -16,7 +16,7 @@ const SIGNATURE_SHAPE = /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/;
 const SIGNATURE_MAX_LENGTH = 1024 * 1024;
 
 /**
- * Ported from storefront-lamp/core/Forms/AnswerSet.php. The answers a visitor has given so far,
+ * The answers a visitor has given so far,
  * keyed by field name.
  *
  * Two rules shape the whole class. The first is `[10.27]`: answers **accumulate**. A save carries

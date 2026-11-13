@@ -5,7 +5,7 @@ import { OperatorLog } from '../support/operator-log';
 import { EncodedAnswer } from './answer-encoder';
 import { IntakeGateway } from './intake-gateway';
 
-/** Ported from storefront-lamp/core/Forms/EmrIntakeGateway.php. {@link IntakeGateway} over the SDK's `intakeSubmissions()` resource. */
+/** {@link IntakeGateway} over the SDK's `intakeSubmissions()` resource. */
 @Injectable()
 export class EmrIntakeGateway implements IntakeGateway {
   constructor(

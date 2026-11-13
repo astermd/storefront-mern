@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { LogDirectoryUnreadable } from './log-directory-unreadable';
 
 /**
- * Ported from storefront-lamp/core/Retention/LogSweep.php. `[30.6]`'s third category: the files
+ * `[30.6]`'s third category: the files
  * under `storage/logs/`.
  *
  * The rule names debug logs alongside sessions and events, and `[30.9]` insists deletion reaches the

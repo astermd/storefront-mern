@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/config/consent.php. Client-owned, not `src/` — a real deployment may
+ * Client-owned, not `src/` — a real deployment may
  * edit this file directly.
  *
  * Consent controls shown at checkout. Every one of these is the deployment's to change — wording,

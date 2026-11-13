@@ -1,8 +1,18 @@
 {
-  "name": "storefront-mern",
+  "name": "storefront-node",
   "version": "1.0.0",
   "private": true,
-  "description": "AsterMD telehealth storefront — NestJS port of storefront-lamp",
+  "description": "Node 22 / NestJS telehealth storefront for the AsterMD platform: catalog, intake questionnaire, checkout and upsells.",
+  "homepage": "https://www.astermd.com/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/astermd/storefront-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/astermd/storefront-node/issues"
+  },
+  "license": "MIT",
+  "author": "AsterMD <hello@astermd.com>",
   "engines": {
     "node": ">=22"
   },

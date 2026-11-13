@@ -1,6 +1,6 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/pages/intake/form.twig — mode C (server-rendered)
+  Mode C (server-rendered)
   of the two renderer modes IntakeController supports. Every page of the form is rendered here and
   all but one is concealed, so navigation is a class toggle rather than a round trip (`[10.6]`) and
   the whole questionnaire is present in the HTML even when scripts never run (`[10.6a]`). Every
@@ -8,7 +8,7 @@
   output and never branches on the field's own `type` (see field.ejs's doc comment).
 
   The `<form>`'s own native `action` posts to `/intake/save` rather than `/intake/submit` —
-  matching the PHP original exactly, and deliberately: `[10.6b]` states plainly that this
+  deliberately: `[10.6b]` states plainly that this
   questionnaire genuinely depends on scripting (conditional questions, the eligibility check and
   step navigation all need it), and the <noscript> block below says so instead of pretending a
   no-JS visitor gets a working multi-page form. `public/js/intake.js` intercepts every

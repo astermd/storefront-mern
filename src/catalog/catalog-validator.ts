@@ -8,10 +8,10 @@ export interface CatalogValidation {
 }
 
 /**
- * Ported from storefront-lamp/core/Catalog/CatalogValidator.php. Pure structural pass over a
+ * Pure structural pass over a
  * merged catalog (the shape `CatalogBuilder`/`CatalogMerger` produce). No I/O — `validate()` is a
  * deterministic function of its argument. The live EMR-resolution pass (`--live`) belongs to
- * `config:validate` instead, since it needs a real client — not ported here (it exempts `lab`,
+ * `config:validate` instead, since it needs a real client — not built here (it exempts `lab`,
  * `free-addon` and `priced-addon` products, which are not sold as standalone EMR products).
  *
  * Two input shapes are tolerated on purpose: a full sync catalog (`{channel, products}`, the shape

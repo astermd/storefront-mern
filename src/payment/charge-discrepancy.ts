@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/ChargeDiscrepancy.php. Attached to a *placed* outcome,
+ * Attached to a *placed* outcome,
  * never a decline — by the time it's measurable the card is already charged, so it can't turn
  * into a refusal to record.
  */

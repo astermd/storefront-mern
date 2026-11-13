@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Checkout/CardNumber.php. Deliberately no Luhn check — that
+ * Deliberately no Luhn check — that
  * would break provider sandbox test cards (e.g. `1444444444444440`). The provider has the last
  * word on card validity (`[13.28]`).
  */

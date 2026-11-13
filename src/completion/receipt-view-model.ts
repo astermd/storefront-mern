@@ -10,7 +10,7 @@ export interface ReceiptLineViewModel {
 }
 
 /**
- * Ported from storefront-lamp/core/Completion/ReceiptViewModel.php. Everything the receipt page
+ * Everything the receipt page
  * renders, assembled once on the server — the template reads fields and iterates lists, deciding
  * nothing. A line total is computed here rather than in the template, because a template that
  * multiplied a unit price by a quantity would be a second authority on money.

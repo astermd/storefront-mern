@@ -3,8 +3,8 @@ import { PrismaClient } from '@prisma/client';
 import { DATABASE_CONNECTION } from '../core/tokens';
 
 /**
- * Ported from storefront-lamp/core/Repository/EventRepository.php — the local, append-only audit
- * trail (`events` table). `CartMirror` (Phase 5) is its first real writer in this port.
+ * The local, append-only audit
+ * trail (`events` table). `CartMirror` (Phase 5) is its first real writer.
  */
 @Injectable()
 export class EventRepository {

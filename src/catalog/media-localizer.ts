@@ -20,11 +20,11 @@ export interface LocalizeResult {
 }
 
 /**
- * Ported from storefront-lamp/core/Catalog/MediaLocalizer.php. Downloads each product's
+ * Downloads each product's
  * `remote_image` into `public/assets/media/` (content-hashed filenames so a re-run only
  * re-downloads what actually changed [3.10]) and rewrites the product's `image`/`gallery[0]` to
- * point at the local copy. Uses Node's global `fetch` rather than any SDK client, matching the PHP
- * original's own "SDK-free by design" choice — a caller resolves `assetBaseUrl` itself.
+ * point at the local copy. Uses Node's global `fetch` rather than any SDK client — SDK-free by
+ * design; a caller resolves `assetBaseUrl` itself.
  *
  * A single image failure (a non-2xx response or a thrown fetch error) never aborts the run [3.3]:
  * the affected product falls back to its newest already-downloaded local file, or the shared

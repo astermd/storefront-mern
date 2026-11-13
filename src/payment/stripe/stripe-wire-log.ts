@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 type Headers = Record<string, string | number | string[]>;
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripeWireLog.php. Writes every Stripe request
+ * Writes every Stripe request
  * and response to a file, **verbatim** — the counterpart to `VrioWireLog` and `CheckoutChampWireLog`
  * for the SDK that declares its own HTTP client.
  *

@@ -2,7 +2,7 @@ import { OrderLine } from '../payment/order-line';
 import { PromotionQuote } from '../payment/promotion-quote';
 
 /**
- * Ported from storefront-lamp/core/Emr/CouponGateway.php. Discount codes priced by the EMR's own
+ * Discount codes priced by the EMR's own
  * coupons, for a payment provider that has no discount codes of its own (`[13.11]`, `[14.6b]`).
  *
  * A gateway such as Stripe takes an amount and nothing else, so the code a buyer types is the EMR's

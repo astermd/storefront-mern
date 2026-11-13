@@ -1,8 +1,9 @@
-# Port status
+# Build status
 
-Live progress tracker for the storefront-lamp → storefront-mern port. `MERN.md` is the target
-architecture; this file is where things currently stand against it. Update this alongside the
-work, not after the fact — a status file that lags the code is worse than none.
+Development log for the storefront: what each build phase delivered, what is real vs. Null-backed,
+known gaps, and the real bugs found along the way. [`docs/STACK.md`](docs/STACK.md) describes the
+stack; this file records how it got there. Entries are dated notes kept as written at the time, so
+some describe intermediate states the code has since moved past.
 
 Last updated: 2026-09-24.
 
@@ -34,7 +35,7 @@ Phase 10, every console command run once for real via `node dist/src/console/mai
 
 ---
 
-## Stack, as actually built (departs from MERN.md's original draft)
+## Stack, as actually built (departs from the first stack draft)
 
 - **Prisma**, not Kysely — on **`7.10.0`** (the real latest *stable* release; npm's `latest`
   dist-tag resolves to an unstable `8.0.0-rc.15` — see `CLAUDE.local.md` for the standing rule
@@ -80,7 +81,7 @@ credentials were made available (`storefront-lamp/.env`).
 network — re-verified after every addition, not assumed.
 
 **Still Null-only**: `PAYMENT_ADAPTER` (wired for real via `AdapterRegistry` in Phase 7, but zero
-adapters are ever registered by design — see MERN.md) and `CHECKOUT_EVENT_REPORTER` (Phase 7 built
+adapters are ever registered by design — see docs/STACK.md) and `CHECKOUT_EVENT_REPORTER` (Phase 7 built
 its port + Null implementation only, since it's structurally unreachable while no real payment
 adapter exists to place an order).
 
@@ -125,7 +126,7 @@ any other way.
 
 **Client-side multi-page stepping, wired up post-Phase 10.** `public/js/intake.js` (copied verbatim
 from storefront-lamp during the asset pipeline work) expects a specific `data-intake-*` attribute
-contract that this port's `field.ejs`/`form.ejs`/`stepper.ejs` didn't actually emit — different
+contract that the storefront's `field.ejs`/`form.ejs`/`stepper.ejs` didn't actually emit — different
 attribute names entirely (`data-field-name` vs. the script's `data-intake-field`), an inverted
 `cols` → `sm:col-span-*` mapping, a flex-column page layout instead of the `grid-cols-1
 sm:grid-cols-2` the script's markup expects, and a stepper using different CSS classes than the
@@ -167,7 +168,7 @@ None currently flagged.
   env knob; PHP has none and defaults `true` outside `APP_ENV=test`). Fixed to match exactly.
 - **`AttributionMiddleware` had no route-exists guard.** The PHP original skips minting a session
   for a request that doesn't match any real route (a bot scan, a stray asset request), via an
-  injected closure. This port never had an equivalent — invisible under Null-only, a real cost
+  injected closure. The storefront never had an equivalent — invisible under Null-only, a real cost
   once `EmrSessionGateway` went live (a GET to any unmatched path minted a real, billable EMR
   session before `NotFoundController` got a say). Fixed via a new `RouteExistsChecker`
   (`src/support/route-exists-checker.ts`) that introspects Express 5's own router
@@ -221,7 +222,7 @@ research-agent summary, per this project's "grep before building on a summary" r
 - **`views/pages/checkout.ejs`** — styled per `docs/mockup/mockup/intake/checkout.html` (two-column
   contact/delivery/payment form beside a sticky order summary); the mockup's shipping-method/
   express-checkout/PayPal/Afterpay/upsell-add-on sections are omitted as presentational content
-  with no backing service in this port (declared gaps), not wired to nothing.
+  with no backing service in the storefront (declared gaps), not wired to nothing.
 - **`JourneyState` grew 7 fields**: `promotion`, `promotionQuotedAgainst`, `acceptedBumps`,
   `consents`, `reusableCredential`, `upsellQueue`, `upsellCursor`, `upsellOutcomes` + methods
   `storeBuyer()`/`storeReusableCredential()`/`wipePaymentCredential()`.
@@ -283,7 +284,7 @@ Full port of `core/Upsell/*` and `core/Completion/*`, built from literal verbati
 - **Routes**: `UpsellController`/`UpsellModule` (`GET /upsell/`, `POST /upsell/accept|decline`),
   `ReceiptController`/`ReceiptModule` (`GET /thank-you/`) — both thin, deciding nothing themselves.
 - **`views/pages/upsell.ejs`, `thank-you.ejs`** — styled per `docs/mockup/mockup/intake/
-  {upsell,thankyou}.html`. Deliberately omitted, since nothing in this port backs them: a case id
+  {upsell,thankyou}.html`. Deliberately omitted, since nothing in the storefront backs them: a case id
   (`ReceiptViewModel` carries none on purpose — the EMR's treatment record has a null
   `provider_case_id` at creation time), the delivery map, a separate billing address (`[13.2]`:
   billing = shipping), a shipping method/cost line (`config/app.ts`'s declared `shippingSelector:
@@ -372,7 +373,7 @@ placeholder templates, and `structured-data.twig`.
 - **Error pages needed no changes.** They already passed `noindex: true` explicitly and
   `ErrorPresenter` already set `X-Robots-Tag: noindex, nofollow` unconditionally (Phase 1) — header
   and meta tag already agreed; the "lands in Phase 9" note on those views was about moving them into
-  a shared funnel layout, which this port's EJS-has-no-inheritance decision (see MERN.md's Templates
+  a shared funnel layout, which the storefront's EJS-has-no-inheritance decision (see docs/STACK.md's Templates
   section) already ruled out as a real layout file — every page includes its own head/foot partials
   by design, so there was no separate layout work to do here.
 - **The Tailwind v4 asset-build pipeline and client JS, initially deferred, were built later this
@@ -400,11 +401,11 @@ ported from — `storefront-lamp/CLAUDE.local.md` documents that provenance).
   `vendor/lucide.min.js`) — copied from storefront-lamp's `theme/css/app.css`/`theme/js/*.js`
   (already Tailwind-v4-ready and, per that repo's own `script.js` doc comment, "the mockup's script
   unmodified" apart from the cart's server-owned-state changes) with one path fix: `app.css`'s
-  `@source` directives now point at `../../views` (this port's EJS templates) instead of
+  `@source` directives now point at `../../views` (the storefront's EJS templates) instead of
   `theme/templates` (Twig). No other changes were needed — route paths, DOM ids/classes, and the
-  `_csrf` field name all already matched this port's real implementation by construction.
+  `_csrf` field name all already matched the storefront's real implementation by construction.
 - **`build/build-assets.mjs`** / **`build/watch.mjs`** — ported from storefront-lamp's own build
-  scripts, paths adjusted for this port's `public/css`/`public/js` → `public/assets/build` layout;
+  scripts, paths adjusted for the storefront's `public/css`/`public/js` → `public/assets/build` layout;
   `tailwindcss`/`@tailwindcss/cli` added as devDependencies (`^4.3.3`, the real latest stable —
   `npm view tailwindcss dist-tags` checked first per `CLAUDE.local.md`'s pre-release trap).
 - **A real, previously-invisible gap found and fixed**: `src/main.ts` never called
@@ -416,7 +417,7 @@ ported from — `storefront-lamp/CLAUDE.local.md` documents that provenance).
   storefront-lamp), marketing images (`public/assets/img/*`, identical to the mockup's own
   `assets/images/`), and catalog product photos (`public/assets/media/*` — real photos for the two
   products whose slugs match the mockup's designed lineup, `semaglutide`/`finasteride`; an honest
-  `product-placeholder.svg` for the rest, since this port's example catalog is invented data with no
+  `product-placeholder.svg` for the rest, since the storefront's example catalog is invented data with no
   corresponding mockup photo, and fabricating one would be worse than a plain placeholder).
 - **Pages rebuilt against the mockup's actual markup** (user decision: full rebuild, not just a
   stylesheet over the old thin markup): `home.ejs` (79 lines → the mockup's full hero / promo
@@ -482,7 +483,7 @@ abandonment.php`, `config/retention.php`.
   only on the Emr side.
 - **A real, previously-invisible bug found and fixed while exercising this wiring for the first
   time**: `OperationalCounts.checkoutsWithoutEmrSession()` filtered on `sessionUuid: '' OR
-  sessionUuid: null`, but `events.session_uuid` is `NOT NULL` in this port's schema (unlike a
+  sessionUuid: null`, but `events.session_uuid` is `NOT NULL` in the storefront's schema (unlike a
   hypothetical nullable column) — Prisma's query validator rejects a `null` literal against a
   non-nullable field outright, throwing `PrismaClientValidationError` on every call. Silent under
   every earlier test (nothing had exercised this specific method yet) and only surfaced running
@@ -530,10 +531,10 @@ abandonment.php`, `config/retention.php`.
     `Provider: checkout_champ`), `provider:ping` (calls the real, injected `PAYMENT_ADAPTER` —
     honestly reports the Null adapter as not-ok), `cache:clear` (wipes `storage/cache/`, exits 1 if
     anything survives), `forms:cache-purge` (calls Phase 6's `DefinitionCache.purge()`),
-    `config:validate` — **deliberately scoped**, not the full ~1100-line PHP port: this port's
+    `config:validate` — **deliberately scoped**, not the full ~1100-line PHP port: the storefront's
     `config/*.ts` files are TypeScript modules `npm run typecheck` already refuses to compile wrong
     (a whole class of the PHP original's "wrong type in this array key" checks is therefore enforced
-    by the compiler, not this command), and several PHP checks depend on infrastructure this port
+    by the compiler, not this command), and several PHP checks depend on infrastructure the storefront
     doesn't have (`channel.generated.php`, payment-required-key introspection tied to real
     deployment credentials, consent-link reachability against a route table only introspectable
     inside a booted HTTP server). What it does check, for real: `app.debug.wireLog` left on;
@@ -541,7 +542,7 @@ abandonment.php`, `config/retention.php`.
     `consent.consents`; `verification.*`'s placement/checks shape, when the step is enabled;
     `app.portal.url` (warning only). Exit code 2 (not 1) on any error, matching the PHP original.
   - **Honest no-ops, not stubs pretending to be real**: `theme:sync`/`media:prune` both print
-    plainly that this port has no `CatalogBuilder`/`MediaLocalizer`/generated-config-writer
+    plainly that the storefront has no `CatalogBuilder`/`MediaLocalizer`/generated-config-writer
     pipeline — building one is a separate, large piece of follow-up work on the same scale as the
     Phase 9 asset pipeline, not Phase 10 (console commands + observability) scope. Flagged
     explicitly rather than left silently unbuilt or faked.
@@ -603,7 +604,7 @@ session — plus real `theme:sync`/`media:prune`, replacing their honest-no-op p
   happens to have cached) and writes two JSON files — the reduced metadata record and the raw
   definition document — so a republished form or an unanticipated envelope shape can be recaptured
   as a test fixture with one command. **Verified against the real dev-sandbox EMR**: correctly
-  reports "No teleform metadata" for this port's example teleform ids, the same honest degrade
+  reports "No teleform metadata" for the storefront's example teleform ids, the same honest degrade
   proven end-to-end in Phase 6.
 - **Real catalog-sync infrastructure** — `src/catalog/catalog-builder.ts` (`CatalogBuilder`, ported
   from `CatalogBuilder.php`: the visibility gate, the `rx`/`otc`/`lab`/`free-addon` kind decision,
@@ -619,7 +620,7 @@ session — plus real `theme:sync`/`media:prune`, replacing their honest-no-op p
   rather than in `PhpArrayExporter`, which is a pure renderer/differ; 8 tests covering the
   full-replace-on-different-channel case, the keep-hand-added-keys case, and the
   always-replace-`payment_processor` case).
-- **A deliberate rendering divergence from `PhpArrayExporter`**: this port's generated files are
+- **A deliberate rendering divergence from `PhpArrayExporter`**: the storefront's generated files are
   TypeScript modules, not PHP array literals, and `JSON.stringify(value, null, 2)` is already valid
   TypeScript object-literal syntax — there is no PHP `serialize_precision`/list-vs-map distinction
   to reproduce, so no unified-diff convenience is produced either; a dry run instead reports
@@ -648,7 +649,7 @@ session — plus real `theme:sync`/`media:prune`, replacing their honest-no-op p
   (`aa1111-semaglutide.png`) — so `findOrphans()`'s "slug prefix before the first `.`" predicate
   correctly, if unhelpfully, flagged every one of them as orphaned. Fixed by renaming the files to
   their real catalog slugs and updating `config/products.generated.ts`'s `image`/`gallery` paths to
-  match; `media:prune` now reports zero orphans against this port's own catalog, as it should.
+  match; `media:prune` now reports zero orphans against the storefront's own catalog, as it should.
 
 ---
 
@@ -660,7 +661,7 @@ Vrio/CheckoutChamp calls aren't hand-rolled HTTP either — `storefront-lamp/com
 `astermd/vrio-client` and `astermd/checkoutchamp-client`, both unofficial third-party packages
 published by the same author as `astermd/sdk` (the EMR SDK). Checking npm turned up exact
 siblings — `@astermd-hq/vrio-client` and `@astermd-hq/checkoutchamp-client`, same publisher, same
-`0.0.1` version, same "unofficial" framing — so this port now wraps those instead of hand-rolling
+`0.0.1` version, same "unofficial" framing — so the storefront now wraps those instead of hand-rolling
 an HTTP client, exactly matching the EMR precedent (`@astermd-hq/sdk`).
 
 - **Credentials are not static secrets.** Both providers' `api_key`/`api_username`+`api_password`/
@@ -761,7 +762,7 @@ this phase exists for:
   cause: Nest sets a default status code by HTTP method (`201` for `POST`) via
   `RouterExecutionContext.create()`'s `this.responseController.setStatus(res, httpStatusCode)`,
   called **unconditionally before the handler runs — even when the handler injects a raw `@Res()`**
-  (which this port's controllers do throughout, by design, for direct `res.render()`/`res.redirect()`
+  (which the storefront's controllers do throughout, by design, for direct `res.render()`/`res.redirect()`
   control). `res.render()`/`res.json()` never touch the status code themselves, so whatever Nest
   pre-set silently survives into the response. `res.redirect(303, ...)` was never affected (Express's
   `redirect()` sets its own status explicitly), which is exactly why this was invisible until a test
@@ -827,7 +828,7 @@ this phase exists for:
 - `test/middleware-ordering.e2e-spec.ts` — renamed from `middleware-pipeline.e2e-spec.ts` to the
   plan's canonical Phase 11 filename (same content). Deliberately does **not** add a Set-Cookie
   ordering test for "a simulated retire+re-mint in one request" (Phase 2's original done-bar
-  wording) — traced and documented in the file's own header as a scenario this port's current,
+  wording) — traced and documented in the file's own header as a scenario the storefront's current,
   intentionally-reduced `SessionResolver` cannot actually reach yet (no code path re-mints a session
   that already carries a `sessionRetired` cookie), not merely one nobody wrote a test for. The
   ordering *invariant* itself stays structurally locked down by the existing 9-slot order assertion
@@ -859,7 +860,7 @@ this phase exists for:
 ## First real theme:sync --apply, and four real bugs it surfaced (post-Phase 11, live-verified)
 
 The user ran `theme:sync --apply` for real against the live "CheckoutChamp SA" dev-sandbox channel
-— the first time this port's own catalog/credentials were ever synced for real, rather than only
+— the first time the storefront's own catalog/credentials were ever synced for real, rather than only
 dry-run-checked. It worked: `config/channel.generated.ts` now carries real CheckoutChamp credentials
 (`provider_category: "checkout_champ"`, real `api_username`/`api_password`), and
 `config/products.generated.ts` now carries the channel's 2 real products ("Rameltion", an Rx sleep
@@ -883,7 +884,7 @@ exercised by anything that reached this deep into a real, populated questionnair
    verify/intake fix documented in Phase 11 above — this is where it was first noticed, on
    `/intake/medical/`.
 2. **`views/partials/intake/field-textarea.ejs` didn't exist.** `textarea` is a real, listed
-   `FieldTypes::VALUE_TYPES` entry in the PHP original, and this port's own Phase 6 build (18
+   `FieldTypes::VALUE_TYPES` entry in the PHP original, and the storefront's own Phase 6 build (18
    field-type partials) simply never produced a file for it — no example-catalog teleform had ever
    contained one to catch the gap. Rameltion's real questionnaire has four. Fixed by porting
    `field-textarea.twig` faithfully (a real `<textarea rows="4">`, not a text-input alias). Locked
@@ -912,9 +913,9 @@ exercised by anything that reached this deep into a real, populated questionnair
    `file-upload` fields (photo/document follow-ups on medication, injury, and B-12 questions) — a
    type PHP's own `FieldTypes.php` has no equivalent for at all (confirmed: PHP never wired this up,
    this isn't a port gap). `@astermd-hq/sdk` genuinely supports it
-   (`intakeSubmissions().uploadFile()`/`FileUpload.fromContents()`), so this port implements it for
+   (`intakeSubmissions().uploadFile()`/`FileUpload.fromContents()`), so the storefront implements it for
    real rather than permanently refusing any questionnaire that asks for a document — a deliberate,
-   documented MERN-only capability (see `field-types.ts`'s doc comment on `file-upload`). Built:
+   documented capability (see `field-types.ts`'s doc comment on `file-upload`). Built:
    `IntakeGateway.uploadFile()` (+ `Emr`/`Null`/`Recording`/`Instrumented` implementations — the SDK
    response's reference key isn't typed, confirmed against the real server to be `path`, not
    `reference`/`url`/`id` as first guessed), `IntakeSession.uploadFile()`, a new
@@ -942,7 +943,7 @@ clean, dev server reboot-verified.
 ## `public/assets/build/` is now gitignored, built at deploy time (user-directed reversal)
 
 While reviewing `.gitkeep` files, the user asked why `public/assets/build/` (the content-hashed
-CSS/JS output) wasn't gitignored — it wasn't an oversight, `MERN.md` had documented committing it as
+CSS/JS output) wasn't gitignored — it wasn't an oversight, `docs/STACK.md` had documented committing it as
 a deliberate, verbatim carry-over of storefront-lamp's own convention (PHP's deployment model never
 runs Node on the server at all, so the build has to happen before commit, not after deploy). The
 user asked to change this to the standard Node convention instead: gitignored, built when the
@@ -962,7 +963,7 @@ process starts.
   checkout with no prior build produces a fully working app or command with no manual step. Verified
   directly: `rm -rf dist && npm run console -- config:validate` succeeded, with the `preconsole`
   hook visibly rebuilding first.
-- `MERN.md` updated in two places to match (its Layout section's tree, plus a new paragraph
+- `docs/STACK.md` updated in two places to match (its Layout section's tree, plus a new paragraph
   explaining the reversal and its reasoning; its Operational traps section, whose old "run
   `build:assets` last, before committing" guidance no longer applies) — this session's standing rule
   for every stack-override decision, so the doc doesn't drift stale against what the code actually
@@ -995,7 +996,7 @@ none of them were wired to anything: clicking did nothing, silently, with no err
 Ported `field-button.twig` properly this time — `data-intake-action` (not `-button-action`),
 `type="submit"` + `name="intake_submit" value="1"` only for the `submit` action (matching the shared
 nav's own `name="intake_next" value="1"` convention on its Continue button, and PHP's original
-exactly), and the previous-page/else class split PHP's version has and this port's didn't (a
+exactly), and the previous-page/else class split PHP's version has and the storefront's didn't (a
 `previous_page` authored button was rendering with the *primary* filled style instead of the
 outlined "Back" one — a real, if purely cosmetic, second bug in the same file).
 
@@ -1055,12 +1056,12 @@ button visible at all on that page.
 field slot — `properties.buttonCount: 2`, with a `secondaryButtonLabel`/`secondaryButtonAction`
 alongside the normal top-level `label`/`buttonAction`. Rameltion's real questionnaire has exactly
 one of these: primary slot `{label: "Back", buttonAction: "next_page"}`, secondary slot
-`{label: "Next", buttonAction: "next_page"}`. Neither this port's `FieldViewModel`/`field-button.ejs`
+`{label: "Next", buttonAction: "next_page"}`. Neither the storefront's `FieldViewModel`/`field-button.ejs`
 nor PHP's own `FieldViewModel.php`/`field-button.twig` ever read `buttonCount`/`secondaryButton*` at
 all (confirmed via research agent against the PHP source directly, including its test suite, which
 has zero coverage for this) — **both renderers silently drop the second button and show only the
 primary slot**, which is how a page ended up showing a single "Back"-labelled button that actually
-behaves as "next_page". This is a real gap in both codebases, not a MERN-specific regression.
+behaves as "next_page". This was a real gap in the renderer, not a regression.
 
 Given the goal is a working storefront rather than reproducing PHP's own gap, built real two-button
 support rather than leaving it broken: `FieldViewModel.for()` gained `secondary_label`/
@@ -1231,9 +1232,9 @@ always took whichever mapping came first in array order, regardless of `type`, a
 to sit first. Every real checkout therefore sent CheckoutChamp `338` — a Vrio-side id CheckoutChamp
 has never heard of — as `campaignId`, which its real API correctly refused.
 
-**This exact "first wins" behaviour is not a MERN-only mistake — it's a faithful port of PHP's own
-`CatalogBuilder::providerFor()`**, whose own doc comment names this precise scenario ("a vrio entry
-and a checkout_champ entry for the same variant") and still picks first-in-array regardless. Fixed
+**The earlier "first wins" `providerFor()` named this precise scenario in its own doc comment** ("a
+vrio entry and a checkout_champ entry for the same variant") and still picked first-in-array
+regardless. Fixed
 here anyway, since the live failure is unambiguous: `providerFor()` now prefers the mapping whose
 own `type` matches the channel's active `payment_processor.provider_category`, falling back to the
 old first-match behaviour only when none of the candidates carry that type (so a channel with just

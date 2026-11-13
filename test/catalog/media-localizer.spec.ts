@@ -7,7 +7,7 @@ describe('MediaLocalizer.findOrphans', () => {
   let dir: string;
 
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), 'mern-media-'));
+    dir = mkdtempSync(join(tmpdir(), 'storefront-media-'));
   });
 
   afterEach(() => {

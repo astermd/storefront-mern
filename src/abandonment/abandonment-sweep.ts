@@ -10,7 +10,7 @@ import { AbandonmentSignal } from './abandonment-signal';
 const ACCESS_EVENT = 'access.abandonment_signal';
 
 /**
- * Ported from storefront-lamp/core/Abandonment/AbandonmentSweep.php. The time half of `[21.10]`:
+ * The time half of `[21.10]`:
  * which journeys have stopped moving, and what state each of them stopped in.
  *
  * **Server-side and time-based, and there was never a choice about that.** `[21.12]` forbids

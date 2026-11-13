@@ -2,7 +2,7 @@ import { Field } from './field';
 import { Page } from './page';
 
 /**
- * Ported from storefront-lamp/core/Forms/Definition.php. A parsed teleform definition: the pages
+ * A parsed teleform definition: the pages
  * that become steps, the settings the form author chose, and two lookup tables over every field
  * it declares.
  *

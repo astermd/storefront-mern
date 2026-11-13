@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Reconciliation/ReconciliationReport.php. What one forward sweep
+ * What one forward sweep
  * found and what it managed to do about it.
  *
  * Two kinds of figure live here and they are not interchangeable, which is why they are named apart

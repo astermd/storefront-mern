@@ -1,13 +1,12 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/pages/thank-you.twig, styled per
-  docs/mockup/mockup/intake/thankyou.html. `receipt` is the ReceiptViewModel `Completion.complete()`
+  Styled per docs/mockup/mockup/intake/thankyou.html. `receipt` is the ReceiptViewModel `Completion.complete()`
   assembled — every figure is frozen at the moment the journey completed, never re-derived here.
 
-  Omitted from the mockup, since this port has nothing backing them: a case id (`ReceiptViewModel`
+  Omitted from the mockup, since nothing backs them yet: a case id (`ReceiptViewModel`
   deliberately carries none — the EMR's treatment record has a null `provider_case_id` at creation
   time, so there is nothing true to print yet), the delivery map, and a shipping method/cost line (no shipping
-  selector in this port — `config/app.ts`'s declared `shippingSelector: false` gap).
+  selector — `config/app.ts`'s declared `shippingSelector: false` gap).
 
   `line_images` (slug -> photo) is resolved by `ReceiptController` at render time, deliberately not
   part of the frozen `ReceiptViewModel` snapshot — a receipt outlives the catalog it was bought from.
@@ -40,7 +39,7 @@
           <i data-lucide="check" class="size-5 text-primary" stroke-width="3"></i>
         </span>
         <%# `min-w-0` and `wrap-anywhere` together: a name or an address line is whatever the buyer
-            typed, and one long unbroken string would otherwise push past its column (lamp 93b9644). %>
+            typed, and one long unbroken string would otherwise push past its column. %>
         <div class="min-w-0">
           <% if (receipt.orderNumber) { %><p class="text-sm text-muted">Order #<%= receipt.orderNumber %></p><% } %>
           <h1 class="font-heading text-[24px] font-bold text-heading wrap-anywhere sm:text-[28px]">Thank you<% if (receipt.buyerFirstName) { %>, <%= receipt.buyerFirstName %><% } %>!</h1>

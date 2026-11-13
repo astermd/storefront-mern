@@ -45,7 +45,7 @@ export interface BuyerDetailsFields extends BuyerAddressFields {
 }
 
 /**
- * Ported from storefront-lamp/core/Checkout/BuyerDetails.php. Canonicalizing phone/territory once
+ * Canonicalizing phone/territory once
  * here is what makes 5 downstream readers (validator, idempotency key, stored state, provider,
  * template) never disagree.
  *

@@ -5,14 +5,13 @@ export type SyncedPayment = PaymentDescriptor | Record<string, unknown>;
 import { Totals } from './totals';
 
 /**
- * Ported from storefront-lamp/core/Checkout/CheckoutEventReporter.php (interface). Reports checkout
- * funnel events to the EMR — a port, not called directly from `CheckoutService`'s tests, so a
+ * Reports checkout funnel events to the EMR — a port, not called directly from `CheckoutService`'s tests, so a
  * failure here can never become the buyer's problem (`[20.1]`); every call site wraps these in
  * `PostChargeGuard.run()` once the charge has happened, and the pre-charge `checkoutVisited()` call
  * degrades silently on its own.
  *
- * Not yet bound to a real EMR-backed implementation in this port — see `NullCheckoutEventReporter`'s
- * doc comment for why that is a deliberately bounded gap, not an oversight.
+ * Bound to `EmrCheckoutEventReporter` in `CoreModule`; `NullCheckoutEventReporter` is the no-op
+ * implementation.
  */
 export interface CheckoutEventReporter {
   checkoutVisited(sessionUuid: string | null, totals: Totals): Promise<void>;

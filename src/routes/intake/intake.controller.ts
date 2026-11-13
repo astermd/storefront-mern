@@ -28,7 +28,7 @@ const UNRECORDED_COMPLETIONS = '_intake_unrecorded_completions';
 const FAIL_FORWARD_ATTEMPTS = 2;
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/IntakeController.php. The intake and
+ * The intake and
  * pre-qualification steps.
  *
  * Which questionnaire a step collects comes from the cart, via `FunnelRules` — the same answer
@@ -56,8 +56,8 @@ export class IntakeController {
   }
 
   /**
-   * The welcome page — a static render in the PHP original (its generic `PageController`), kept
-   * here since this port has no general-purpose static-page controller yet.
+   * The welcome page — a static render, kept here since the storefront has no general-purpose
+   * static-page controller.
    */
   @Get('intake')
   welcome(@Res() res: Response): void {

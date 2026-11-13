@@ -13,7 +13,7 @@ interface FormsRecordOptions {
 const DEFAULT_OUTPUT_DIR = join(process.cwd(), 'storage/cache/teleforms/recordings');
 
 /**
- * Ported from storefront-lamp/core/Console/FormsRecordCommand.php. `forms:record --teleform=<id>
+ * `forms:record --teleform=<id>
  * [--out=<dir>]` — writes what the EMR currently serves for one teleform to disk, as the metadata
  * record and the definition document.
  *

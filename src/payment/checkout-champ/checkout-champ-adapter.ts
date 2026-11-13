@@ -24,9 +24,8 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 }
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampAdapter.php. Real
- * CheckoutChamp integration, wrapping `@astermd-hq/checkoutchamp-client` (the npm sibling of the
- * PHP original's `astermd/checkoutchamp-client` Composer package — both explicitly unofficial,
+ * Real
+ * CheckoutChamp integration, wrapping `@astermd-hq/checkoutchamp-client` (explicitly unofficial,
  * same publisher as `@astermd-hq/sdk`).
  */
 export class CheckoutChampAdapter implements PaymentAdapter {

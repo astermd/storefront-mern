@@ -4,7 +4,7 @@ import { OperatorLog } from '../support/operator-log';
 import { BoundaryValue } from './boundary';
 
 /**
- * Ported from storefront-lamp/core/Observability/BoundaryTimer.php. `[20.9]`: one external call,
+ * `[20.9]`: one external call,
  * timed, with its outcome named.
  *
  * **This class may not change what happens.** It measures a call and returns whatever the call
@@ -13,8 +13,7 @@ import { BoundaryValue } from './boundary';
  * before the instrumentation existed. Every line of bookkeeping here is wrapped in its own catch:
  * `[20.1]` says tracking must never break the storefront.
  *
- * **Latency is measured with `process.hrtime.bigint()`**, Node's monotonic clock — the direct
- * equivalent of PHP's `hrtime()` — so a clock adjustment mid-call cannot produce a negative duration.
+ * **Latency is measured with `process.hrtime.bigint()`**, Node's monotonic clock, so a clock adjustment mid-call cannot produce a negative duration.
  *
  * **What may go into the context, and what may not** (`[20.14]`). Outcome codes drawn from this
  * application's own vocabulary, counts, latency, and identifiers this codebase issued are safe.

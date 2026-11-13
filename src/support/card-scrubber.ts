@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Support/CardScrubber.php. Masks card data inside foreign data,
+ * Masks card data inside foreign data,
  * whatever key it arrived under and wherever inside a string it sits.
  *
  * This is the second of two defences and does not replace the first. `OperatorLog.redact()` is

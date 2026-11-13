@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Observability/Boundary.php. The external calls this storefront
+ * The external calls this storefront
  * makes, named once (`[20.9]`).
  *
  * The storefront sits between two systems it does not own and degrades silently by design

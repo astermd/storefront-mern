@@ -5,7 +5,7 @@ import { EncodedAnswer } from './answer-encoder';
 import { IntakeGateway } from './intake-gateway';
 
 /**
- * Ported from storefront-lamp/core/Forms/RecordingIntakeGateway.php. Writes each intake lifecycle
+ * Writes each intake lifecycle
  * event to the local `events` table on its way to the EMR (`[18.1]`).
  *
  * A decorator rather than a write inside `IntakeSession`, because the two are different concerns

@@ -10,8 +10,7 @@ import { Url } from '../../src/support/url';
 
 /**
  * Mirrors `src/main.ts`'s bootstrap wiring (EJS view engine + helpers, the global `ValidationPipe`,
- * both error boundaries) minus `app.listen()` — the direct test-time equivalent of
- * `AppFactory::create($root, $overrides)` from the PHP original, applied on top of whatever
+ * both error boundaries) minus `app.listen()`, applied on top of whatever
  * `Test.createTestingModule({...}).compile()` produced. Every e2e test that needs a fully wired
  * app (not just an isolated provider) should go through this rather than reimplementing the
  * wiring inline.

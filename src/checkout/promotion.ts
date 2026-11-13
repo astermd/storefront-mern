@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Checkout/Promotion.php. A stored promotion quote: the code and
+ * A stored promotion quote: the code and
  * the discount it earned, at the moment it was quoted.
  *
  * `reference` is the pricing system's own id for the code when it gave one

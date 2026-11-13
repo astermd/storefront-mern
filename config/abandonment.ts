@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/config/abandonment.php. When a stopped journey counts as abandoned,
+ * When a stopped journey counts as abandoned,
  * and how far back to look.
  *
  * `[21.12]` makes abandonment detection server-side and time-based rather than a browser event, so

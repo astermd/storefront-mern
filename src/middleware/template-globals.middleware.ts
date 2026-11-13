@@ -48,7 +48,7 @@ interface CartActions {
 const NO_ACTIONS: CartActions = { assessment: null, checkout: null, terminal: null };
 
 /**
- * Full port of storefront-lamp/core/Http/Middleware/TemplateGlobalsMiddleware.php. Publishes
+ * Publishes
  * request-scoped and config-derived values as template locals (site name/url, the CSRF token, the
  * Maps API key, the footer's treatments column, the current path, and the cart) before the route
  * handler runs.
@@ -60,7 +60,7 @@ const NO_ACTIONS: CartActions = { assessment: null, checkout: null, terminal: nu
  * (`CartController`) saves is not the cart this middleware just published — the globals published
  * on a mutating request describe the cart on the way *in*, not the way *out*. That is safe only
  * because `CartController` always answers with a 303 redirect rather than rendering anything
- * itself (see MERN.md's note on the invariant `Phase 5's tests make testable for real) — the
+ * itself (an invariant Phase 5's tests make testable for real) — the
  * response that would show a stale drawer is never rendered, and the GET that follows the redirect
  * rebuilds the globals from the cart the handler actually saved.
  *

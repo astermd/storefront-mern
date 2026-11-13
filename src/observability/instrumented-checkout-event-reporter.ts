@@ -6,7 +6,7 @@ import { Boundary, BoundaryValue } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedCheckoutEventReporter.php. `[20.9]`
+ * `[20.9]`
  * over the treatment sync and the §17 funnel events.
  *
  * **Every method returns void by contract**, so nothing here has an outcome to describe: the port

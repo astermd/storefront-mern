@@ -4,7 +4,7 @@ import { OrderLine } from '../order-line';
 import { PaymentCredential } from '../payment-credential';
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampPayload.php. Builds every
+ * Builds every
  * request body this adapter sends. All methods are pure — take value objects, return plain param
  * objects for the client's query string.
  */

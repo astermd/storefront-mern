@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 /**
- * Ported from storefront-lamp/core/Forms/Page.php. One page of a definition, which is one step of
+ * One page of a definition, which is one step of
  * the form (`[10.5]`).
  *
  * Only top-level fields are listed here; a composite's subfields hang off their parent `Field`.

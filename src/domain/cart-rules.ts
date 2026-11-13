@@ -5,7 +5,7 @@ import { CatalogProduct, ProductCatalog, ProductVariant } from './product-catalo
 import { VariantPlans } from './variant-plans';
 
 /**
- * Ported from storefront-lamp/core/Domain/CartRules.php. Every rule §7 states about a cart, as
+ * Every rule §7 states about a cart, as
  * pure code over a `Cart` and a `ProductCatalog`. No I/O, no framework types, no persistence —
  * which is what keeps the rules identical whether the mutation arrived from the mini-cart drawer,
  * from a checkout order bump (`[27.11]`), or from a product page whose cart view was bypassed

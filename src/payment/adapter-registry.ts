@@ -4,11 +4,10 @@ import { NullPaymentAdapter } from './null-payment-adapter';
 import { PaymentAdapter } from './payment-adapter';
 
 /**
- * Ported from storefront-lamp/core/Payment/AdapterRegistry.php. Resolve-by-category-with-
- * catch-to-Null — the one port (`PAYMENT_ADAPTER`) that degrades via a registry rather than a
- * config-gated ternary like the other EMR-family ports. This port ships **zero adapters
- * registered**, so every resolve falls through to `NullPaymentAdapter` — no live payment provider
- * integration exists in this port at all (see MERN.md).
+ * Resolve-by-category-with-catch-to-Null — the one port (`PAYMENT_ADAPTER`) that degrades via a
+ * registry rather than a config-gated ternary like the other EMR-family ports. `CoreModule`
+ * registers the `vrio`, `checkout_champ` and `stripe` factories; an unknown category, or a factory
+ * that throws, resolves to `NullPaymentAdapter` (see docs/STACK.md).
  */
 @Injectable()
 export class AdapterRegistry {

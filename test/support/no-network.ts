@@ -10,7 +10,7 @@ const httpModule: typeof http = require('node:http');
 const httpsModule: typeof http = require('node:https');
 
 /**
- * Defense-in-depth for the port's own invariant ("no test reaches the network" — see STATUS.md's
+ * Defense-in-depth for the storefront's own invariant ("no test reaches the network" — see STATUS.md's
  * Test status section): every EMR/payment gateway already refuses network access under
  * `NODE_ENV=test` on its own (`NullSessionGateway`/`NullCartGateway`/etc. for the EMR family;
  * `RefusingTransport`/`CheckoutChampRefusingTransport` for Vrio/CheckoutChamp), so this guard should

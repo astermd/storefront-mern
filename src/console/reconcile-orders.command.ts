@@ -7,7 +7,7 @@ interface ReconcileOrdersOptions {
 }
 
 /**
- * Ported from storefront-lamp/core/Console/ReconcileOrdersCommand.php. `provider:reconcile` — one
+ * `provider:reconcile` — one
  * run of `[21.9a]`'s reverse sweep, from a terminal.
  *
  * The counterpart to `emr:reconcile`, not a second spelling of it: that one starts from a local

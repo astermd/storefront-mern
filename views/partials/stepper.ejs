@@ -1,12 +1,12 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/partials/stepper.twig. `steps` is `ProgressSteps.
+  `steps` is `ProgressSteps.
   from()`'s output — one `{label, icon}` per step, already resolved (authored form-progress items,
   or one label per page). No icons are ever actually supplied (see ProgressSteps's doc comment),
   so a step always falls back to drawing its own 1-based number. `active` is 1-based. `progress`
   (optional, `{after, fill_id, label_id, percent}`) draws a fill-bar connector after step
-  `progress.after` instead of the plain checkmark variant — not currently passed by any controller
-  in this port, ported for parity since a future caller may need it.
+  `progress.after` instead of the plain checkmark variant — not currently passed by any controller,
+  kept since a future caller may need it.
 
   The three visual states (done/active/upcoming) share one lookup table rather than being written
   out three times, because `public/js/intake.js`'s `updateStepper()` re-points this exact markup as

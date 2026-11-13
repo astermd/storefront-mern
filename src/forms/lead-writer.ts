@@ -7,7 +7,7 @@ import { LeadOutcome } from './lead-outcome';
 import { RecordMapper } from './record-mapper';
 
 /**
- * Ported from storefront-lamp/core/Forms/LeadWriter.php. Create-once-then-update orchestration for
+ * Create-once-then-update orchestration for
  * the lead behind an intake form (`[9.7]`), and the single place a failed lead write is swallowed.
  *
  * **Why the swallow lives here and not at the call sites.** A visitor filling in a medical form

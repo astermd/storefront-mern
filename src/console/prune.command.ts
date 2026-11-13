@@ -17,7 +17,7 @@ interface PruneOptions {
 }
 
 /**
- * Ported from storefront-lamp/core/Console/PruneCommand.php. `db:prune` — the sweep that takes aged
+ * `db:prune` — the sweep that takes aged
  * rows out of the tables nothing has ever deleted from, and the aged files out of `storage/logs/`.
  *
  * `checkout_attempts` and `rate_limits` are both written on the checkout path and neither is ever

@@ -3,7 +3,7 @@ import { FieldViewModel } from '../../src/forms/field-view-model';
 import { RuleEvaluator } from '../../src/forms/rule-evaluator';
 
 /**
- * A button field holding the builder's Back-beside-Next row (lamp 4e32b5e): `buttonCount` switches
+ * A button field holding the builder's Back-beside-Next row: `buttonCount` switches
  * the second button on, and a second button with no label of its own is named by what it does.
  */
 function buttonView(properties: Record<string, unknown>, label = 'Back'): Record<string, unknown> {

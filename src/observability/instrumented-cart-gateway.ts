@@ -4,7 +4,7 @@ import { Boundary } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedCartGateway.php. `[20.9]` over the
+ * `[20.9]` over the
  * cart-mirror boundary.
  *
  * The three mirror outcomes are reported apart rather than as success-or-failure, because

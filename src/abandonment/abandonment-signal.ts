@@ -2,7 +2,7 @@ import { JourneyState } from '../journey/journey-state';
 import { AbandonmentStateValue } from './abandonment-state';
 
 /**
- * Ported from storefront-lamp/core/Abandonment/AbandonmentSignal.php. One abandonment signal:
+ * One abandonment signal:
  * everything `[21.11]` says the consuming email automation is owed about a journey that stopped,
  * and deliberately nothing else.
  *

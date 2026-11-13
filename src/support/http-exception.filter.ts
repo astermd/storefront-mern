@@ -5,10 +5,10 @@ import { ErrorPresenter } from './error-presenter';
 /**
  * Registered via `app.useGlobalFilters()` in main.ts — catches everything thrown from Nest's own
  * guard -> interceptor -> pipe -> controller stage (including a `NotFoundException` thrown by the
- * catch-all fallback route for an unmatched path, since Nest's router doesn't throw the way
- * Slim's does). The pinned middleware's own errors never reach this filter — those are caught by
+ * catch-all fallback route for an unmatched path, since Nest's router doesn't throw on its own).
+ * The pinned middleware's own errors never reach this filter — those are caught by
  * the raw-Express error middleware registered in main.ts, sharing the same `ErrorPresenter`. See
- * MERN.md's "Error handling" section.
+ * docs/STACK.md's "Error handling" section.
  */
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {

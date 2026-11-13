@@ -6,7 +6,7 @@ export interface Crumb {
 }
 
 /**
- * Ported from storefront-lamp/core/Seo/StructuredData/BreadcrumbList.php. The trail from the
+ * The trail from the
  * storefront root to the current page, as schema.org `BreadcrumbList` (`[24.8]`).
  *
  * A trail of one crumb is not emitted at all: "Home" on the home page is a breadcrumb list with

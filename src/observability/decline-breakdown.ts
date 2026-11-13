@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Observability/DeclineBreakdown.php. `[20.12]`'s decline rate, by
+ * `[20.12]`'s decline rate, by
  * reason.
  *
  * **A rate, not a count**, because the count alone answers nothing: fifty declines is a bad day at

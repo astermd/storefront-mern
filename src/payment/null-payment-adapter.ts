@@ -18,10 +18,9 @@ import { PromotionQuote } from './promotion-quote';
 const DECLINE_MESSAGE = 'Online payment is temporarily unavailable. Please try again shortly.';
 
 /**
- * Ported from storefront-lamp/core/Payment/NullPaymentAdapter.php — the adapter bound whenever
- * `AdapterRegistry` resolves no configured provider category. The Phase 7 reference adapter: no
- * live provider integration exists in this port at all, so this is the only adapter that ever
- * actually runs a real checkout submit through.
+ * The adapter bound whenever `AdapterRegistry` resolves no configured provider category, or the
+ * configured provider cannot be built. Every checkout submit through it is declined with a
+ * "temporarily unavailable" message.
  */
 @Injectable()
 export class NullPaymentAdapter implements PaymentAdapter {

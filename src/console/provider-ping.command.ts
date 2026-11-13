@@ -4,7 +4,7 @@ import { PAYMENT_ADAPTER } from '../core/tokens';
 import { PaymentAdapter } from '../payment/payment-adapter';
 
 /**
- * Ported from storefront-lamp/core/Console/ProviderPingCommand.php. `provider:ping` — resolves the
+ * `provider:ping` — resolves the
  * configured payment adapter and prints a connectivity summary.
  *
  * A read-only operator smoke test. `capabilities()` and `ping()` both pass straight through

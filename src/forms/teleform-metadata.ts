@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/TeleformMetadata.php. The teleform record, reduced to the
+ * The teleform record, reduced to the
  * four things the storefront needs.
  *
  * `dbFields` is the answer-to-record mapping (`[11.1]`) — authored alongside the form, so the

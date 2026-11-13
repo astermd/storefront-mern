@@ -3,7 +3,7 @@ import { MetaResolver, SocialCard } from './meta-resolver';
 const DEFAULT_TYPE = 'website';
 
 /**
- * Ported from storefront-lamp/core/Seo/PageMeta.php. One page's resolved metadata — everything the
+ * One page's resolved metadata — everything the
  * layout renders into `<head>` and nothing else.
  *
  * Exists so the layout has a single object to read from rather than a resolution chain to re-run

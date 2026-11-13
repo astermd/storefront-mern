@@ -1,7 +1,7 @@
 import { inspect } from 'node:util';
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripeCredentials.php. The channel's Stripe
+ * The channel's Stripe
  * credentials, as `theme:sync` copied them from the EMR's `payment_processor.config`.
  *
  * Two keys with opposite rules. The secret key (`api_key`, an `sk_` or restricted `rk_` key)
@@ -13,8 +13,8 @@ import { inspect } from 'node:util';
  * `api_endpoint` is optional: the EMR stores Stripe's API origin with the integration, and an empty
  * one means Stripe's default.
  *
- * PHP's `__unserialize` refusal has no equivalent here, for the reason `PaymentCredential` states:
- * nothing in this codebase rebuilds a class instance from a serialised copy.
+ * There is no deserialisation path to guard, for the reason `PaymentCredential` states: nothing in
+ * this codebase rebuilds a class instance from a serialised copy.
  */
 export class StripeCredentials {
   constructor(

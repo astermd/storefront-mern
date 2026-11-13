@@ -2,7 +2,7 @@ import { PlacementOutcome } from '../payment/placement-outcome';
 import { Totals } from './totals';
 
 /**
- * Ported from storefront-lamp/core/Checkout/CheckoutResult.php. What one checkout submission came
+ * What one checkout submission came
  * to.
  *
  * Every branch of `CheckoutService.submit()` answers with one of these, including the branches that

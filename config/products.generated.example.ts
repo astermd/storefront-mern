@@ -1,7 +1,7 @@
 import { CatalogProduct } from '../src/domain/product-catalog';
 
 /**
- * Ported from storefront-lamp/config/products.generated.example.php — the committed shape
+ * The committed shape
  * reference, preserved here once `theme:sync` became real (Phase 10) and started actually writing
  * `config/products.generated.ts` from live EMR channel data. This file is never imported by the
  * application; it exists so a fresh checkout (or a reader who has never run `theme:sync --apply`)

@@ -10,23 +10,23 @@ import { SessionOptions } from './session-options';
 import { SessionResolution } from './session-resolution';
 
 /**
- * Reduced port of storefront-lamp/core/Journey/SessionResolver.php for Phase 2. Decides which
+ * Decides which
  * analytics session this request belongs to, and captures first-touch attribution while doing it.
  *
- * The full PHP original additionally: adopts a session named by a signed resume link (`[21.3]`),
- * decrypts an encrypted `_amd` attribution payload, and — the biggest piece — re-validates an
- * existing cookie against the EMR on a schedule and transplants the whole journey onto a freshly
+ * Not built here yet: adopting a session named by a signed resume link (`[21.3]`),
+ * decrypting an encrypted `_amd` attribution payload, and — the biggest piece — re-validating an
+ * existing cookie against the EMR on a schedule and transplanting the whole journey onto a freshly
  * minted session when the EMR no longer recognises it (`remint()`, carrying roughly twenty durable
  * fields across). None of that is reachable in an honest way yet: resume links and `_amd`
  * decryption need the `Attribution`/`AmdPayload` machinery this phase doesn't build, and
- * EMR-reconciliation-driven remint needs the full `JourneyState` field set the PHP `remint()`
- * copies (Phases 4/6/7/8) regardless of `SESSION_GATEWAY`'s binding — `EmrSessionGateway` now
+ * EMR-reconciliation-driven remint needs the full `JourneyState` field set a `remint()` would
+ * copy (Phases 4/6/7/8) regardless of `SESSION_GATEWAY`'s binding — `EmrSessionGateway` now
  * really does mint and look up sessions against `@astermd-hq/sdk` when `config.app.session.
  * analytics` is on (see `core/core.module.ts`), and under `NullSessionGateway` (analytics off, or
  * `NODE_ENV=test`) `create()` still always answers null and `view()` still always answers "doesn't
  * exist," so no session is ever minted or kept alive across requests in that binding. What remains
  * here (cookie-present -> trust it; no cookie + may-mint -> attempt a real mint; anything else ->
- * no session) is what's left worth being faithful to until the remint/resume-link paths land.
+ * no session) is the behaviour until the remint/resume-link paths land.
  */
 @Injectable()
 export class SessionResolver {

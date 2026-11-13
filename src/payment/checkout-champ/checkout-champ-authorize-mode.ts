@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampAuthorizeMode.php. Which of
+ * Which of
  * CheckoutChamp's two authorization mechanisms to use for an order that settles as `authorize`
  * (a charge-now order takes the same path either way):
  *

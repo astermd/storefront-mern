@@ -4,7 +4,7 @@ import { ProductOverride, ProductsOverrides } from '../../config/products.overri
 import { CatalogProduct, ProductVariant } from '../domain/product-catalog';
 
 /**
- * Ported from storefront-lamp/core/Catalog/CatalogMerger.php. Layers `products.overrides.ts` over
+ * Layers `products.overrides.ts` over
  * `products.generated.ts`. Matching key is **`emr_product_id`**, never slug/name — a client
  * renames a product without losing its overrides.
  *

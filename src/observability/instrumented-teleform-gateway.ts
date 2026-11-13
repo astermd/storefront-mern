@@ -4,7 +4,7 @@ import { Boundary } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedTeleformGateway.php. `[20.9]` over the
+ * `[20.9]` over the
  * form-definition boundary, in both halves.
  *
  * The two halves are timed separately because they fail separately — the metadata is a cheap

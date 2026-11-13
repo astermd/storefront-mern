@@ -31,7 +31,7 @@ const IDENTITY_METHOD_FOR: Record<string, NonNullable<VerificationBlock['id']>['
 const NO_SESSION = '';
 
 /**
- * Ported from storefront-lamp/core/Checkout/EmrCheckoutEventReporter.php. {@link CheckoutEventReporter}
+ * {@link CheckoutEventReporter}
  * over the EMR's checkout-event funnel (`client.checkoutEvents()`), the real treatment sync
  * (`client.treatments().sync()`), and the local `events` table.
  *
@@ -51,12 +51,12 @@ const NO_SESSION = '';
  * **Dollars are converted here and nowhere else** — the EMR documents floats, `Totals` carries
  * integer cents, and `Totals.dollars()` is the one conversion point.
  *
- * **`payment` and `verification` ride the treatments sync, as in PHP** (`payment` is
+ * **`payment` and `verification` ride the treatments sync** (`payment` is
  * `PaymentDescriptor.toArray()`, omitted when there is none; `verification` is
  * `{ email: true, address: false }` only for a deliverable buyer email). `@astermd-hq/sdk` 0.0.4
  * serialises both; the descriptor is mapped onto its camelCase shape by `toSyncPayment()` in
  * `src/emr/treatment-sync-options.ts`. Only `orderPlaced` has a descriptor
- * to thread; the receipt batch and the reconciliation sweep sync without one, exactly as lamp does.
+ * to thread; the receipt batch and the reconciliation sweep sync without one.
  */
 @Injectable()
 export class EmrCheckoutEventReporter implements CheckoutEventReporter {
@@ -106,8 +106,8 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
       });
     });
 
-    // Synced here too, not only from `Completion`'s later receipt-time batch — PHP's own
-    // `orderPlaced()` does the same, measured live against the real EMR as safe to repeat (it
+    // Synced here too, not only from `Completion`'s later receipt-time batch — measured live
+    // against the real EMR as safe to repeat (it
     // dedupes by session, accumulating references onto one treatment record rather than creating
     // a second). Reporting the *prescription* order the moment it is charged, rather than waiting
     // for the receipt, is what closes a real gap: a buyer who closes the tab mid-upsell never
@@ -372,8 +372,7 @@ export class EmrCheckoutEventReporter implements CheckoutEventReporter {
   /**
    * The EMR treatment id out of a sync response, or null when the body does not carry a usable
    * one. `data()` is a list, not an object — the sync envelope's `data` holds one element per
-   * treatment record, id at `data()[0]._id` — confirmed against PHP's own measured behaviour
-   * against the same real API. Anything that is not a non-empty string is refused rather than
+   * treatment record, id at `data()[0]._id` — confirmed against the real API. Anything that is not a non-empty string is refused rather than
    * cast, since a value no later lookup could use would still report success.
    */
   private static treatmentIdentifierIn(response: AsterMDResponse<Record<string, unknown>[]>): string | null {

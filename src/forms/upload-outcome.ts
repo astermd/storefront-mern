@@ -1,7 +1,7 @@
 import { FileReference } from './file-reference';
 
 /**
- * Ported from storefront-lamp/core/Forms/UploadOutcome.php. What one call to the EMR's upload
+ * What one call to the EMR's upload
  * endpoints came back with.
  *
  * A refusal and a failure are kept apart because they ask different things of the patient. A

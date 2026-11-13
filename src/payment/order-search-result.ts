@@ -1,7 +1,7 @@
 import { ProviderOrder } from './provider-order';
 
 /**
- * Ported from storefront-lamp/core/Payment/OrderSearchResult.php. `ok` is the only field a caller
+ * `ok` is the only field a caller
  * may draw conclusions from — empty-because-nothing-found and empty-because-failed must never be
  * conflated (the whole point of the reverse-reconciliation sweep).
  */

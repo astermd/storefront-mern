@@ -2,8 +2,8 @@ import { API, ClientOptions, HttpClientInterface } from '@astermd-hq/vrio-client
 import { VrioCredentials } from './vrio-credentials';
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioApiFactory.php. A fresh client is built per
- * call (never cached), matching the PHP original — cheap, since it's just wiring credentials
+ * A fresh client is built per
+ * call (never cached) — cheap, since it's just wiring credentials
  * and a transport onto `@astermd-hq/vrio-client`'s own `API`.
  *
  * The package's own debug logging is deliberately never turned on here; wire logging (when

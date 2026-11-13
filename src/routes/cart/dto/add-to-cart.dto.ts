@@ -4,8 +4,7 @@ import { IsIn, IsInt, IsOptional, IsString, Min } from 'class-validator';
 /**
  * Shape/type validation for `POST /cart/add/` at the HTTP boundary — additive to, not a
  * replacement for, `CartRules.add()`'s own business rules (unknown product, geo block, rx
- * replacement, ...), which still run in the controller exactly as ported. See MERN.md's note on
- * DTOs. Deliberately does *not* validate `quantity` as strictly-required — `CartRules.add()`
+ * replacement, ...), which still run in the controller. See docs/STACK.md's note on DTOs. Deliberately does *not* validate `quantity` as strictly-required — `CartRules.add()`
  * already clamps/defaults it — this DTO's job is only to reject a request whose body doesn't even
  * have the right shape before it reaches domain logic.
  */

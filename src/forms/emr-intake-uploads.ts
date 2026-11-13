@@ -6,7 +6,7 @@ import { IntakeUploads } from './intake-uploads';
 import { UploadOutcome } from './upload-outcome';
 
 /**
- * Ported from storefront-lamp/core/Forms/EmrIntakeUploads.php. {@link IntakeUploads} over the SDK's
+ * {@link IntakeUploads} over the SDK's
  * `intakeSubmissions()` upload calls.
  *
  * **A 400 is a refusal of the file**, and every other failure is a failure. The endpoints answer

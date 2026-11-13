@@ -6,7 +6,7 @@ interface RateLimitEntry {
 }
 
 /**
- * Ported from storefront-lamp/core/Support/RateLimiter.php. A fixed-window counter per key, kept
+ * A fixed-window counter per key, kept
  * in the visitor's own session.
  *
  * **State the limitation plainly, because the name promises more than this delivers.** The

@@ -3,11 +3,11 @@ import { dirname } from 'node:path';
 import { HttpClientInterface, Request, Response } from '@astermd-hq/vrio-client';
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioWireLog.php. Decorates whichever transport it
+ * Decorates whichever transport it
  * is given rather than replacing it, so behaviour is identical whether wire logging is on or off.
  *
  * Off by default, gated by `config.app.debug.wireLog`. **Writes the exchange verbatim — no
- * redaction at all** (unlike every other log in this port): while on, the log file carries raw
+ * redaction at all** (unlike every other log in the storefront): while on, the log file carries raw
  * card numbers and the API key in clear text, for exact-replay debugging. Must never be enabled in
  * a deployment taking real payments — see `config/app.ts`'s own doc comment on this flag. Every
  * write failure is swallowed; a debugging aid must never break checkout.

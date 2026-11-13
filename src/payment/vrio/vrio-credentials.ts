@@ -1,7 +1,7 @@
 import { inspect } from 'node:util';
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioCredentials.php. The channel's
+ * The channel's
  * `payment_processor.config` as this provider's client needs it.
  *
  * `campaignId`/`connectionId` are routing hints the storefront passes through and never

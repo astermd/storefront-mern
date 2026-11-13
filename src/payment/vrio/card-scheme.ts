@@ -1,8 +1,8 @@
 import { CardBrand, CardBrandValue } from '../card-brand';
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/CardScheme.php. Vrio's own numeric card-type
- * codes, mapped to/from this port's shared `CardBrandValue`.
+ * Vrio's own numeric card-type
+ * codes, mapped to/from the storefront's shared `CardBrandValue`.
  */
 export class CardScheme {
   static readonly MASTERCARD = 1;

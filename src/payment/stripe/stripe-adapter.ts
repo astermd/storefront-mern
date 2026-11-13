@@ -23,7 +23,7 @@ import { StripePayload } from './stripe-payload';
 type Row = Record<string, unknown>;
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripeAdapter.php. Stripe, through PaymentIntents
+ * Stripe, through PaymentIntents
  * this storefront creates and confirms itself.
  *
  * **The card never reaches this process.** Stripe's own fields collect it on the page and mint a

@@ -14,25 +14,20 @@ const IMPLEMENTED_PLACEMENTS = ['intake', 'post_checkout', 'receipt'];
 const KNOWN_IDENTITY_CHECKS: readonly string[] = Object.values(IdentityCheck);
 
 /**
- * Ported from storefront-lamp/core/Console/ValidateCommand.php. `config:validate` — checks the
- * merged configuration for mistakes the type system in this port cannot catch on its own.
+ * `config:validate` — checks the
+ * merged configuration for mistakes the type system cannot catch on its own.
  *
- * **Scoped, and deliberately so.** The PHP original validates a loosely-typed array read from disk
- * at runtime, so most of its ~1100 lines guard against a config file shaped wrong: a missing key, a
- * string where a bool belongs, a malformed `channel.generated.php`. In this port every `config/*.ts`
- * file is a TypeScript module with a typed interface — `npm run typecheck` already refuses a
- * `verification.ts` whose `enabled` is a string, or a `payment.ts` missing a required field — so an
- * entire class of the PHP original's checks is enforced by the compiler instead of by this command.
+ * **Scoped, and deliberately so.** Every `config/*.ts` file is a TypeScript module with a typed
+ * interface — `npm run typecheck` already refuses a `verification.ts` whose `enabled` is a string,
+ * or a `payment.ts` missing a required field — so a missing key or a wrongly-typed value is caught
+ * by the compiler instead of by this command.
  *
- * **What is deliberately not ported, and why:** the `channel.generated.php`/payment-processor
- * required-key checks (this port has no catalog-sync pipeline to generate that file — see
- * `theme:sync`'s own doc comment); order-bump/upsell provider-mapping checks (meaningless while
- * `PAYMENT_ADAPTER` is Null-bound — every mapping would "fail" for a reason that has nothing to do
- * with a misconfigured bump); consent-link reachability (the PHP original replays the real route
- * table; this port's route table isn't introspectable outside a booted HTTP server, and a check that
- * can only ever pass would be worse than no check); structured-data/SEO-URL `problems()` sweeps and
- * the `--live` EMR product-resolution pass (no equivalent exists yet on `StructuredData`/
- * `MetaResolver`/`RobotsPolicy` in this port). When it is ported it resolves every `rx`/`otc`
+ * **What is deliberately not checked here:** payment-processor required-key checks on
+ * `channel.generated.ts`; order-bump/upsell provider-mapping checks; consent-link reachability (the
+ * route table isn't introspectable outside a booted HTTP server, and a check that can only ever
+ * pass would be worse than no check); structured-data/SEO-URL `problems()` sweeps and a `--live`
+ * EMR product-resolution pass (no equivalent exists yet on `StructuredData`/`MetaResolver`/
+ * `RobotsPolicy`). A `--live` pass, if added, would resolve every `rx`/`otc`
  * product's `emr_product_id` against the live EMR; `lab`, `free-addon` and `priced-addon` products
  * are exempt, since they are not sold as standalone EMR products.
  *
@@ -44,7 +39,7 @@ const KNOWN_IDENTITY_CHECKS: readonly string[] = Object.values(IdentityCheck);
  * whether the holds the catalog and its subscription plans ask for can be honoured by the
  * configured provider.
  *
- * Exit code 2 (not 1) on any error, matching the PHP original exactly. Exit 0 when there are no
+ * Exit code 2 (not 1) on any error. Exit 0 when there are no
  * errors, whether or not there are warnings.
  */
 @Command({ name: 'config:validate', description: 'Validate the merged configuration structurally' })
@@ -110,8 +105,7 @@ export class ConfigValidateCommand extends CommandRunner {
   }
 
   /**
-   * Ported from storefront-lamp's `ValidateCommand::validateSettlement()`. The settlement the
-   * catalog asks for, and whether the configured provider can honour it.
+   * The settlement the catalog asks for, and whether the configured provider can honour it.
    *
    * Errors, because each has the same consequence in production — an order either charges a card
    * the deployment meant to hold, or fails at checkout in front of a buyer:
@@ -128,7 +122,7 @@ export class ConfigValidateCommand extends CommandRunner {
    * captures until a doctor approves one, so a cart with no prescription is charged at once.
    *
    * `payment.settlement` itself is not checked: `config/payment.ts` already reduces it to one of
-   * the two modes, where lamp reads it raw.
+   * the two modes.
    */
   private validateSettlement(errors: string[], warnings: string[]): void {
     let wantsAuthorize = SettlementMode.isAuthorize(this.config.payment.settlement);

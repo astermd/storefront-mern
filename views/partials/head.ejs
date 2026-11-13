@@ -1,12 +1,12 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/layouts/base.twig, restructured for EJS.
+  The shared document head.
 
-  EJS has no extends/block inheritance (unlike Nunjucks/Twig), so there is no single "layout"
+  EJS has no extends/block inheritance, so there is no single "layout"
   every page renders through — each page template includes this partial at its top and
   partials/foot.ejs at its bottom, passing whatever locals it knows about itself
   (page_title/page_description/noindex/body_class) before this renders. That's a convention every
-  page has to follow now, not something enforced structurally by being "extended" — see MERN.md's
+  page has to follow now, not something enforced structurally by being "extended" — see docs/STACK.md's
   Templates section.
 
   Phase 9 adds what was deferred here: the `seo` global (`SeoMiddleware`, real `RobotsPolicy`/
@@ -21,7 +21,7 @@
   **The robots *meta tag* is the one place this partial now disagrees with its own past behaviour on
   purpose**, and only when a page passes no opinion of its own: `noindex` explicitly `true` or
   `false` always wins (a funnel step hardcoding `true` regardless of `config/app.ts`'s
-  `robotsRules`, matching the PHP original), but a page that sets neither — most of the marketing
+  `robotsRules`), but a page that sets neither — most of the marketing
   surface, and both legal and error pages as of Phase 9 — now falls through to `seo.robots`, the
   same per-path directive `SeoMiddleware` already put on the `X-Robots-Tag` *header* for every
   response regardless of what any page rendered. Before this fallback existed, such a page's header

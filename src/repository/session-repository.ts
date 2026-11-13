@@ -14,7 +14,7 @@ export interface SessionRow {
 export type SaveOutcome = 'ok' | 'conflict' | 'not_found';
 
 /**
- * Ported from storefront-lamp/core/Repository/SessionRepository.php — the only code that touches
+ * The only code that touches
  * the `sessions` table. `JourneyStore` (its only caller) is written against this class's public
  * API and is unaware of the persistence layer beneath it — Prisma now, Kysely with an in-process
  * `Map` before that, in each case with no call-site changes.

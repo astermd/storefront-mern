@@ -7,7 +7,7 @@ import { TeleformGateway } from './teleform-gateway';
 import { TeleformMetadata } from './teleform-metadata';
 
 /**
- * Ported from storefront-lamp/core/Forms/TeleformSource.php. The one entry point for "give me this
+ * The one entry point for "give me this
  * product's form".
  *
  * Resolution is an indirection (`[10.1]`): the teleform's metadata carries a content identifier,
@@ -18,9 +18,8 @@ import { TeleformMetadata } from './teleform-metadata';
  * The degradation rule is `[3.11]`'s: a fetch failure with a warm cache serves the cached copy, and
  * only a miss *and* a failure produces the unavailable state.
  *
- * `Scope.REQUEST` — the metadata memoization below is per-request in the PHP original (a plain
- * instance property), and Nest's default singleton scope would leak one visitor's metadata lookup
- * into another's.
+ * `Scope.REQUEST` — the metadata memoization below is per-request, and Nest's default singleton
+ * scope would leak one visitor's metadata lookup into another's.
  */
 @Injectable({ scope: Scope.REQUEST })
 export class TeleformSource {

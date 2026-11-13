@@ -7,7 +7,7 @@ import { SettlementMode, SettlementModeValue } from '../settlement-mode';
 type Row = Record<string, unknown>;
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripeOutcome.php. A PaymentIntent, as a
+ * A PaymentIntent, as a
  * `PlacementOutcome`.
  *
  * Read from the PaymentIntent's plain-object form (what the `stripe` package returns), so the

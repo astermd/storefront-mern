@@ -1,6 +1,6 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/partials/intake/field-button.twig. Navigation comes
+  Navigation comes
   from the definition, not the template (`[10.10]`): the form author decides whether a page carries
   Back, Next or Submit.
 
@@ -13,7 +13,7 @@
   whose pages are entirely authored-button-driven: every "Continue"/"Next" click was inert.
 
   A two-button field (`f.secondary_label` set, from `properties.buttonCount` of 2) is the builder's
-  Back-beside-Next row in one field slot; lamp renders it the same way since 4e32b5e. The pair
+  Back-beside-Next row in one field slot. The pair
   shares a `grid grid-cols-2 gap-4` row in the order authored (`buttonRowAlign` is authored but
   neither renderer maps it to anything).
 

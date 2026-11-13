@@ -9,7 +9,7 @@ import { ConsentRecord } from './consent-record';
 import { OrderRecorder } from './order-recorder';
 
 /**
- * Ported from storefront-lamp/core/Checkout/DatabaseOrderRecorder.php. Writes the placement to the
+ * Writes the placement to the
  * `orders`/`order_lines`/`order_consents` tables via `OrderRepository`.
  *
  * A write failure is logged and swallowed, never thrown — every caller runs this inside
