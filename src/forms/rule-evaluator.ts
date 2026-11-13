@@ -17,7 +17,7 @@ const OPERATOR_ALIASES: Record<string, string> = {
 const HONOURED_ACTIONS = ['show', 'hide', 'enable', 'disable', 'require', 'make_required', 'optional', 'make_optional'];
 
 /**
- * Ported from storefront-lamp/core/Forms/RuleEvaluator.php. Evaluates a definition's conditional
+ * Evaluates a definition's conditional
  * logic: one rule, a group of rules, and the resolved state of a field.
  *
  * Pure by design — answers in, booleans out, no I/O — because this is the only gate the storefront

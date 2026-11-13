@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Checkout/ConsentDefinition.php. One configured consent control
+ * One configured consent control
  * (`[26.3]`, `[26.8]`).
  *
  * `links` duplicates the hrefs already inside `html` on purpose: a deploy-time check that every

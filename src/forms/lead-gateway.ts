@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/LeadGateway.php. The storefront's view of the EMR's
+ * The storefront's view of the EMR's
  * opportunity (lead) resource.
  */
 export interface LeadGateway {

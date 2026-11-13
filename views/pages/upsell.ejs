@@ -1,7 +1,6 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/pages/upsell.twig, styled per
-  docs/mockup/mockup/intake/upsell.html. `upsell` is the UpsellViewModel `UpsellController.show()`
+  Styled per docs/mockup/mockup/intake/upsell.html. `upsell` is the UpsellViewModel `UpsellController.show()`
   assembled — the price, the copy and both button labels are all resolved server-side.
 
   No "back to home" affordance, matching the mockup: this is a one-time post-order interstitial, so
@@ -9,7 +8,7 @@
   with JavaScript off, per `[8.7]`'s reasoning — no client-side redirect needed).
 
   `upsell.footnote` is rendered only when configured (never a hardcoded "Cancel anytime" default —
-  see `Upsell.php`'s doc comment on why that line can only be written truthfully per deployment).
+  that line can only be written truthfully per deployment).
 */
 %>
 <%- include('../partials/head', { page_title: 'Exclusive Offer', page_description: null, noindex: true }) %>

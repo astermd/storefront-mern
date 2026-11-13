@@ -6,25 +6,23 @@ import { SessionOptions } from '../journey/session-options';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/RetiredSessionMiddleware.php. Ends the
+ * Ends the
  * analytics session of a journey that has completed, on the first request that is not the receipt
  * itself (`[4.18]`, `[4.19]`).
  *
  * **Position in the pipeline is load-bearing, and it is *outside* `AttributionMiddleware`.** The
  * cookie is issued by that middleware, and `Set-Cookie` headers are applied by a browser in
  * order — so a clear added before it would be overwritten by the re-issue it is meant to cancel.
- * See this file's implementation note below for how that ordering is achieved without PHP's
- * immutable-response wrapping.
+ * See this file's implementation note below for how that ordering is achieved.
  *
  * Everything about it fails open: an unreachable journey store or an unresolvable path each leave
  * the cookie alone.
  *
- * **Implementation note — why this doesn't just do work after `next()`:** the naive Express
- * translation of PHP's "call the handler, then inspect/mutate the response it returns" pattern is
+ * **Implementation note — why this doesn't just do work after `next()`:** the naive "call the
+ * handler, then inspect/mutate the response" pattern is
  * `next(); /* read state, append header *\/` — but Express's `next()` schedules the rest of the
  * chain and returns immediately; it does not wait for an async downstream handler to finish (see
- * `journey-save-back.middleware.ts`'s note for the empirical proof, and MERN.md's incorrect claim
- * to the contrary). Worse, even a correct "wait for completion" signal like `res.on('finish')`
+ * `journey-save-back.middleware.ts`'s note for the empirical proof). Worse, even a correct "wait for completion" signal like `res.on('finish')`
  * fires *after* headers are already sent, which is too late to append a `Set-Cookie` here. What
  * this needs is "run right before the response actually goes out, whatever ends up deciding that
  * moment" — so it patches `res.writeHead`, the one call every code path (a normal render, a

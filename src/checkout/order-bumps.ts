@@ -17,7 +17,7 @@ export interface CrossSellBumpRow {
 }
 
 /**
- * Ported from storefront-lamp/core/Checkout/OrderBumps.php. Which bumps this cart earns, in what
+ * Which bumps this cart earns, in what
  * order (§27).
  *
  * Deciding is pure: this class answers "what should the page offer", and accepting an offer goes

@@ -17,7 +17,7 @@ const ROOT_LABEL = 'Home';
 const DEFAULT_SEARCH_TEMPLATE = `/treatments/?q=${WebSite.QUERY_PLACEHOLDER}`;
 
 /**
- * Ported from storefront-lamp/core/Seo/StructuredData/StructuredData.php. Assembles the schema.org
+ * Assembles the schema.org
  * graph a given path publishes (`[24.8]`).
  *
  * Every emitter is independently switchable in `config.app.seo.structuredData`, and each toggle

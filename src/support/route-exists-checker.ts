@@ -7,9 +7,9 @@ interface ExpressRouteLayer {
 }
 
 /**
- * Ported from storefront-lamp's `AttributionMiddleware`, which consults an injected "does this
- * route exist" closure so a scanner probing for missing assets/URLs never mints an analytics
- * session for it. This port's equivalent: introspect Express's own router to test whether a path
+ * Lets `AttributionMiddleware` ask "does this route exist" so a scanner probing for missing
+ * assets/URLs never mints an analytics session for it: introspects Express's own router to test
+ * whether a path
  * matches any *real* registered route, excluding the catch-all fallback (`NotFoundController`'s
  * `@All('*splat')`) — that one matches everything, so including it would make every path "exist".
  *

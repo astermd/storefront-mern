@@ -2,22 +2,21 @@ import Stripe from 'stripe';
 import { StripeCredentials } from './stripe-credentials';
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripeApiFactory.php. Builds the Stripe client
+ * Builds the Stripe client
  * the adapter talks through.
  *
  * **The transport is the test-environment fence**, as it is for the other two providers: under the
  * suite it is `StripeRefusingTransport`, so a test that forgot a stub fails instead of creating a
- * payment. Unlike stripe-php (whose HTTP client is process-wide and so is installed on every
- * `create()`), `stripe` for Node takes its client per instance, so it is simply handed to each one.
+ * payment. `stripe` for Node takes its HTTP client per instance, so it is simply handed to each one.
  * Null leaves the SDK's own Node client in place.
  *
  * **The API version is pinned to the one the EMR reads these payments with.** The EMR reads back
  * what this adapter writes — the line items, the metadata, the saved card — and a payment written
- * under one version and read under another is two shapes of one object. The string is the same one
- * lamp pins, and the installed `stripe` package's own default (`Stripe.API_VERSION`) at the time of
- * the port; pinning it here keeps a future package bump from moving it silently.
+ * under one version and read under another is two shapes of one object. The string is the installed
+ * `stripe` package's own default (`Stripe.API_VERSION`) at the time it was pinned; pinning it here
+ * keeps a future package bump from moving it silently.
  *
- * Retries are off (`maxNetworkRetries: 0`), as stripe-php's default is: the adapter reads a
+ * Retries are off (`maxNetworkRetries: 0`): the adapter reads a
  * connection failure as "may have been placed" and says so, rather than leaving the SDK to resend
  * behind its back.
  */

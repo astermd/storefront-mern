@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioAttribution.php. Maps this port's canonical
+ * Maps the storefront's canonical
  * attribution keys onto Vrio's twenty numbered `trackingN` slots.
  */
 export class VrioAttribution {

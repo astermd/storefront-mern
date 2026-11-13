@@ -41,7 +41,7 @@ export interface FieldOptionModel {
 }
 
 /**
- * Ported from storefront-lamp/core/Forms/FieldViewModel.php. Flattens one authored field, its
+ * Flattens one authored field, its
  * resolved state and its current answer into the single shape every `partials/intake/field-*`
  * template reads.
  *
@@ -97,7 +97,7 @@ export class FieldViewModel {
       image_url: field.type === 'image' ? FieldViewModel.imageUrl(field) : null,
       button_action: field.type === 'button' ? FieldViewModel.buttonAction(field.properties.buttonAction, field.label) : null,
       // A two-button field (`buttonCount: 2`): the builder's Back-beside-Next row, one field slot
-      // (lamp 4e32b5e). See `secondaryButton()`.
+      // See `secondaryButton()`.
       ...FieldViewModel.secondaryButton(field),
       max_length: FieldViewModel.constraint(field, 'maxLength'),
       min_value: FieldViewModel.constraint(field, 'minValue'),
@@ -285,7 +285,7 @@ export class FieldViewModel {
   }
 
   /**
-   * The second button of a two-button field, after lamp's `FieldViewModel::buttons()`. Any authored
+   * The second button of a two-button field. Any authored
    * button hides the form's own Back / Continue row, so a dropped second button is a page with no
    * way forward. `buttonCount` is the switch, not the presence of the secondary keys: the builder
    * keeps them after the count drops back to one, and a button the author removed must not come

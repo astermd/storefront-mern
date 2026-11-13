@@ -1,13 +1,12 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/pages/checkout.twig, styled per
-  docs/mockup/mockup/intake/checkout.html (the two-column contact/delivery/payment form beside a
+  Styled per docs/mockup/mockup/intake/checkout.html (the two-column contact/delivery/payment form beside a
   sticky order summary). `checkout` is the CheckoutViewModel `CheckoutController` assembled —
   every price, every offer and every consent control is resolved server-side; this template does
   no pricing of its own.
 
   The mockup's plan-selector/shipping/express-checkout/PayPal/Afterpay/upsell-add-on sections are
-  presentational mockup content with no backing service yet in this port (shipping/wallets are
+  presentational mockup content with no backing service yet (shipping/wallets are
   declared gaps in `config/app.ts`'s `features` block; upsell add-ons are Phase 8) — omitted here
   rather than wired to nothing. What IS wired: contact + delivery (the 8 BuyerDetails fields), an
   optional separate billing address (the `billing_*` fields, read only when its box is ticked),
@@ -55,7 +54,7 @@ const scripts = '<script src="' + asset('checkout.js') + '" defer></script>' + p
           submit button that redirects it with `formaction`, so it posts exactly what is in the boxes
           right now, with no script involved ([27.10], [8.7]). They used to be sibling forms posting
           only their own field, and every one of them overwrote the buyer's stored details with
-          blanks (lamp's checkout.twig made the same move). %>
+          blanks. %>
       <form id="checkout-form" data-checkout-form method="post" action="<%= url('/checkout') %>" novalidate>
         <% if (csrf_token) { %><input type="hidden" name="_csrf" value="<%= csrf_token %>" /><% } %>
 

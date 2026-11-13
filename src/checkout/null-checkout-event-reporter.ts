@@ -5,7 +5,7 @@ import { CheckoutEventReporter } from './checkout-event-reporter';
 import { Totals } from './totals';
 
 /**
- * Ported from storefront-lamp/core/Checkout/NullCheckoutEventReporter.php. Every method is a no-op.
+ * Every method is a no-op.
  *
  * Used when `session.analytics` is off (or `NODE_ENV=test`) — see `EmrCheckoutEventReporter` for
  * the real implementation, bound instead whenever analytics is on.

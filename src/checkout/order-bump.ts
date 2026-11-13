@@ -1,4 +1,3 @@
-/** Ported from storefront-lamp/core/Checkout/OrderBump.php. */
 export class OrderBump {
   constructor(
     public readonly key: string,

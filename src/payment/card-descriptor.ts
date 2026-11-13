@@ -2,7 +2,7 @@ import { CardBrand, CardBrandValue } from './card-brand';
 import { PaymentCredential } from './payment-credential';
 
 /**
- * Ported from storefront-lamp/core/Payment/CardDescriptor.php. Never includes the card number —
+ * Never includes the card number —
  * a presentation-safe summary (brand, last four, expiry) for a receipt or an order record. The
  * one exception to "the credential is the source" is a token: the storefront never saw that card, so
  * the expiry comes from the provider.

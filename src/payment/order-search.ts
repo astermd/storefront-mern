@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/OrderSearch.php. A search request against the
+ * A search request against the
  * provider's own order-search API (reconciliation sweeps).
  */
 export class OrderSearch {

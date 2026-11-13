@@ -33,7 +33,7 @@ class FakeStripeResponse extends Stripe.HttpClientResponse {
 }
 
 /**
- * Port of storefront-lamp/tests/Support/FakeStripeTransport.php. Stripe's HTTP client, answering
+ * Stripe's HTTP client, answering
  * from a queue and recording what was asked.
  *
  * Installed through `StripeApiFactory`, exactly where the refusing transport sits under the suite,

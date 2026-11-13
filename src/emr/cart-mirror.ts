@@ -11,7 +11,7 @@ const CART_CREATED = 'cart.created';
 const CART_UPDATED = 'cart.updated';
 
 /**
- * Ported from storefront-lamp/core/Emr/CartMirror.php. Mirrors the cart to the EMR on every
+ * Mirrors the cart to the EMR on every
  * mutation (`[7.10]`): the first call of a journey creates the remote cart, every later one
  * replaces its contents. Inert under this build's Null `CART_GATEWAY` (every call reports `Ok`
  * without reaching a network) — kept for real so `CartController` has the same shape a future

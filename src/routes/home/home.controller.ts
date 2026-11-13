@@ -3,7 +3,6 @@ import type { Request, Response } from 'express';
 import { CatalogProvider } from '../../catalog/catalog-provider';
 import { StructuredData } from '../../seo/structured-data/structured-data';
 
-/** Ported from storefront-lamp/core/Http/Controller/HomeController.php. */
 @Controller()
 export class HomeController {
   constructor(

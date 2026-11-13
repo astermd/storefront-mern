@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { DATABASE_CONNECTION } from '../core/tokens';
 
 /**
- * Ported from storefront-lamp/core/Repository/RateLimitRepository.php. The `rate_limits` table: a
+ * The `rate_limits` table: a
  * fixed-window counter per `(bucket, identity)`.
  *
  * The window is fixed rather than sliding — a sliding window needs a durable list of individual hit
@@ -47,8 +47,8 @@ export class RateLimitRepository {
   }
 
   /**
-   * Ported for `db:prune` (Phase 10, deferred from Phase 7). `windowStart` is a raw unix-seconds
-   * integer, unlike every other cutoff in this port, since the guard's own arithmetic is integer
+   * Used by `db:prune` (Phase 10). `windowStart` is a raw unix-seconds integer, unlike every other
+   * cutoff in the storefront, since the guard's own arithmetic is integer
    * seconds throughout.
    */
   async expire(before: number): Promise<number> {

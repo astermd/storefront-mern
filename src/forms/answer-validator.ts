@@ -9,7 +9,7 @@ import { RuleEvaluator } from './rule-evaluator';
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * Ported from storefront-lamp/core/Forms/AnswerValidator.php. Checks a set of answers against the
+ * Checks a set of answers against the
  * definition that asked for them, on the server, before anything is stored or forwarded.
  *
  * `[10.22]` is the hole this closes: validation used to live only in the browser, so the server

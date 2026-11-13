@@ -2,7 +2,7 @@ import { Command, CommandRunner } from 'nest-commander';
 import { DefinitionCache } from '../forms/definition-cache';
 
 /**
- * Ported from storefront-lamp/core/Console/FormsCachePurgeCommand.php. `forms:cache-purge` —
+ * `forms:cache-purge` —
  * removes every cached teleform definition.
  *
  * A thin wrapper: `DefinitionCache.purge()` already does the work. Always exits 0 — an empty cache

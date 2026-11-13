@@ -79,7 +79,7 @@ function render(db, requested) {
   }
 
   return `<!DOCTYPE html><html><head><title>Storefront DB Viewer</title>${STYLE}</head><body>
-<header>Storefront MERN — Database Viewer</header>
+<header>AsterMD Storefront — Database Viewer</header>
 <nav>${nav}</nav>
 <main>${body}</main>
 </body></html>`;

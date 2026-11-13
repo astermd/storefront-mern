@@ -9,7 +9,7 @@ import { SettlementMode } from '../payment/settlement-mode';
 import { OrderRepository } from '../repository/order-repository';
 
 /**
- * Ported from storefront-lamp/core/Console/CaptureOrderCommand.php. `payment:capture <reference>`
+ * `payment:capture <reference>`
  * — takes the money on an order that was authorized rather than charged.
  *
  * **This is the seam, not the trigger.** What decides *when* an authorization settles is a
@@ -24,7 +24,7 @@ import { OrderRepository } from '../repository/order-repository';
  * mistakes cheaply: an order this storefront never recorded, or one already settled as a capture,
  * is refused without a network call.
  *
- * **Never writes back to the local `orders` row on success**, matching the PHP original exactly —
+ * **Never writes back to the local `orders` row on success** —
  * all state after a successful capture lives only in the provider's own record. Exit codes are the
  * interface: 0 on capture, 1 on every refusal — the caller is a script that needs to know whether
  * to alert, not which of several things went wrong.

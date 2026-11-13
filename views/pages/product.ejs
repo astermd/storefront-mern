@@ -1,7 +1,7 @@
 <%
-/* Ported from storefront-lamp/theme/templates/pages/product.twig. Gallery always falls back to
+/* Gallery always falls back to
    gallery[0] when the array has fewer than 4 entries (this catalog's real data only ever ships
-   one image, so all 4 thumbnails show it — by design, matching the PHP original's own comment).
+   one image, so all 4 thumbnails show it — by design).
    The cart-add form's two submit buttons both post to /cart/add/, differing only in `intent`,
    which CartController.add() reads to decide whether to bypass funnel-optimal routing straight to
    checkout. */

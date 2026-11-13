@@ -5,7 +5,7 @@ import { OperatorLog } from '../support/operator-log';
 import { LeadGateway } from './lead-gateway';
 
 /**
- * Ported from storefront-lamp/core/Forms/EmrLeadGateway.php. {@link LeadGateway} over the SDK's
+ * {@link LeadGateway} over the SDK's
  * `opportunities()` resource.
  *
  * Never logs payload values — only field *names* (`array_keys($payload)`), since the payload is a

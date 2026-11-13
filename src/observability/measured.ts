@@ -1,11 +1,11 @@
 /**
- * Ported from storefront-lamp/core/Observability/Measured.php. A monitored figure, or the reason
+ * A monitored figure, or the reason
  * there isn't one.
  *
  * **Zero and "could not be counted" are different answers**, and a status surface that renders them
  * the same is worse than no surface at all: it reports an all-clear on exactly the runs that could
- * see nothing. This codebase's PHP original shipped that defect once already — a reverse sweep
- * printing "0 lost charges" and exiting 0 when the local read had failed outright — so every count
+ * see nothing — for example a reverse sweep printing "0 lost charges" and exiting 0 when the local
+ * read had failed outright — so every count
  * `[20.12]` asks for travels in this object rather than as a bare number.
  *
  * Four states: `measured` (counted, complete), `floor` (counted, known to be a lower bound — a

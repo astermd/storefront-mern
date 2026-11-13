@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Retention/LogDirectoryUnreadable.php. The log directory is there
+ * The log directory is there
  * and cannot be listed, so the sweep never happened.
  *
  * This is a type rather than a return value because the two states it separates are indistinguishable

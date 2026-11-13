@@ -4,7 +4,7 @@
 
 /* ============================================================================
    DESIGN TOKENS — THE single reskinning point
-   Ported verbatim (meaning-for-meaning) from the static design mockup's
+   Taken verbatim (meaning-for-meaning) from the static design mockup's
    shared stylesheet. Every colour, radius, shadow,
    spacing alias, font stack and transition used across the storefront
    resolves back to a variable defined here. To reskin the app: edit the hex
@@ -168,7 +168,7 @@
 
 /* ============================================================================
    BASE
-   Ported verbatim from the static design mockup's shared stylesheet.
+   Taken verbatim from the static design mockup's shared stylesheet.
    ============================================================================ */
 
 body {

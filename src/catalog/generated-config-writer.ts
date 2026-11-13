@@ -5,17 +5,12 @@ import { BuiltCatalog } from './catalog-builder';
 type JsonRecord = Record<string, unknown>;
 
 /**
- * Ported from storefront-lamp/core/Support/PhpArrayExporter.php and the merge logic embedded in
- * `core/Console/SyncCommand.php`. Renders the two generated config files `theme:sync` writes, and
- * merges a fresh channel payload onto whatever `config/channel.generated.ts` already holds.
+ * Renders the two generated config files `theme:sync` writes, and merges a fresh channel payload
+ * onto whatever `config/channel.generated.ts` already holds.
  *
- * **A deliberate divergence from `PhpArrayExporter`'s hand-rolled recursive renderer**: this port's
- * generated files are TypeScript modules, not PHP array literals, and `JSON.stringify(value, null,
- * 2)` is already valid TypeScript object-literal syntax (JSON is a syntactic subset of it) — there
- * is no PHP-style `serialize_precision`/list-vs-map distinction to reproduce, so a hand-rolled
- * renderer would just be re-implementing what `JSON.stringify` already does correctly. No unified
- * diff is produced either (`PhpArrayExporter::unifiedDiff()`'s human-review convenience) — a
- * dry-run instead reports a would-change boolean and the key counts that changed, which is enough
+ * The generated files are TypeScript modules, and `JSON.stringify(value, null, 2)` is already valid
+ * TypeScript object-literal syntax (JSON is a syntactic subset of it), so there is no hand-rolled
+ * renderer. No unified diff is produced either — a dry-run instead reports a would-change boolean and the key counts that changed, which is enough
  * for an operator to decide whether to `--apply`.
  */
 export class GeneratedConfigWriter {
@@ -55,8 +50,7 @@ export class GeneratedConfigWriter {
   }
 
   /**
-   * The channel payload `theme:sync` builds from a fresh Channel Details response — `channelPayload()`
-   * in the PHP original.
+   * The channel payload `theme:sync` builds from a fresh Channel Details response.
    */
   static channelPayload(data: JsonRecord): JsonRecord {
     const paymentProcessor = (data.payment_processor && typeof data.payment_processor === 'object' ? data.payment_processor : {}) as JsonRecord;
@@ -76,8 +70,7 @@ export class GeneratedConfigWriter {
    * Reads whatever `config/channel.generated.ts` currently exports, via the last build's compiled
    * output — a sync writes source `theme:sync` will re-read only after the app is rebuilt, exactly
    * the same "rebuild to take effect" reality `products.generated.ts` already lives with. Returns
-   * `{}` (treated as "no file yet") when nothing has been built, matching `PhpArrayExporter`'s own
-   * PHP original's `is_file()` guard.
+   * `{}` (treated as "no file yet") when nothing has been built.
    */
   static readExistingChannelPayload(): JsonRecord {
     const compiledPath = join(process.cwd(), 'dist/config/channel.generated.js');

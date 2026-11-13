@@ -1,8 +1,6 @@
 import { inspect } from 'node:util';
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampCredentials.php.
- *
  * This provider authenticates with a password sent in the query string — the provider's own
  * design, followed as-is by its client. That makes the secret here categorically more exposed
  * than an `Authorization` header would be, which is why `capabilities()`'s PCI posture string

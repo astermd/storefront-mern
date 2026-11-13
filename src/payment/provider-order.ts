@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/ProviderOrder.php. Deliberately carries no order total
+ * Deliberately carries no order total
  * and no session id — the provider's search API doesn't return either.
  */
 export class ProviderOrder {

@@ -9,7 +9,7 @@ import { RouteExistsChecker } from '../support/route-exists-checker';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/AttributionMiddleware.php. Resolves the
+ * Resolves the
  * visitor's analytics session, then publishes the result to the rest of the request.
  *
  * Also the error boundary for the whole of session resolution: an unreachable database or a
@@ -17,9 +17,8 @@ import { addTrace } from './trace';
  * place, rather than swallowed piecemeal inside the repository/gateway layer.
  *
  * A session is only minted for a plain GET on a path that isn't an excluded machine endpoint and
- * that names a real route — see `mayCreate()`. The PHP original's equivalent is an injected "does
- * this route exist" closure; this port's is `RouteExistsChecker`, which introspects Express's own
- * router. Matters now that it didn't under the old Null-only scope: `EmrSessionGateway` really
+ * that names a real route — see `mayCreate()`, which asks `RouteExistsChecker` (it introspects
+ * Express's own router). Matters now that it didn't under the old Null-only scope: `EmrSessionGateway` really
  * calls `@astermd-hq/sdk` when `config.app.session.analytics` is on, so a GET to an unmatched path
  * (a bot scan, a stray asset request) would otherwise mint a real, billable EMR session before
  * `NotFoundController` ever got a say.

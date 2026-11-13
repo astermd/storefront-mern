@@ -8,7 +8,7 @@ import { RobotsPolicy } from '../../seo/robots-policy';
 const STATIC_PATHS = ['/', '/treatments/', '/terms/', '/privacy/', '/telehealth-consent/'];
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/SitemapController.php. `sitemap.xml` — every
+ * `sitemap.xml` — every
  * indexable route and every catalog product (`[24.4]`).
  *
  * **What is not in it is the part worth reading.** `[24.6]` excludes the funnel — cart, intake,

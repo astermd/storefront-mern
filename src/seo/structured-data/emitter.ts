@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Seo/StructuredData/Emitter.php. One schema.org node, built from
+ * One schema.org node, built from
  * catalog and configuration data (`[24.8]`).
  *
  * There is an emitter per type rather than one class that switches on a type string, because each

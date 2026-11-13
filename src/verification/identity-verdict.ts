@@ -1,11 +1,11 @@
 import { VerificationStatus } from '../journey/journey-state';
 
 /**
- * Ported from storefront-lamp/core/Verification/IdentityVerdict.php. The outcome of one identity
+ * The outcome of one identity
  * check — three states, never just pass/fail, because "the check could not be run" is a real and
  * common third answer this integration must be able to say without pretending it's a failure.
  *
- * Constructed only via the two static factories, matching the PHP original's private constructor.
+ * Constructed only via the two static factories.
  */
 export class IdentityVerdict {
   private constructor(

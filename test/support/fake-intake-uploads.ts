@@ -5,7 +5,7 @@ import { UploadOutcome } from '../../src/forms/upload-outcome';
 /**
  * In-memory `IntakeUploads`: answers the way the EMR does, filing every file under the session it
  * was sent for, and records each call so a test can assert what reached the EMR — and, as often,
- * that nothing did. Ported from storefront-lamp/tests/Support/FakeIntakeUploads.php.
+ * that nothing did.
  *
  * `refuse` makes every call answer as the EMR answers a type it does not store.
  */

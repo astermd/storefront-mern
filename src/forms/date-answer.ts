@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/DateAnswer.php. A `picker-date` answer as the EMR wants
+ * A `picker-date` answer as the EMR wants
  * it: `YYYY-MM-DD`.
  *
  * **The stored answer stays as the visitor typed it.** This converts at the outbound boundary and
@@ -47,7 +47,7 @@ export class DateAnswer {
     return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   }
 
-  /** PHP's `checkdate()`: month 1-12, day valid for that month/year, including leap years. */
+  /** Month 1-12, day valid for that month/year, including leap years. */
   private static isValidDate(year: number, month: number, day: number): boolean {
     if (month < 1 || month > 12 || day < 1) return false;
     const daysInMonth = new Date(year, month, 0).getDate();

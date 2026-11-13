@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/CaptureOutcome.php. No `amountCents` by design — a
+ * No `amountCents` by design — a
  * capture settles the provider's own held figure.
  */
 export class CaptureOutcome {

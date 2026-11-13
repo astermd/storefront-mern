@@ -18,7 +18,7 @@ const MAX_REASONS = 20;
 const REASON_OTHER = '(other)';
 
 /**
- * Ported from storefront-lamp/core/Observability/OperationalCounts.php. The two of `[20.12]`'s
+ * The two of `[20.12]`'s
  * monitored counts that nothing else counts: journeys reaching payment without an EMR session, and
  * the decline rate by reason.
  *
@@ -29,9 +29,8 @@ const REASON_OTHER = '(other)';
  * answered.
  *
  * Every read is wrapped, and a read that failed answers `Measured.unavailable()` rather than zero.
- * Since `CHECKOUT_EVENT_REPORTER` is Null-bound in this port (see Phase 7/8), nothing currently
- * writes these event names — so these counts honestly read `measured(0)` rather than fabricating a
- * number, exactly the degrade-silently behaviour `[20.1]` asks for.
+ * When nothing has written these event names yet, the counts honestly read `measured(0)` rather
+ * than fabricating a number, exactly the degrade-silently behaviour `[20.1]` asks for.
  */
 @Injectable()
 export class OperationalCounts {

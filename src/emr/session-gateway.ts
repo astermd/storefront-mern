@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Emr/SessionGateway.php. The storefront's whole view of the
+ * The storefront's whole view of the
  * EMR's analytics-session lifecycle.
  *
  * Everything the request path needs from the EMR about sessions goes through these two calls, for

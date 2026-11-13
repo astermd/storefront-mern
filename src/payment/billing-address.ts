@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/BillingAddress.php. The address the card is billed to,
+ * The address the card is billed to,
  * when the buyer gave one apart from the delivery address.
  *
  * Billing defaults to shipping (`[13.2]`), so a {@link Buyer} carries one of these only when the

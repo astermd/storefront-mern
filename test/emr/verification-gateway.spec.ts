@@ -2,7 +2,7 @@ import { EmrVerificationGateway } from '../../src/emr/emr-verification-gateway';
 import { NullVerificationGateway } from '../../src/emr/null-verification-gateway';
 import { capturedLog, fakeClients, response } from '../support/fake-emr-client';
 
-/** Ported from lamp 0.0.6's `testEachCheckRunsOnlyUnderItsOwnSwitch` and the Null gateway case. */
+/** Each check runs only under its own switch, plus the Null gateway case. */
 describe('verification gateways', () => {
   it('the null gateway reports itself disabled and determines nothing', async () => {
     const gateway = new NullVerificationGateway();

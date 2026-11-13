@@ -1,7 +1,7 @@
 import { CatalogProduct, ProductVariant, VariantPlan } from './product-catalog';
 
 /**
- * Ported from storefront-lamp/core/Domain/VariantPlans.php. Which subscription plan a cart line is
+ * Which subscription plan a cart line is
  * sold on, read off the catalog in the one place every reader asks it.
  *
  * `theme:sync` puts a variant the EMR sells on plans onto all of them: `plans` lists every one,

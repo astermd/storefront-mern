@@ -31,11 +31,11 @@ export interface CartData {
 }
 
 /**
- * Reduced port of storefront-lamp/core/Journey/JourneyState.php — the durable state attached to
+ * The durable state attached to
  * one analytics session, persisted as `sessions.journey_state`.
  *
- * The PHP original carries every field the whole application accumulates across a journey (~20
- * public properties in one 46KB file). This port grows the same way, one field per phase, added
+ * It carries every field the application accumulates across a journey, growing one field per
+ * phase, added
  * by whichever phase's subsystem needs it. Phase 2 added `opportunityId`/`attribution`/
  * `reconciled`/`readModelShape`/`sessionRetired`. Phase 4 adds what `Cart`/`FunnelRouter`/
  * `StepPreconditions`/`FurthestStep` need to gate and route the funnel: `cart` (the serialized

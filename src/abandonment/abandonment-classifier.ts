@@ -3,7 +3,7 @@ import { FORM_IN_PROGRESS, JourneyState } from '../journey/journey-state';
 import { AbandonmentState, AbandonmentStateValue } from './abandonment-state';
 
 /**
- * Ported from storefront-lamp/core/Abandonment/AbandonmentClassifier.php. Which of `[21.10]`'s six
+ * Which of `[21.10]`'s six
  * states one stopped journey is in, decided from durable server-side state alone.
  *
  * **Deepest evidence wins, and that is the whole design.** A stopped journey almost always
@@ -61,7 +61,7 @@ export class AbandonmentClassifier {
   /**
    * What each rung's condition actually reads on this journey, in the enum's own order.
    *
-   * - **Cart** — `[21.10]`'s "cart populated". The durable copy (`[19.8]`), not a PHP-session
+   * - **Cart** — `[21.10]`'s "cart populated". The durable copy (`[19.8]`), not a session-cookie
    *   working copy no sweep could see.
    * - **Lead** — "name and email captured", read as *the EMR holds an opportunity for this
    *   journey* (`[11.6]`'s threshold is exactly a first name and an email) — definition-free, so a

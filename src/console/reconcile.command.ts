@@ -8,7 +8,7 @@ interface ReconcileOptions {
 }
 
 /**
- * Ported from storefront-lamp/core/Console/ReconcileCommand.php. `emr:reconcile` — one run of
+ * `emr:reconcile` — one run of
  * `[21.8]`'s forward sweep, from a terminal.
  *
  * **There is no scheduler in this codebase, and this command does not add one.** It is safe to run

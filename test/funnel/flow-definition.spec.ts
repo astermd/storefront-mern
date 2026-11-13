@@ -3,7 +3,7 @@ import { FlowDefinition } from '../../src/funnel/flow-definition';
 import { StepPreconditions } from '../../src/funnel/step-preconditions';
 
 /**
- * Parity with storefront-lamp's `FunnelReachabilityTest`/`FunnelRulesTest`: every declared step is
+ * Funnel reachability and rules: every declared step is
  * reachable, no requirement names a precondition `StepPreconditions` doesn't know, and
  * `not_eligible` carries no requirements (it must be reachable from anywhere a disqualified
  * visitor is routed).

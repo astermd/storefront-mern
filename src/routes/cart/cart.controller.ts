@@ -13,7 +13,7 @@ import { RemoveFromCartDto } from './dto/remove-from-cart.dto';
 import { SetQuantityDto } from './dto/set-quantity.dto';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/CartController.php. Every response here is a
+ * Every response here is a
  * **303 See Other** — never 200 — which is the invariant `TemplateGlobalsMiddleware`'s cart
  * globals rely on (see that middleware's doc comment): a mutation response is never rendered, so
  * a stale drawer snapshot is never shown.
@@ -107,7 +107,7 @@ export class CartController {
     return (req as { sessionUuid?: string | null }).sessionUuid ?? null;
   }
 
-  /** PHP's `is_numeric()` — a numeric string ("2", "-1", "1.5") or an actual number, never `null`/objects. */
+  /** A numeric string ("2", "-1", "1.5") or an actual number, never `null`/objects. */
   private static isNumeric(value: unknown): boolean {
     if (typeof value === 'number') return Number.isFinite(value);
     if (typeof value !== 'string' || value.trim() === '') return false;

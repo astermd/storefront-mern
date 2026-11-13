@@ -41,7 +41,7 @@ interface StartedUpload {
 const multipart = { storage: memoryStorage(), limits: { fileSize: FileRules.SINGLE_REQUEST_MAX_BYTES } };
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/IntakeUploadController.php. `/intake/upload/…` —
+ * `/intake/upload/…` —
  * a file-upload question's file, relayed to the EMR as soon as it is picked. It replaces this
  * port's earlier single `POST /intake/upload` on `IntakeController`, which returned a bare
  * reference string with no check of which question, which session's file, or how large.
@@ -49,8 +49,8 @@ const multipart = { storage: memoryStorage(), limits: { fileSize: FileRules.SING
  * The browser cannot send it to the EMR itself: the call needs this deployment's credential, which
  * never reaches a page. So each request here is one request there, and answers what the EMR
  * answered — a `{path, name, mime_type}` for the page to post with the form, an upload id, or a
- * part's ETag. Nothing is kept on this server beyond the request (multer holds the body in memory
- * where PHP held a temp file).
+ * part's ETag. Nothing is kept on this server beyond the request (multer holds the body in
+ * memory).
  *
  * Five routes, the EMR's two flows (`FileRules.needsParts()`):
  *

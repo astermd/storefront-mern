@@ -3,7 +3,7 @@ import { IdentityGateway } from './identity-gateway';
 import { IdentityVerdict } from './identity-verdict';
 
 /**
- * Ported from storefront-lamp/core/Verification/NullIdentityGateway.php. Bound when
+ * Bound when
  * `verification.enabled` is off — its default, and always the case under the test suite.
  *
  * Always answers `inconclusive`, never `passed` — a dedicated test locks this down permanently,

@@ -39,7 +39,7 @@ const HELD_NOTICE: Partial<Record<VerificationStatus, string>> = {
 };
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/VerifyController.php. The identity-verification
+ * The identity-verification
  * step (`[22.13]`).
  *
  * **Guarding is not repeated here.** `/verify/` is a step in `config/funnel.ts` with its own

@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/AdapterCapabilities.php. What one payment adapter can
+ * What one payment adapter can
  * and cannot do — read by the checkout service to decide whether a cart's settlement requirements
  * are even satisfiable before ever calling the adapter.
  */

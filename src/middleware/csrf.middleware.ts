@@ -4,13 +4,13 @@ import type { NextFunction, Request, Response } from 'express';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/CsrfMiddleware.php. Issues (or reuses) a
+ * Issues (or reuses) a
  * per-session CSRF token and rejects mutating requests that don't echo it back. The token is
  * minted lazily on every request, not just mutating ones, so it's already sitting in the session
  * by the time a form is rendered.
  *
  * Uses `req.session` (from `SessionMiddleware`, slot 3 — outside this one, so the session already
- * exists) in place of PHP's `$_SESSION`.
+ * exists).
  *
  * Pinned slot 6 of 9.
  */
@@ -42,7 +42,7 @@ export class CsrfMiddleware implements NestMiddleware {
     next();
   }
 
-  /** Guards against timing attacks on the comparison, matching PHP's `hash_equals()`. */
+  /** Constant-time comparison, so the check leaks nothing through timing. */
   private static safeEqual(expected: string, actual: string): boolean {
     const expectedBuf = Buffer.from(expected);
     const actualBuf = Buffer.from(actual);

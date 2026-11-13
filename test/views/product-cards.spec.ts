@@ -4,7 +4,7 @@ import * as ejs from 'ejs';
 
 /**
  * Renders the product-card surfaces (`treatments.ejs`, `product.ejs`, the `get-started` partial)
- * to prove the 0.0.6 UI fixes from storefront-lamp: filter values that match the cards' own data
+ * to prove the product-card UI fixes: filter values that match the cards' own data
  * attributes, "Get Started" posting the cart-add form, and the product page's plan price hook.
  */
 describe('product card surfaces', () => {

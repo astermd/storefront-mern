@@ -13,7 +13,7 @@ import { Url } from '../support/url';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/StepGuardMiddleware.php. Enforces step
+ * Enforces step
  * preconditions in one place rather than page by page (`[22.11]`), which closes `[8.6]`
  * structurally: no funnel template carries a guard of its own.
  *

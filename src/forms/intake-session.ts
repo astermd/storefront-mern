@@ -27,7 +27,7 @@ const STEP_PREQUALIFICATION = 'prequalification';
 const STEP_INTAKE = 'intake';
 
 /**
- * Ported from storefront-lamp/core/Forms/IntakeSession.php. One visitor's pass through one
+ * One visitor's pass through one
  * questionnaire: what to render, what a step advance does, and what a submission decides.
  *
  * The ordering inside `save()`/`submit()` is the substance of this class and is not arbitrary.

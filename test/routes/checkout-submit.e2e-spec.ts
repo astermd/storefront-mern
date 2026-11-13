@@ -75,7 +75,7 @@ describe('Checkout submission — decline/validation/geo/rate-limit branches', (
   let adapter: ScriptedAdapter;
 
   beforeAll(async () => {
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-checkout-submit-db-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-checkout-submit-db-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
 
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], { cwd: process.cwd(), stdio: 'ignore' });

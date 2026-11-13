@@ -1,9 +1,7 @@
 // Build script: compiles Tailwind CSS and copies theme JS into
 // public/assets/build with 8-char content hashes + manifest.json.
-// Ported from storefront-lamp's build/build-assets.mjs — same shape, adjusted
-// for this port's layout: CSS/JS source live at public/css and public/js
-// (not theme/css, theme/js), and Tailwind's @source directives in
-// public/css/app.css scan views/ (EJS) instead of theme/templates (Twig).
+// CSS/JS source live at public/css and public/js, and Tailwind's @source
+// directives in public/css/app.css scan views/ (EJS).
 import { createHash } from 'node:crypto';
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, copyFileSync, rmSync, statSync } from 'node:fs';

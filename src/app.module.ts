@@ -25,9 +25,8 @@ import { UpsellModule } from './routes/upsell/upsell.module';
 import { VerifyModule } from './routes/verify/verify.module';
 
 /**
- * The only place allowed to know how the pieces fit together — mirrors storefront-lamp's
- * `AppFactory::create()`. `configure()` registers the 9 pinned middleware slots, in the exact
- * documented order, as Nest middleware (never guards/interceptors) — see MERN.md's "The
+ * The only place allowed to know how the pieces fit together. `configure()` registers the 9 pinned middleware slots, in the exact
+ * documented order, as Nest middleware (never guards/interceptors) — see docs/STACK.md's "The
  * middleware pipeline" section and `journey-save-back.middleware.ts`'s doc comment for why.
  *
  * `FallbackModule` must stay last in `imports` — see its controller's doc comment.

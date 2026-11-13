@@ -13,7 +13,7 @@ interface Shipping {
 }
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripePayload.php. The PaymentIntent this
+ * The PaymentIntent this
  * storefront creates for an order, in the shape the EMR reads back when the order is synced.
  *
  * **The EMR is the reader that matters, not Stripe.** Stripe only needs an amount. The EMR turns the

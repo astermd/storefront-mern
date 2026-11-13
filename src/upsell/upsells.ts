@@ -7,7 +7,7 @@ import { UpsellRow } from '../../config/upsells';
 import { Upsell } from './upsell';
 
 /**
- * Ported from storefront-lamp/core/Upsell/Upsells.php. Which post-purchase upsells this journey
+ * Which post-purchase upsells this journey
  * earned, in what order (§16).
  *
  * The queue is built **once**, at checkout success, from the slugs that were just purchased

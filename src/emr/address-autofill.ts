@@ -1,7 +1,7 @@
 import { ParsedAddress } from '../checkout/formatted-address';
 
 /**
- * Ported from storefront-lamp/core/Emr/AddressAutofill.php. Address suggestions for the checkout's
+ * Address suggestions for the checkout's
  * address field, from the EMR.
  *
  * This is the fallback source. A deployment that configures its own Google Maps key is served

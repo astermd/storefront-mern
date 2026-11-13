@@ -1,7 +1,7 @@
 import { HttpClientInterface, Request, Response } from '@astermd-hq/checkoutchamp-client';
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampRefusingTransport.php — this
+ * This
  * provider's own copy of the same pattern as Vrio's `RefusingTransport`, duplicated per provider
  * deliberately: each provider's client declares its own `HttpClientInterface`, so a transport has
  * to implement the one its own client will accept. Substituted for the real transport whenever

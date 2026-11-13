@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/OrderLine.php. One priced line in an order sent to the
+ * One priced line in an order sent to the
  * payment provider.
  */
 export class OrderLine {

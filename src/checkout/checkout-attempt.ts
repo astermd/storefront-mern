@@ -4,7 +4,7 @@ import { CardScrubber } from '../support/card-scrubber';
 import { CheckoutAttemptRepository, CheckoutAttemptRow } from '../repository/checkout-attempt-repository';
 
 /**
- * Ported from storefront-lamp/core/Checkout/CheckoutAttempt.php. The record of one checkout
+ * The record of one checkout
  * submission and what came of it.
  *
  * **Three states, because two cannot answer the question that matters.** An attempt is `claimed`

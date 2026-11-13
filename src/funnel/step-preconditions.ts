@@ -15,7 +15,7 @@ export type PreconditionName =
   | 'verification_satisfied';
 
 /**
- * Ported from storefront-lamp/core/Funnel/StepPreconditions.php. The named predicates
+ * The named predicates
  * `config/funnel.ts` refers to.
  *
  * Named rather than expressed as closures in config so the flow stays declarative data, and so an

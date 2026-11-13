@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/config/payment.php. Client-owned, not `src/` — a real deployment may
+ * Client-owned, not `src/` — a real deployment may
  * edit this file directly.
  *
  * Payment behaviour that is not the provider's own credential block — that lives in

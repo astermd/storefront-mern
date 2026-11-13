@@ -4,7 +4,7 @@ import { TeleformMetadata } from './teleform-metadata';
 import { TerminationRule } from './termination-rule';
 
 /**
- * Ported from storefront-lamp/core/Forms/IntakeView.php. Everything a renderer needs to draw the
+ * Everything a renderer needs to draw the
  * form once, gathered so the controller performs one read rather than each template fetching its
  * own.
  *

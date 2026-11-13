@@ -31,7 +31,7 @@ describe('Phase 10 sweeps', () => {
   const iso = (secondsAgo: number) => new Date((now - secondsAgo) * 1000).toISOString();
 
   beforeAll(() => {
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-phase10-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-phase10-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
 
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], { cwd: process.cwd(), stdio: 'ignore' });

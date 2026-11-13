@@ -3,7 +3,7 @@ import { Boundary } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedSessionGateway.php. `[20.9]` over the
+ * `[20.9]` over the
  * analytics-session boundary.
  *
  * A session that cannot be minted is not an error anywhere in this application — it degrades to "no

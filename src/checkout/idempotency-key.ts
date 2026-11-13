@@ -3,7 +3,7 @@ import { Cart } from '../domain/cart';
 import { CartLine } from '../domain/cart-line';
 
 /**
- * Ported from storefront-lamp/core/Checkout/IdempotencyKey.php. One checkout attempt's key
+ * One checkout attempt's key
  * (`[13.37]`).
  *
  * Derived from what is being bought and who is buying it, rather than issued as a random token on

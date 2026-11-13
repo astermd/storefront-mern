@@ -3,7 +3,7 @@ import { AbandonmentSweep } from '../abandonment/abandonment-sweep';
 import { FailureDigest } from '../support/failure-digest';
 
 /**
- * Ported from storefront-lamp/core/Console/AbandonmentCommand.php. `abandonment:signals` — the
+ * `abandonment:signals` — the
  * current set of `[21.10]` abandonment signals, as one JSON document on stdout.
  *
  * **This is `[21.11a]`'s "exposed for polling" half.** There is no outbound push infrastructure and

@@ -21,7 +21,7 @@ function toCents(amount: unknown): number | null {
 }
 
 /**
- * Ported from storefront-lamp/core/Payment/CheckoutChamp/CheckoutChampOutcome.php. `result` is the
+ * `result` is the
  * ONLY success/failure discriminator this provider gives — never infer it from the shape of
  * `message`, which arrives as either an object (placed order, or a field-validation map) or a
  * plain string (a human-readable success or decline sentence), with all four combinations recorded

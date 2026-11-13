@@ -1,4 +1,4 @@
-<%- /* Ported from storefront-lamp/theme/templates/partials/cart-remove-form.twig. Expects `line`
+<%- /* Expects `line`
        (the line view-model) in scope, passed explicitly by the caller. */ '' %>
 <form method="post" action="<%= url('/cart/remove') %>" class="inline">
   <input type="hidden" name="_csrf" value="<%= csrf_token %>" />

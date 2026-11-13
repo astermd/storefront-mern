@@ -4,7 +4,7 @@ import { capturedLog, response } from '../support/fake-emr-client';
 
 /**
  * The reporter outside a request (the forward reconciliation sweep) and with analytics off:
- * lamp builds it either way, and both cases used to be unreachable in this port.
+ * it must build either way, and both cases used to be unreachable.
  */
 describe('EmrCheckoutEventReporter outside a request and with analytics off', () => {
   function build(analytics: boolean, withRequest: boolean) {

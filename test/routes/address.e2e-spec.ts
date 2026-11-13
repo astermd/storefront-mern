@@ -8,7 +8,7 @@ import { DatabaseRateLimiter } from '../../src/support/database-rate-limiter';
 import { createTestApp } from '../support/test-app';
 
 /**
- * Ported from storefront-lamp/tests/Http/AddressControllerTest.php: the storefront's own
+ * The storefront's own
  * `/checkout/address/…` endpoints, the checkout address field's suggestions when there is no Google
  * Maps key.
  */

@@ -83,9 +83,8 @@ storefront down with it).
 | `CatalogMerger` | `src/catalog/catalog-merger.ts` | Combines the two, matched by `emr_product_id` (never by slug, so renaming a product doesn't orphan its override). |
 
 `CatalogProvider`'s constructor runs that merge **once, when the app process starts** — every
-request after that just reads the already-merged, in-memory result. (LAMP does the conceptually
-identical thing, just re-merging once per PHP request instead of once per process — see
-`docs/MIDDLEWARE.md`'s intro for why Node and PHP differ here.)
+request after that just reads the already-merged, in-memory result. The catalog modules are
+static TypeScript compiled into the build, so "once per process" loses nothing.
 
 **Database calls this step makes:** none, beyond whatever the middleware pipeline itself did
 (resolving/minting the session row).
@@ -269,7 +268,7 @@ record.
 (`src/forms/field-view-model.ts`), which dispatches on the field's own declared `template` key
 — **never** on its raw `type` — specifically so the type-to-partial mapping lives in exactly one
 place. (This dispatcher is also where two real, previously-invisible bugs were found and fixed
-earlier in this port's life: a wrong `data-*` attribute name that made every authored Continue
+earlier in the project's life: a wrong `data-*` attribute name that made every authored Continue
 button completely inert, and a "two-button" field pattern that silently dropped its second button
 — both are history now, but they lived exactly here.)
 
@@ -293,7 +292,7 @@ Sends the whole `<form>` as `FormData`. Browsers always encode `FormData` as
 `multipart/form-data`, regardless of the form's own `enctype` — worth knowing, because it's exactly
 why this route needs `@UseInterceptors(AnyFilesInterceptor())` (from `@nestjs/platform-express`) on
 the server side to actually parse the body at all, and why the CSRF token is sent as **both** a
-form field and an `X-CSRF-Token` header (a real bug this port found: without the header, this exact
+form field and an `X-CSRF-Token` header (a real bug found during development: without the header, this exact
 request used to fail with `419` on every real browser submit, because the multipart body was never
 parsed and the token inside it never reached `req.body`).
 
@@ -323,7 +322,7 @@ async save(teleformId, step, posted, pageIndex) {
    `/not-eligible/`.
 3. **`validator.validate(..., pageIndex)`** — required-field/format validation for *only the page
    just posted*. (Final `submit()`, below, validates every page at once instead of just one — that
-   difference is the whole reason a "back to page 1 with no explanation" bug this port found was
+   difference is the whole reason a "back to page 1 with no explanation" bug was
    actually happening: the server's own re-rendered response, carrying the real per-field error and
    which page it belonged to, was being discarded by a client-side `window.location.reload()` and
    replaced with a blind reset to page 0. Fixed by having the server tell the client which page to
@@ -390,7 +389,7 @@ external.emr.opportunity_write {operation: create, outcome: created, latency_ms:
   history — everything) onto that same one record.
 
 **A real, live-observed detail worth knowing:** this create call is a genuine network round-trip
-to AsterMD, and it can take a few real seconds. This port disables the Next/Submit button while a
+to AsterMD, and it can take a few real seconds. The storefront disables the Next/Submit button while a
 save is in flight (`aria-busy`, `public/js/intake.js`) specifically so a visitor double-clicking
 during that window can't fire a second, racing save — confirmed live: the button stayed correctly
 disabled for several seconds while this exact create call was in flight.
@@ -407,7 +406,7 @@ correct EMR behavior, not a bug, and not something this codebase controls.
 Filling activity level / height / weight / allergies / conditions / symptoms and clicking Next runs
 through the exact same `save()` → `store()` → `disqualification.evaluate()` → `validator.validate()`
 → `report()` sequence as Step 6, with two things worth calling out specifically because they were
-real questions/bugs found while building this port:
+real questions/bugs found while building the storefront:
 
 **BMI is computed server-side, from real height/weight, every time.** `AnswerSet.withDerived()`
 (inside `store()`) calculates it — never trusted from a client-side JS preview, specifically so a
@@ -420,7 +419,7 @@ directly against the real AsterMD teleform data**, not a rendering bug:
 dropdown_15 (activity), number_18 (height), number_19 (weight),
 dropdown_24 (allergies), dropdown_26 (conditions), choice_multi_28 (symptoms) — all required: true
 ```
-A **separate, real bug** this port found and fixed here: `field-choice-multi.ejs`'s checkboxes
+A **separate, real bug** found and fixed here: `field-choice-multi.ejs`'s checkboxes
 never carried an HTML `required` attribute at all (unlike a same-named radio group, where HTML
 natively supports "at least one must be checked" — checkboxes have no such native mechanism). The
 Next button's own enable/disable logic (`isWrapperAnswered()` in `public/js/intake.js`) had to be
@@ -546,7 +545,7 @@ branches on this capability, never on a hardcoded "which provider is this" check
       "this order was paid, put it in front of a clinician."
 
 **A real, load-bearing detail about that payment call: which offer id gets sent.** A real,
-previously-live bug this port found and fixed: a product's variant can carry payment-provider
+previously-live bug found and fixed: a product's variant can carry payment-provider
 mappings for *multiple* processors at once (this real Rameltion variant has both a `vrio` mapping
 and a `checkout_champ` mapping in AsterMD's raw data). `CatalogBuilder` used to always take
 whichever mapping happened to sit first in the array, regardless of which processor is actually

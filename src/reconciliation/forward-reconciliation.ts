@@ -9,7 +9,7 @@ import { ReconciliationReport } from './reconciliation-report';
 const PLACED = 'placed';
 
 /**
- * Ported from storefront-lamp/core/Reconciliation/ForwardReconciliation.php. `[21.8]`'s forward
+ * `[21.8]`'s forward
  * sweep: the orders this storefront recorded and the EMR was never told about, told about.
  *
  * **The predicate is `treatmentReference IS NULL`**, and it was settled before anything could run

@@ -25,7 +25,7 @@ interface RecordedRun {
 const UNKNOWN = 'unknown';
 
 /**
- * Ported from storefront-lamp/core/Observability/Reachability.php. `[20.15]`'s EMR and
+ * `[20.15]`'s EMR and
  * payment-provider reachability, without turning the health endpoint into an outage of its own.
  *
  * **`/health/` is polled by load balancers.** A probe that called the EMR and the payment provider

@@ -38,7 +38,7 @@ export interface OrderRowForReceipt {
 }
 
 /**
- * Ported from storefront-lamp/core/Completion/Receipt.php. The retained order receipt (`[4.17]`).
+ * The retained order receipt (`[4.17]`).
  *
  * Built from the **local order rows** at completion, before the journey is wiped, and then held in
  * journey state as the only thing a refresh reads. `paidTotalCents` is the sum of the placed orders'

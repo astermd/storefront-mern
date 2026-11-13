@@ -6,7 +6,7 @@ import { PRODUCT_CATALOG } from '../../core/tokens';
 import { ProductCatalog } from '../../domain/product-catalog';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/ReceiptController.php. The receipt page
+ * The receipt page
  * (`[17.1]`).
  *
  * Deliberately one line of work: reaching this page is what triggers completion, so every decision

@@ -6,7 +6,7 @@ export interface FieldOption {
 }
 
 /**
- * Ported from storefront-lamp/core/Forms/Field.php. One authored field, as the definition
+ * One authored field, as the definition
  * declares it.
  *
  * A field may declare **subfields** (`[10.7]`): the composite and each of its parts are

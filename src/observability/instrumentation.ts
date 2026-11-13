@@ -16,7 +16,7 @@ import { InstrumentedSessionGateway } from './instrumented-session-gateway';
 import { InstrumentedTeleformGateway } from './instrumented-teleform-gateway';
 
 /**
- * Ported from storefront-lamp/core/Observability/Instrumentation.php. Wraps each port `[20.9]`
+ * Wraps each port `[20.9]`
  * names in the decorator that times it.
  *
  * One place rather than seven call-site edits, and one place rather than seven `new` expressions

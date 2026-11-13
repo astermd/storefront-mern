@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '../support/config';
 
 /**
- * Ported from storefront-lamp/core/Retention/RetentionPolicy.php. The configured retention
+ * The configured retention
  * periods, read in one place.
  *
  * `[30.5]` makes the periods configuration because the correct one varies by jurisdiction; `[30.6]`

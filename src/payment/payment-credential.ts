@@ -1,17 +1,15 @@
 import { inspect } from 'node:util';
 
 /**
- * Ported from storefront-lamp/core/Payment/PaymentCredential.php. What checkout hands the payment
+ * What checkout hands the payment
  * adapter — one of four kinds, only one of which (`card`) ever carries a raw number, and that
  * number is structurally forbidden from ever being persisted (`[15.8]`, `[15.12]`).
  *
- * PHP's magic-method redaction (`__serialize`/`jsonSerialize`/`__debugInfo`, each returning
- * `{kind, number:'[REDACTED]', handle:'[REDACTED]'}`, and `__unserialize` refusing unconditionally)
- * has two direct Node equivalents ported here: `toJSON()` (what `JSON.stringify` calls) and
- * `[util.inspect.custom]` (what `console.log`/Node's own inspector calls). There is no Node
- * equivalent of PHP's `unserialize` to refuse — nothing in this codebase deserializes an arbitrary
- * object into a class instance the way PHP's `unserialize()` can, so the risk it guards against
- * doesn't exist here the same way.
+ * Redaction happens in the two places Node serialises an object: `toJSON()` (what
+ * `JSON.stringify` calls) and `[util.inspect.custom]` (what `console.log`/Node's own inspector
+ * calls), each returning `{kind, number:'[REDACTED]', handle:'[REDACTED]'}`. Nothing in this
+ * codebase deserializes an arbitrary object into a class instance, so there is no deserialisation
+ * path to refuse.
  */
 export class PaymentCredential {
   static readonly KIND_CARD = 'card';

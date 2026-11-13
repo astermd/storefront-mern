@@ -6,7 +6,7 @@ export interface StepDefinition {
 }
 
 /**
- * Ported from storefront-lamp/core/Funnel/FlowDefinition.php. The funnel as data: which URL is
+ * The funnel as data: which URL is
  * which named step, and what that step requires before a visitor may enter it (`[22.1]`, `[8.8]`),
  * read once from `config/funnel.ts` rather than re-derived by whoever needs it.
  *

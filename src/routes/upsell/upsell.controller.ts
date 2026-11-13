@@ -7,7 +7,7 @@ import { UpsellResult } from '../../upsell/upsell-result';
 import { UpsellService } from '../../upsell/upsell-service';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/UpsellController.php. The upsell step's HTTP
+ * The upsell step's HTTP
  * surface: the offer, and the two answers to it.
  *
  * Thin by construction, the same way `CartController`/`CheckoutController` are — nothing is decided

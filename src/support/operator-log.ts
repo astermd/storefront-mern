@@ -1,7 +1,7 @@
 import { appendFileSync } from 'node:fs';
 
 /**
- * Ported from storefront-lamp/core/Support/OperatorLog.php. Appends one redacted JSON line per
+ * Appends one redacted JSON line per
  * event to the operator log.
  *
  * The storefront degrades silently by design — a failed analytics call must never reach the
@@ -12,13 +12,13 @@ import { appendFileSync } from 'node:fs';
  *
  * Value-based scrubbing (`CardScrubber`, for card data hiding inside a string whose key means
  * nothing to us) and correlation-id stamping (`CorrelationContext`) are later phases' additions —
- * this port carries the key-based redaction pass now since it needs nothing else to be correct.
+ * the key-based redaction pass is here now since it needs nothing else to be correct.
  */
 export class OperatorLog {
   /**
    * Context keys whose values never reach disk, matched case-insensitively. Anything health-,
    * identity-, card- or credential-shaped belongs here; ids, paths, counts and outcome codes are
-   * what a log is for. Ported verbatim from storefront-lamp's REDACTED_KEYS.
+   * what a log is for.
    */
   private static readonly REDACTED_KEYS = new Set([
     'first_name', 'last_name', 'name', 'full_name', 'email', 'phone', 'address', 'address_line',

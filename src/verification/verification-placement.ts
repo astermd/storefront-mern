@@ -2,7 +2,7 @@ import { VerificationConfig } from '../../config/verification';
 import { JourneyState } from '../journey/journey-state';
 
 /**
- * Ported from storefront-lamp/core/Verification/VerificationPlacement.php. Where the identity step
+ * Where the identity step
  * sits, and whether it is still holding this journey.
  *
  * `[22.16]` insists placement and blocking are two settings that must not be conflated — honouring

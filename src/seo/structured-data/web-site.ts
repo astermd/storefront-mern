@@ -2,7 +2,7 @@ import { Emitter } from './emitter';
 import { Organisation } from './organisation';
 
 /**
- * Ported from storefront-lamp/core/Seo/StructuredData/WebSite.php. The storefront itself, as
+ * The storefront itself, as
  * schema.org `WebSite` with a search action (`[24.8]`).
  *
  * The search action is conditional on a target being supplied — a deployment whose listing endpoint

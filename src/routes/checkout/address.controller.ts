@@ -13,7 +13,7 @@ const MIN_LENGTH = 3;
 const MAX_LENGTH = 200;
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/AddressController.php. `/checkout/address/
+ * `/checkout/address/
  * suggest/` and `/checkout/address/resolve/` — the checkout address field's suggestions when the
  * deployment has no Google Maps key of its own.
  *

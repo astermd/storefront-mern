@@ -2,7 +2,7 @@ import { CardDescriptor } from './card-descriptor';
 import { Totals } from '../checkout/totals';
 
 /**
- * Ported from storefront-lamp/core/Payment/PaymentDescriptor.php. What a receipt/order record
+ * What a receipt/order record
  * shows about how payment was collected.
  */
 export class PaymentDescriptor {

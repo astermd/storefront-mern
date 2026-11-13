@@ -5,10 +5,9 @@ import { RobotsPolicy } from '../seo/robots-policy';
 import { OperatorLog } from './operator-log';
 
 /**
- * Ported from the error routing in storefront-lamp/core/Bootstrap/AppFactory.php. Slim only needs
- * one error boundary; Nest needs two — one on the raw Express instance for the pinned middleware's
+ * The app needs two error boundaries — one on the raw Express instance for the pinned middleware's
  * own errors, one as a Nest global exception filter for guard/pipe/controller errors (see
- * MERN.md's "Error handling" section) — so this is the single place the shared three-tier logic
+ * docs/STACK.md's "Error handling" section) — so this is the single place the shared three-tier logic
  * lives, called from both registrations.
  *
  * Tiers, checked in order: 404 gets the themed 404 page; a thrown HTTP exception with a 4xx status

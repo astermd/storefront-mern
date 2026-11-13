@@ -5,7 +5,7 @@ import { Command, CommandRunner } from 'nest-commander';
 const CACHE_DIR = join(process.cwd(), 'storage/cache');
 
 /**
- * Ported from storefront-lamp/core/Console/CacheClearCommand.php. `cache:clear` — wipes the
+ * `cache:clear` — wipes the
  * `storage/cache` directory's contents.
  *
  * A missing directory is treated as already-cleared, not an error — it is created and the count is

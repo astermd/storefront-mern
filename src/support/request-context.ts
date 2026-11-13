@@ -1,7 +1,7 @@
 import type { Request } from 'express';
 
 /**
- * Ported from storefront-lamp/core/Support/RequestContext.php. The client-facing facts a checkout
+ * The client-facing facts a checkout
  * submission is judged by: its address (`[13.8]`, `[29.23]`) and its user agent.
  *
  * The client address is resolved through a fixed CDN header precedence rather than trusting
@@ -10,7 +10,7 @@ import type { Request } from 'express';
  * defeated by whoever is being guarded against.
  */
 export class RequestContext {
-  /** Checked in order; the first present value wins. Ported verbatim from the PHP original's CDN_IP_HEADERS. */
+  /** Checked in order; the first present value wins. */
   private static readonly CDN_IP_HEADERS = ['cf-connecting-ip', 'true-client-ip', 'x-real-ip', 'x-forwarded-for'];
 
   private constructor(

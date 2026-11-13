@@ -6,8 +6,6 @@ import { CartStoreFactory } from '../../journey/cart-store-factory';
 import { StructuredData } from '../../seo/structured-data/structured-data';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/ProductDetailController.php.
- *
  * `assessment_available` is false when adding this product would leave the cart with two or more
  * prescriptions, which collect no questionnaire on the storefront (`[8.0i]`) — the page then offers
  * checkout alone. A cart that cannot be read leaves the page as it is for everyone else: the button

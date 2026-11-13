@@ -1,7 +1,7 @@
 import { CatalogProduct, ProductVariant } from '../src/domain/product-catalog';
 
 /**
- * Ported from storefront-lamp/config/products.overrides.php — client-owned, never written by
+ * Client-owned, never written by
  * `theme:sync`. Keyed by `emr_product_id` (never slug), merged over `products.generated.ts` by
  * `CatalogMerger`. Empty by default; a deployment adds `geo_blocks`, `requires_prequalification`,
  * per-variant price corrections, or a wholly net-new product here.

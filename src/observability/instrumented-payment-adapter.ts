@@ -13,7 +13,7 @@ import { Boundary } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedPaymentAdapter.php. `[20.9]` over the
+ * `[20.9]` over the
  * provider boundary: placement, resume, promotion, and the reverse sweep's order search.
  *
  * This is the boundary where a rising latency is a business fact rather than an engineering one — a

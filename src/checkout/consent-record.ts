@@ -1,4 +1,3 @@
-/** Ported from storefront-lamp/core/Checkout/ConsentRecord.php. */
 export class ConsentRecord {
   constructor(
     public readonly key: string,

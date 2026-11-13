@@ -4,7 +4,7 @@ import { PaymentCredential } from './payment-credential';
 import { SettlementMode, SettlementModeValue } from './settlement-mode';
 
 /**
- * Ported from storefront-lamp/core/Payment/PlacementOutcome.php — the central result type every
+ * The central result type every
  * `PaymentAdapter.place()` call returns.
  *
  * `providerCardExpiry` (`MM/YY`) and `providerCardLastFour` are for a credential that carries no card

@@ -1,7 +1,7 @@
 import { Url } from './url';
 
 /**
- * Ported from storefront-lamp's `CartController::safePath()`. The open-redirect gate every
+ * The open-redirect gate every
  * `return_to` value passes through before a cart mutation redirects back to it.
  *
  * Refuses (falls back to `/`): a non-string/empty value; anything not starting with exactly one

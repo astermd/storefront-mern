@@ -1,7 +1,7 @@
 import { Promotion } from './promotion';
 
 /**
- * Ported from storefront-lamp/core/Checkout/Totals.php. Money is integer cents everywhere; this
+ * Money is integer cents everywhere; this
  * is the only place that computes a checkout total from a subtotal and a promotion, and the only
  * two named exits that convert to a display value.
  *

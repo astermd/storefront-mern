@@ -7,7 +7,7 @@ import { ConsentRecord } from './consent-record';
 import { OrderRecorder } from './order-recorder';
 
 /**
- * Ported from storefront-lamp/core/Checkout/NullOrderRecorder.php. Always returns null and logs
+ * Always returns null and logs
  * that nothing was written.
  *
  * **Must not ship to production.** Every placed order becomes unrecoverable local history under

@@ -10,7 +10,7 @@ export interface ProgressStep {
 }
 
 /**
- * Ported from storefront-lamp/core/Forms/ProgressSteps.php. The steps drawn above a questionnaire,
+ * The steps drawn above a questionnaire,
  * derived from the questionnaire.
  *
  * Two sources, in priority order: an authored `form-progress` field's `progressStepItems` outrank

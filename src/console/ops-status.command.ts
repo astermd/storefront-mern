@@ -17,7 +17,7 @@ const GRACE_SECONDS = 900;
 const REPEAT_FAILURE_AFTER_SECONDS = 86_400;
 
 /**
- * Ported from storefront-lamp/core/Console/StatusCommand.php. `ops:status` — `[20.12]`'s five
+ * `ops:status` — `[20.12]`'s five
  * monitored counts in one place.
  *
  * Each of them represents money or clinical risk, and spread across separate commands they are five

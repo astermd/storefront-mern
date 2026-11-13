@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Forms/IntakeResult.php. What happened to one save or one
+ * What happened to one save or one
  * submit.
  *
  * The four outcomes are deliberately distinct rather than collapsed into a boolean plus a message

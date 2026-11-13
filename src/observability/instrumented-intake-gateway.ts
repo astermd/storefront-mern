@@ -5,7 +5,7 @@ import { Boundary } from './boundary';
 import { BoundaryTimer } from './boundary-timer';
 
 /**
- * Ported from storefront-lamp/core/Observability/InstrumentedIntakeGateway.php. `[20.9]` over the
+ * `[20.9]` over the
  * progressive-save boundary.
  *
  * A refused save is invisible to the visitor by design — a lost save must never trap someone in a

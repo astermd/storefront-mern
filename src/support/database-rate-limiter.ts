@@ -4,7 +4,7 @@ import { ConfigService } from './config';
 import { OperatorLog } from './operator-log';
 
 /**
- * Ported from storefront-lamp/core/Support/DatabaseRateLimiter.php. A fixed-window counter per
+ * A fixed-window counter per
  * `(bucket, identity)`, kept in the database.
  *
  * **State plainly what this stops and what it does not.** The identity is the client address, so it

@@ -4,7 +4,7 @@ import { ConfigService } from '../support/config';
 const NO_MATCH = -1;
 
 /**
- * Ported from storefront-lamp/core/Seo/RobotsPolicy.php. The single answer to "may this path be
+ * The single answer to "may this path be
  * indexed", consulted by everything that needs to know.
  *
  * There is one writer of that decision on purpose. `[24.2]` requires the directive to be enforced

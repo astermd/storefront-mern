@@ -1,6 +1,5 @@
 import { FormattedAddress } from '../../src/checkout/formatted-address';
 
-/** Ported from storefront-lamp/tests/Checkout/FormattedAddressTest.php. */
 describe('FormattedAddress', () => {
   it("the verifier's address fills all four fields with a five-digit ZIP", () => {
     expect(FormattedAddress.parse('350 5th Avenue, New York, NY 10118-0110, USA')).toEqual({

@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Checkout/FormattedAddress.php. A one-line US address split into
+ * A one-line US address split into
  * the checkout's four fields.
  *
  * The EMR's address services answer formatted strings rather than components:

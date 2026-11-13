@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Emr/VerificationGateway.php. Address and email checks against
+ * Address and email checks against
  * the EMR's configured third-party providers.
  *
  * Every method returns `null` for "could not determine", which is a third distinct answer from

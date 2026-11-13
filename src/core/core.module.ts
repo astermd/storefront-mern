@@ -132,21 +132,18 @@ class DatabaseLifecycle implements OnModuleDestroy {
 }
 
 /**
- * `@Global()` — every port-to-implementation binding lives here, the same "one place every
- * container binding is a closure" rule storefront-lamp's `docs/ARCHITECTURE.md` states for its
- * own container.
+ * `@Global()` — every port-to-implementation binding lives here, and nowhere else.
  *
  * Note on laziness: Nest resolves a given *injection* lazily (nothing is constructed until
  * something asks for it via the constructor graph), but a module's registered `providers` are all
- * instantiated eagerly at that module's init, unlike a PHP-DI container closure that only runs on
- * first `get()`. Concretely: don't register a `useFactory` provider here before its dependencies
+ * instantiated eagerly at that module's init. Concretely: don't register a `useFactory` provider here before its dependencies
  * (or its own logic) are ready to run — it will execute at boot regardless of whether any
  * controller/service actually injects the token yet.
  *
  * `SESSION_GATEWAY`/`CART_GATEWAY` switch between their real (`Emr*Gateway`, backed by
  * `@astermd-hq/sdk`) and Null implementations on `config.app.session.analytics` —
- * `EMR_VERIFICATION_GATEWAY` switches on `config.app.features.emrVerifyEmail`/`emrVerifyAddress` (each check under its own switch) — matching
- * storefront-lamp's own `AppFactory` ternaries exactly. `NODE_ENV=test` forces both flags false
+ * `EMR_VERIFICATION_GATEWAY` switches on `config.app.features.emrVerifyEmail`/`emrVerifyAddress`
+ * (each check under its own switch). `NODE_ENV=test` forces both flags false
  * (see `config/app.ts`), so the test suite never reaches the network. `PRODUCT_CATALOG` is bound
  * to `CatalogProvider` (Phase 5) — replacing Phase 4's `EmptyProductCatalog` placeholder now that
  * there's real (example) catalog data to merge and serve.
@@ -310,8 +307,7 @@ class DatabaseLifecycle implements OnModuleDestroy {
     Upsells,
     SettlementPolicy,
     {
-      // Registers the three real providers (`vrio`, `checkout_champ`, `stripe`) — ported from
-      // `AppFactory.php`'s own `AdapterRegistry` wiring. Registered as factories, not instances: a
+      // Registers the three real providers (`vrio`, `checkout_champ`, `stripe`). Registered as factories, not instances: a
       // deployment whose channel carries no payment processor must still boot, and the registry
       // answers with a configuration-error decline instead of a container that cannot be built.
       //
@@ -388,8 +384,8 @@ class DatabaseLifecycle implements OnModuleDestroy {
     },
     {
       // The provider is chosen from synced channel data, never named by a code path — the config
-      // key is an operator override for a deployment that has to pin one. Wrapped unconditionally,
-      // matching `AppFactory.php`'s own binding — payment must always be observable, whether or
+      // key is an operator override for a deployment that has to pin one. Wrapped unconditionally:
+      // payment must always be observable, whether or
       // not it currently resolves to a real provider.
       provide: PAYMENT_ADAPTER,
       useFactory: (registry: AdapterRegistry, config: ConfigService, instrumentation: Instrumentation) =>
@@ -400,12 +396,11 @@ class DatabaseLifecycle implements OnModuleDestroy {
     { provide: ORDER_RECORDER, useExisting: DatabaseOrderRecorder },
     NullCheckoutEventReporter,
     {
-      // Bound whatever the analytics flag says, as `AppFactory.php` binds `EmrCheckoutEventReporter`
-      // unconditionally: `[18.1]`'s local audit trail (`checkout.*`/`upsell_*` rows) is the
+      // `EmrCheckoutEventReporter` is bound whatever the analytics flag says: `[18.1]`'s local audit trail (`checkout.*`/`upsell_*` rows) is the
       // storefront's own record and must survive analytics being switched off. The flag is checked
       // inside the reporter, before each EMR call (`reportToEmr()`), so analytics off still sends
       // the EMR nothing. Built
-      // after discovering, live, that a fully successful checkout in this port still told AsterMD
+      // after discovering, live, that a fully successful checkout still told AsterMD
       // nothing at all: no `checkoutEvents()` funnel record, and — the more serious half — no
       // `treatments().sync()` call, meaning even a real, paid order would never reach a clinician's
       // review queue. Injecting `REQUEST`/`JourneyStoreFactory` makes this provider request-scoped,
@@ -428,8 +423,7 @@ class DatabaseLifecycle implements OnModuleDestroy {
     },
     {
       // The reporter the forward reconciliation sweep uses: the same class, built with no request
-      // and no journey, so it is a singleton the console can construct. lamp gets this for free by
-      // handing the reporter closures that read the journey lazily; through the request-scoped
+      // and no journey, so it is a singleton the console can construct. Through the request-scoped
       // binding above, `emr:reconcile` could never be built and failed on every run.
       provide: SWEEP_CHECKOUT_EVENT_REPORTER,
       useFactory: (config: ConfigService, clients: EmrClientFactory, events: EventRepository, orders: OrderRepository, log: OperatorLog, instrumentation: Instrumentation, verification: VerificationGateway) =>

@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/PromotionQuote.php. What the provider said about one
+ * What the provider said about one
  * discount code, quoted against the cart about to be charged.
  */
 export class PromotionQuote {

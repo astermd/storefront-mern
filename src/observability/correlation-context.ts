@@ -1,7 +1,7 @@
 import { Injectable, Optional } from '@nestjs/common';
 
 /**
- * Ported from storefront-lamp/core/Observability/CorrelationContext.php. `[20.13]`'s correlation
+ * `[20.13]`'s correlation
  * identifier, carried in request scope.
  *
  * Debugging one buyer's journey across the storefront, the EMR and the provider without a shared

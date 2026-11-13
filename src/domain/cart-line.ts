@@ -1,7 +1,7 @@
 import { CartLineData } from '../journey/journey-state';
 
 /**
- * Ported from storefront-lamp/core/Domain/CartLine.php. One line of the cart: a product, a
+ * One line of the cart: a product, a
  * quantity, a resolved price, optionally a chosen variant, the subscription plan it is sold on, and
  * a parent link (`[1.1]`, `[1.5]`).
  *

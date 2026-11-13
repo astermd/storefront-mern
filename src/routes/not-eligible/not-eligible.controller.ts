@@ -15,7 +15,7 @@ import { JourneyStoreFactory } from '../../journey/journey-store-factory';
 import { OperatorLog } from '../../support/operator-log';
 
 /**
- * Ported from storefront-lamp/core/Http/Controller/NotEligibleController.php. The terminal page a
+ * The terminal page a
  * disqualified journey lands on, and the way back off it.
  *
  * The explanation shown is the one the form author wrote for the rule that fired, not a generic

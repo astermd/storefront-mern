@@ -15,9 +15,8 @@ import { HttpExceptionFilter } from './support/http-exception.filter';
 import { Url } from './support/url';
 
 /**
- * Bootstrap only — the same discipline storefront-lamp's `public/index.php` and `AppFactory`
- * split between them. Nothing about how the pieces fit together belongs here; that's
- * `AppModule`'s job.
+ * Bootstrap only. Nothing about how the pieces fit together belongs here; that's `AppModule`'s
+ * job.
  */
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -26,16 +25,14 @@ async function bootstrap(): Promise<void> {
   // Serves `public/assets/**` at `/assets/**` — matching what `AssetManifest`/the `asset()`
   // template global resolve to (`/assets/build/app.<hash>.css`) and where the catalog's static
   // `image`/`gallery` paths point (`/assets/media/*`, `/assets/img/*`, `/assets/fonts/*`).
-  // `public/css`/`public/js` are Tailwind/JS *source*, the build's input — not served directly,
-  // the same way storefront-lamp's `theme/` sits outside its `public/` document root entirely.
+  // `public/css`/`public/js` are Tailwind/JS *source*, the build's input — not served directly.
   app.useStaticAssets(join(process.cwd(), 'public/assets'), { prefix: '/assets' });
 
   const assetManifest = app.get(AssetManifest);
 
   // EJS is one of Express's natively-supported view engines — no manual engine wiring needed
-  // beyond naming the views directory and the engine itself. EJS has no Nunjucks-style
-  // addFilter()/addGlobal(); a template helper is just a function sitting in `app.locals`, which
-  // Express merges into every render's locals (see MERN.md's "Templates" section for why
+  // beyond naming the views directory and the engine itself. A template helper is just a
+  // function sitting in `app.locals`, which Express merges into every render's locals (see docs/STACK.md's "Templates" section for why
   // app.locals — persists across requests — is the right lifetime for these, vs.
   // TemplateGlobalsMiddleware's per-request res.locals).
   app.set('views', join(process.cwd(), 'views'));
@@ -47,8 +44,8 @@ async function bootstrap(): Promise<void> {
 
   // Validates every incoming request body against its controller method's DTO class
   // (class-validator decorators) before the controller ever sees it — additive to, not a
-  // replacement for, the domain-layer validators (CartRules, BuyerValidator, ...) MERN.md
-  // describes elsewhere. `whitelist` strips properties the DTO doesn't declare rather than
+  // replacement for, the domain-layer validators (CartRules, BuyerValidator, ...) docs/STACK.md
+  // describes. `whitelist` strips properties the DTO doesn't declare rather than
   // erroring on them; `transform` lets a controller declare `@Body() dto: SomeDto` and receive an
   // actual class instance instead of a plain object.
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
@@ -61,7 +58,7 @@ async function bootstrap(): Promise<void> {
   // Catches exceptions thrown inside the pinned middleware (Phase 2), registered on the raw
   // Express instance rather than through Nest — Nest's own exception-filter mechanism only sees
   // exceptions raised from its own guard -> interceptor -> pipe -> controller stage. Both
-  // boundaries share the same ErrorPresenter. See MERN.md's "Error handling" section.
+  // boundaries share the same ErrorPresenter. See docs/STACK.md's "Error handling" section.
   expressInstance.use((err: unknown, req: Request, res: Response, _next: NextFunction) => {
     errorPresenter.render(err, req, res);
   });

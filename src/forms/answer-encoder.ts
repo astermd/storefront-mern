@@ -14,7 +14,7 @@ export interface EncodedAnswer {
 }
 
 /**
- * Ported from storefront-lamp/core/Forms/AnswerEncoder.php. Rewrites an answer set as the field
+ * Rewrites an answer set as the field
  * list the intake-submission API stores.
  *
  * The wire shape is not ours to choose: each answer travels as a self-describing entry — its id,

@@ -1,21 +1,19 @@
 /**
  * Reloads the page when the theme is rebuilt. Development only.
  *
- * `npm run dev` re-runs the asset build on every save; this is what turns
+ * `npm run dev:theme` re-runs the asset build on every save; this is what turns
  * that into a browser the designer does not have to refresh. It watches the
  * build manifest rather than any one file because the build content-hashes
- * its output -- a CSS edit, a JS edit and a class added to a Twig template
+ * its output -- a CSS edit, a JS edit and a class added to an EJS template
  * all land as a changed filename in there, and nothing else has to be
  * enumerated.
  *
  * It is a full page reload, not hot module replacement: state in the page is
  * lost, which for a storefront theme is the right trade. Preserving it would
- * mean a bundler owning the pipeline, and the built output is committed here
- * precisely so servers never run Node.
+ * mean a bundler owning the pipeline.
  *
- * layouts/base.twig loads this only outside production ({@see
- * AsterMD\Storefront\Tests\Theme\LiveReloadTest}). Shipped to real visitors it
- * would be a request a second, per open tab, forever.
+ * Never load this in production. Shipped to real visitors it would be a
+ * request a second, per open tab, forever.
  */
 (function () {
   var MANIFEST = '/assets/build/manifest.json';

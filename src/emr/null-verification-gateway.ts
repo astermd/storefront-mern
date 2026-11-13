@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { VerificationGateway } from './verification-gateway';
 
 /**
- * Ported from storefront-lamp/core/Emr/NullVerificationGateway.php. Bound when
+ * Bound when
  * `features.emrVerifyEmail` and `features.emrVerifyAddress` are both off — their default, and always the case under the test suite.
  *
  * Answers "could not determine" to everything, the same answer a live gateway gives when the

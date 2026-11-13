@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Abandonment/AbandonmentState.php. The six abandonment states
+ * The six abandonment states
  * `[21.10]` requires the storefront to emit.
  *
  * `[21.10]`'s whole demand is that the states be **distinguishable**: a classifier that answered

@@ -361,7 +361,7 @@
     // clears `data-intake-required-now`, and a question that cannot be answered (every control
     // disabled by a `disable` condition) never holds the page. Checkbox groups carry no native
     // `[required]`, so without this a required group made optional or disabled kept Next greyed
-    // out and the page could not be finished (lamp only checks controls marked required now).
+    // out and the page could not be finished.
     var now = wrapper.getAttribute('data-intake-required-now');
     if ((now === null ? wrapper.getAttribute('data-intake-required') : now) !== '1') return true;
 
@@ -452,7 +452,7 @@
   }
 
   // The three visual states a step can be in, kept in step with
-  // partials/stepper.twig -- which renders the same class strings server-side,
+  // views/partials/stepper.ejs -- which renders the same class strings server-side,
   // so the first paint and every later one agree.
   var STEP_CIRCLE = {
     done: 'bg-secondary text-secondary-foreground',

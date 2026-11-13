@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { globSync } from 'node:fs';
 
 /**
- * Ported from storefront-lamp/core/Forms/DefinitionCache.php. The server-side definition cache
+ * The server-side definition cache
  * (`[3.11]`) closes `[3.6]` with: a form definition is otherwise fetched from a signed remote URL
  * on every request that renders a form, which puts a third-party round trip on the critical path
  * of the highest-abandonment step in the funnel.

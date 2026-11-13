@@ -2,11 +2,8 @@ import { Controller, Get, Res } from '@nestjs/common';
 import type { Response } from 'express';
 
 /**
- * Ported from storefront-lamp's `PageController` as wired for `/terms/`, `/privacy/`,
- * `/telehealth-consent/` in `config/routes.php` — the PHP original uses one generic
- * "render `$args['template']`" controller for every static page; this port gives each route its
- * own thin method instead, since Nest has no equivalent of Slim's route-argument style and three
- * one-line methods are clearer than a template-name lookup table.
+ * The static legal pages: `/terms/`, `/privacy/`, `/telehealth-consent/`. Each route gets its own
+ * thin method, since three one-line methods are clearer than a template-name lookup table.
  *
  * None of the three pass an explicit `noindex` — deliberately, so `partials/head.ejs` falls
  * through to the real per-path `RobotsPolicy` directive (`seo.robots`) instead. None of them are in

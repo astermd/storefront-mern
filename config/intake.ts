@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/config/intake.php — the intake step: which renderer draws the form,
+ * The intake step: which renderer draws the form,
  * where the hosted engine's assets live, and how long a fetched definition is trusted.
  *
  * `renderer`:

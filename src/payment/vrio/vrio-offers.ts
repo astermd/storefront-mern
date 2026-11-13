@@ -3,7 +3,7 @@ import { OrderEnvelope } from '../order-envelope';
 import { OrderLine } from '../order-line';
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioOffers.php. One shared line-builder for both
+ * One shared line-builder for both
  * `calculateDiscount` (quote) and `addOrder` (charge) — deliberately a single builder, because two
  * independent ones once drifted apart (a quote priced every line while a charge only priced the
  * first, an overcharge). The ONE difference between the two call sites is the quantity field's key

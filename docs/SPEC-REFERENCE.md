@@ -2,7 +2,7 @@
 
 Source files in this repository cite behaviour rules by id. They look like this:
 
-```php
+```ts
  * `[7.8]` establishes that a bundled line is not the buyer's to change;
  * this guard applies that same rule to `add()` when a request names the
  * child's slug directly [...]
@@ -31,7 +31,7 @@ decision.
 **The contract document itself is not part of this repository.** This file is
 the whole of it that ships. It resolves every rule id the code actually cites
 to a one-line statement of what that rule requires, so that a citation can be
-looked up without the original to hand.
+looked up without the contract document to hand.
 
 A few things worth knowing before reading:
 

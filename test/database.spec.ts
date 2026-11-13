@@ -9,7 +9,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
  * Proves the persistence layer's "done" bar: the schema applies cleanly to a fresh database (via
  * `prisma db push`, schema-only sync — no need to spawn the CLI once per test), an insert/select
  * round trip works per table, and the `checkout_attempts.idempotency_key` UNIQUE constraint — the
- * entire double-charge defense per MERN.md's Persistence section — actually rejects a duplicate at
+ * entire double-charge defense per docs/STACK.md's Persistence section — actually rejects a duplicate at
  * the DB layer, before any checkout logic exists to rely on it. `prisma/migrations/` itself (the
  * real migration history) is exercised separately by hand against both SQLite and a real Postgres
  * 16 container while building Phase 3 — see the plan file.
@@ -19,7 +19,7 @@ describe('Persistence', () => {
   let dbDir: string;
 
   beforeAll(() => {
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-db-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-db-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
 
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], {

@@ -7,7 +7,7 @@ import { ProductCatalog } from './product-catalog';
 import { StepRouter } from './step-router';
 
 /**
- * Ported from storefront-lamp/core/Domain/FunnelRouter.php. Where this visitor should be right
+ * Where this visitor should be right
  * now (`[8.1]`).
  *
  * Deliberately *not* a forward-only table: the guard asks this of a visitor who has just failed a

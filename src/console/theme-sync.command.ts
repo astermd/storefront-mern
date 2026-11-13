@@ -16,7 +16,7 @@ interface ThemeSyncOptions {
 }
 
 /**
- * Ported from storefront-lamp/core/Console/SyncCommand.php. `theme:sync` — the centerpiece of the
+ * `theme:sync` — the centerpiece of the
  * catalog pipeline. Fetches the configured EMR channel's detail record, runs it through
  * `CatalogBuilder`, and (in `--apply` mode only) localizes remote product images via
  * `MediaLocalizer` before writing two generated files:
@@ -32,13 +32,12 @@ interface ThemeSyncOptions {
  *
  * **Rebuild after `--apply`.** Both generated files are TypeScript source modules, resolved at
  * `nest build` time — a sync takes effect once the app is rebuilt and restarted, not on the next
- * request the way PHP's `require` re-read the file every time.
+ * request.
  *
  * Defaults to a dry run: no writes, no media localization, just the counts an operator needs to
  * decide whether to `--apply` (remote images that would be localized, variants still missing a
  * provider mapping). `--apply` performs the writes, runs media localization, and then runs
- * `CatalogValidator` against the result — exit code 2 on a validation error, matching the PHP
- * original exactly (not 1).
+ * `CatalogValidator` against the result — exit code 2 on a validation error (not 1).
  */
 @Command({ name: 'theme:sync', description: 'Sync the generated catalog and channel config from the configured EMR channel' })
 export class ThemeSyncCommand extends CommandRunner {

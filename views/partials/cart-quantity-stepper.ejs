@@ -1,5 +1,5 @@
 <%
-/* Ported from storefront-lamp/theme/templates/partials/cart-quantity-stepper.twig. Expects `line`
+/* Expects `line`
    in scope. Two forms (decrement/increment) computing the target quantity server-side, so the
    stepper degrades without JS. Decrement's aria-label changes to "Remove" when qty <= 1. */
 const decrementLabel = line.quantity <= 1 ? `Remove last ${line.name} from cart` : `Decrease ${line.name} quantity`;

@@ -3,7 +3,7 @@ import { NullAddressAutofill } from '../../src/emr/null-address-autofill';
 import { apiError, capturedLog, fakeClients, response } from '../support/fake-emr-client';
 
 /**
- * Ported from storefront-lamp/tests/Emr/AddressAutofillTest.php. The EMR's answers below are the
+ * The EMR's answers below are the
  * shapes it gives: suggestions as formatted strings with no ZIP and from any country, and a
  * verifier whose `formatted_address` carries the ZIP.
  */

@@ -1,12 +1,10 @@
 /**
- * Ported from storefront-lamp/config/app.php. Client-owned, not `src/` — a real deployment may
+ * Client-owned, not `src/` — a real deployment may
  * edit this file directly.
  *
- * `env` is `NODE_ENV`, replacing the PHP original's `APP_ENV` — this port's one deliberate
- * renaming of an environment discriminator, made because it's the Node-ecosystem-idiomatic name
- * and because `NODE_ENV=test` is what every Nest testing tool already reads. Everything
- * downstream (`session.analytics`, `seo.discourageIndexing`, ...) still keys off it exactly the
- * way the PHP original keys off `APP_ENV`.
+ * `env` is `NODE_ENV` — the Node-ecosystem-idiomatic name, and what every Nest testing tool
+ * already reads for `NODE_ENV=test`. Everything downstream (`session.analytics`,
+ * `seo.discourageIndexing`, ...) keys off it.
  */
 export interface AppConfig {
   name: string;
@@ -91,7 +89,7 @@ export interface AppConfig {
     addressAutofill: boolean;
   };
   debug: {
-    /** Never true in a deployment taking real payments — see storefront-lamp's config/app.php. */
+    /** Never true in a deployment taking real payments — the wire log is unredacted. */
     wireLog: boolean;
   };
 }
@@ -134,7 +132,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv): AppConfig {
       resumeParam: 'amd_session',
       lifetimeDays: 30,
       excludePaths: ['/health/'],
-      // Matches storefront-lamp's config/app.php exactly: on everywhere except under the test
+      // On everywhere except under the test
       // suite, with no separate on/off knob — never trust a stray config value to keep a test
       // run off the network.
       analytics: !isTest,

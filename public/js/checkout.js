@@ -111,7 +111,7 @@
 
   // The one button that places the order, told apart from the sub-actions by
   // its own hook attribute rather than by position or class — the template
-  // owns which button that is, and tests/Http/CheckoutControllerTest.php pins
+  // owns which button that is, and the checkout e2e specs pin
   // the contract so an edit there cannot quietly switch this off.
   var pay = form.querySelector('[data-checkout-submit]');
   var idleLabel = pay ? (pay.textContent || '').trim() : '';

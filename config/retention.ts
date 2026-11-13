@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/config/retention.php. How long each category of data is kept, and
+ * How long each category of data is kept, and
  * what a deletion request can actually reach.
  *
  * §30 states the conflict plainly: privacy regulation gives a person the right to have their data

@@ -36,7 +36,7 @@ const INCHES_TO_CENTIMETRES = 2.54;
 const POUNDS_TO_KILOGRAMS = 0.45359237;
 
 /**
- * Ported from storefront-lamp/core/Forms/RecordMapper.php. Turns answers into the nested EMR
+ * Turns answers into the nested EMR
  * record the teleform's own `db_fields` map asks for.
  *
  * The map is authored alongside the form: a target is a dotted path such as

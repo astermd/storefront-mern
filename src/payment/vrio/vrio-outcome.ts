@@ -30,10 +30,9 @@ function toCents(amount: unknown): number | null {
 }
 
 /**
- * Ported from storefront-lamp/core/Payment/Vrio/VrioOutcome.php. Classifies a raw Vrio envelope
- * into a `PlacementOutcome` — the single most intricate piece of the Vrio port. Branch order
- * matters throughout; see the PHP original's own extensive comments for why each check is ordered
- * the way it is (most importantly: the stored-credential refusal has no order id or transaction
+ * Classifies a raw Vrio envelope
+ * into a `PlacementOutcome` — the single most intricate piece of the Vrio adapter. Branch order
+ * matters throughout (most importantly: the stored-credential refusal has no order id or transaction
  * node at all, so it must be checked before the missing-reference branch would otherwise catch it).
  */
 export class VrioOutcome {

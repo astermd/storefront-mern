@@ -15,15 +15,15 @@ type RawRecord = Record<string, unknown>;
 type PlanAttachment = { id: string; name: string; description: string; first_payment_cents: number; allow_coupons: boolean; settlement: string };
 
 /**
- * Ported from storefront-lamp/core/Catalog/CatalogBuilder.php. Pure transform: the `data` subtree
+ * Pure transform: the `data` subtree
  * of an EMR Channel Details response (the raw, unflattened payload — `response.data()`, never the
  * SDK's `ChannelDetail.from()` presenter, which reshapes the tree this class's field access
  * patterns depend on) → the generated catalog every later step of the pipeline (rendering,
  * provider resolution, validation) consumes. No I/O, no SDK types — `build()` is a deterministic
  * function of its input, exhaustively unit-testable without any test doubles.
  *
- * Bracketed numbers ([2.10], [2.12]-[2.15], [2.18], ...) are the PHP original's behaviour-rule ids
- * (`storefront-lamp/docs/SPEC-REFERENCE.md`, "2. Configuration and the catalog model"). Every rule
+ * Bracketed numbers ([2.10], [2.12]-[2.15], [2.18], ...) are behaviour-rule ids
+ * (`docs/SPEC-REFERENCE.md`, "2. Configuration and the catalog model"). Every rule
  * below implements one of them.
  */
 export class CatalogBuilder {
@@ -279,9 +279,8 @@ export class CatalogBuilder {
    * Rule 5: find the `product_mappings[]` entry whose `variant_id` matches this variant's id and
    * attach its offer/product identifiers.
    *
-   * **Deviates from the PHP original on purpose, after a real, live failure.** PHP's own
-   * `providerFor()` (and this port's original port of it) always took the *first* matching
-   * mapping, with a comment explicitly naming the exact scenario that turns out to matter: "the
+   * **Changed on purpose, after a real, live failure.** An earlier `providerFor()` always took the
+   * *first* matching mapping, with a comment explicitly naming the exact scenario that turns out to matter: "the
    * fixture can carry more than one mapping per `variant_id` across different payment processors
    * (e.g. a vrio entry and a checkout_champ entry for the same variant)". Confirmed live against
    * the real AsterMD channel: Rameltion's variant carries exactly that — a `vrio` mapping

@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Payment/SettlementMode.php. `Capture` charges immediately;
+ * `Capture` charges immediately;
  * `Authorize` holds funds without charging (a 3-D-Secure-style QA hold on some providers).
  */
 export type SettlementModeValue = 'capture' | 'authorize';

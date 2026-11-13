@@ -5,7 +5,7 @@ import { capturedLog, fakeClients, response } from '../support/fake-emr-client';
 
 const SESSION = 'sess-1';
 
-/** Ported from lamp's EmrCheckoutEventReporterTest payment/verification sync cases. */
+/** The payment/verification treatment-sync cases. */
 describe('EmrCheckoutEventReporter treatmentsSynced', () => {
   function build(opts: { identityEnabled?: boolean; verification?: VerificationGateway | null; email?: string | null; identity?: { status: string; check: string | null; basis: string | null; reference?: string | null } | null; document?: string | null } = {}) {
     const sync = jest.fn().mockResolvedValue(response([{ id: 'tr-1' }]));

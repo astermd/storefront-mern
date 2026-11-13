@@ -1,7 +1,7 @@
 import { PlacementOutcome } from '../payment/placement-outcome';
 
 /**
- * Ported from storefront-lamp/core/Upsell/UpsellResult.php. What answering one offer amounts to:
+ * What answering one offer amounts to:
  * somewhere to go, and at most something to say.
  *
  * **`redirectTo` is not nullable, and that is the type carrying `[16.11]`.** Its counterpart

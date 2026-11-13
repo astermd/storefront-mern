@@ -1,6 +1,5 @@
-// Ported from storefront-lamp's database/migrations/*.php (schema shape) and this project's own
-// earlier Kysely-based src/database/schema.ts — see MERN.md's "Persistence" section for why this
-// is Prisma now, and what that costs (the datasource provider below is fixed at generate time;
+// The storefront's relational schema — see docs/STACK.md's "Persistence" section for why this
+// is Prisma, and what that costs (the datasource provider below is fixed at generate time;
 // switching engines means editing it here, running `npx prisma generate`, and a fresh
 // `npx prisma migrate dev` against the new engine, not a runtime config value).
 //
@@ -10,8 +9,8 @@
 // `PrismaClient`'s constructor) for where it lives now.
 //
 // Money is integer cents everywhere; timestamps are plain ISO-8601 UTC strings (`String`, not a
-// native DateTime) so the original's lexicographic-sort trick — a plain string comparison is a
-// valid range query, because every writer uses the same fixed width — survives verbatim. Column
+// native DateTime) so the lexicographic-sort trick — a plain string comparison is a
+// valid range query, because every writer uses the same fixed width — keeps working. Column
 // names stay snake_case in the underlying tables via @map/@@map; the generated client uses
 // idiomatic camelCase property names.
 
@@ -126,7 +125,7 @@ model Event {
 
 model CheckoutAttempt {
   id             Int     @id @default(autoincrement())
-  /// UNIQUE — the entire double-charge defense; see storefront-lamp's 0002_checkout migration.
+  /// UNIQUE — the entire double-charge defense.
   idempotencyKey String  @unique @map("idempotency_key")
   sessionKey     String  @map("session_key")
   /// 'claimed' | 'sent' | 'complete' — see CheckoutAttemptRepository's constants (Phase 7).

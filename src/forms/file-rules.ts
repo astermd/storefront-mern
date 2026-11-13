@@ -1,7 +1,7 @@
 import { Field } from './field';
 
 /**
- * Ported from storefront-lamp/core/Forms/FileRules.php. What one file-upload question will take:
+ * What one file-upload question will take:
  * how many files, how large, and of which kinds.
  *
  * Two sets of limits meet here and the stricter always wins. The form author sets `maxFiles`,
@@ -123,8 +123,7 @@ export class FileRules {
 
   /**
    * The most one request to this server can carry, which bounds every request the page sends.
-   * PHP's `upload_max_filesize` / `post_max_size` have no equivalent here: the upload routes read
-   * bodies through multer, whose per-file limit is set to exactly this, so it is the EMR's own cap.
+   * The upload routes read bodies through multer, whose per-file limit is set to exactly this, so it is the EMR's own cap.
    */
   static requestBytes(): number {
     return FileRules.SINGLE_REQUEST_MAX_BYTES;

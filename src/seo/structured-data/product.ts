@@ -2,7 +2,7 @@ import { CatalogProduct, ProductVariant } from '../../domain/product-catalog';
 import { Emitter } from './emitter';
 
 /**
- * Ported from storefront-lamp/core/Seo/StructuredData/Product.php. One catalog product as
+ * One catalog product as
  * schema.org `Product` with its offer (`[24.8]`).
  *
  * **`[24.9]` — the offer reflects real state.** The price is the *resolved variant's*, never the

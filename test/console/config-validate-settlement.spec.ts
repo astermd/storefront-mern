@@ -2,7 +2,7 @@ import { ConfigValidateCommand } from '../../src/console/config-validate.command
 import { CatalogProduct } from '../../src/domain/product-catalog';
 import { AdapterCapabilities, SCOPE_LINE_ITEM, STRATEGY_TOKENIZATION, SURFACE_PROVIDER_HOSTED } from '../../src/payment/adapter-capabilities';
 
-/** The settlement and subscription-plan checks ported from lamp's ValidateCommand::validateSettlement(). */
+/** The settlement and subscription-plan checks in `ConfigValidateCommand.validateSettlement()`. */
 describe('config:validate settlement', () => {
   const plan = (id: string, settlement?: string) => ({ id, name: id, first_payment_cents: 1000, ...(settlement === undefined ? {} : { settlement }) });
 

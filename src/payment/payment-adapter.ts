@@ -10,7 +10,7 @@ import { PlacementOutcome } from './placement-outcome';
 import { PromotionQuote } from './promotion-quote';
 
 /**
- * Ported from storefront-lamp/core/Payment/PaymentAdapter.php — the contract every payment
+ * The contract every payment
  * provider integration implements.
  *
  * `place()` must never throw for provider-side outcomes — a decline is a `PlacementOutcome`, not

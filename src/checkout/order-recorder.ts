@@ -4,7 +4,7 @@ import { PlacementOutcome } from '../payment/placement-outcome';
 import { ConsentRecord } from './consent-record';
 
 /**
- * Ported from storefront-lamp/core/Checkout/OrderRecorder.php (interface). The storefront's own
+ * The storefront's own
  * record of what was bought (`[18.1]`).
  *
  * A port rather than a concrete class so `CheckoutService` depends on the *fact* that a placement is

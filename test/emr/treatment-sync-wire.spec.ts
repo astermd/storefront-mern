@@ -7,7 +7,7 @@ import { capturedLog } from '../support/fake-emr-client';
 /**
  * What actually reaches the wire: the real, installed `@astermd-hq/sdk` client over a stub HTTP
  * client. Guards the assumption `src/emr/treatment-sync-options.ts` documents — that the SDK's
- * `treatments().sync()` serialises `payment` and `verification` as PHP astermd/sdk 0.0.3 does.
+ * `treatments().sync()` serialises `payment` and `verification` in the request body.
  * It fails against an SDK that drops them (stock 0.0.2), which is the signal to update the SDK.
  */
 describe('treatments sync on the wire', () => {

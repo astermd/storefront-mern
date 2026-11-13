@@ -13,7 +13,7 @@ import { RuleEvaluator } from '../../src/forms/rule-evaluator';
  * templates that assemble them, against one representative definition covering every field type.
  * This is what proves the templates are runtime-safe, not just EJS-syntax-valid: the field-type
  * partials, `field.ejs`'s dispatcher, and `pages/intake/{form,form-js-engine}.ejs` currently have
- * no automated exerciser other than this — see STATUS.md's Phase 6 section on why (this port's
+ * no automated exerciser other than this — see STATUS.md's Phase 6 section on why (the
  * example catalog has no teleform id the real EMR channel recognises, so the live route never
  * reaches a populated form).
  */
@@ -157,13 +157,12 @@ describe('intake templates render for every field type', () => {
     // ever exercised this type before. Locked down here so it can't regress silently again.
     expect(html).toContain('<textarea');
     expect(html).toContain('Additional notes');
-    // `file-upload` has no PHP equivalent (see field-types.ts) — a real live teleform (Rameltion's)
-    // turned out to need three of them, which this port now supports for real.
+    // `file-upload` (see field-types.ts) — a real live teleform (Rameltion's) turned out to need
+    // three of them, which the storefront supports for real.
     expect(html).toContain('type="file"');
     expect(html).toContain('data-intake-upload');
     expect(html).toContain('Photo ID');
-    // The limits the page and the server hold the question to (lamp 0.0.6's
-    // `testTheFormDrawsAFileQuestionWithTheLimitsItWillBeHeldTo`), and the signature pad.
+    // The limits the page and the server hold the question to, and the signature pad.
     expect(html).toContain('accept=".pdf,.png"');
     expect(html).toContain('data-max-files="2"');
     expect(html).toContain('up to 5 MB each');
@@ -180,8 +179,8 @@ describe('intake templates render for every field type', () => {
     expect(html).toContain('data-intake-action="next_page"');
     expect(html).not.toContain('data-button-action');
     // A `buttonCount: 2` field authors two buttons in one slot (a real, live-authored pattern —
-    // confirmed on Rameltion's own real teleform) — PHP's own renderer drops the second one
-    // entirely too (see field-button.ejs's doc comment); this port renders both.
+    // confirmed on Rameltion's own real teleform) — the storefront renders both (see
+    // field-button.ejs's doc comment).
     const backCount = (html.match(/data-intake-action="previous_page"/g) || []).length;
     expect(backCount).toBeGreaterThanOrEqual(1);
     expect(html).toContain('>Back</button>');

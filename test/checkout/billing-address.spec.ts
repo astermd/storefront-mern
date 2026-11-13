@@ -16,7 +16,7 @@ import { VrioPayload } from '../../src/payment/vrio/vrio-payload';
 import type { VerificationGateway } from '../../src/emr/verification-gateway';
 
 /**
- * The separate billing address, after storefront-lamp #6/#7: billing is the delivery address
+ * The separate billing address: billing is the delivery address
  * (`[13.2]`) unless "Use a different billing address" is ticked, and only then is a `billing_*`
  * field read, validated, sent to a provider or shown on the receipt.
  */

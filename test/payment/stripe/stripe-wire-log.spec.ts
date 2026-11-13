@@ -6,7 +6,7 @@ import { StripeCredentials } from '../../../src/payment/stripe/stripe-credential
 import { StripeWireLog } from '../../../src/payment/stripe/stripe-wire-log';
 import { FakeStripeTransport } from '../../support/fake-stripe-transport';
 
-/** After storefront-lamp's StripeWireLogTest: one line per call, the SDK's behaviour unchanged. */
+/** One line per call, the SDK's behaviour unchanged. */
 describe('StripeWireLog', () => {
   const credentials = () => StripeCredentials.fromChannelConfig({ api_key: 'sk_test_wirelog', publishable_key: 'pk_test_wirelog' });
 

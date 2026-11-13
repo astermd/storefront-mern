@@ -1,6 +1,6 @@
 <%
 /*
-  Ported from storefront-lamp/theme/templates/partials/intake/field.twig. Dispatches on `f.template`
+  Dispatches on `f.template`
   (set by FieldViewModel.for()) and never on `f.type` — see that class's doc comment for why the
   type-to-partial branching lives there and not here. `f` is one field view-model object; a page
   passes each of its top-level fields through this partial in a loop.
@@ -12,8 +12,7 @@
   makes every field full width there — and only an `sm:col-span-*` class to say which desktop
   treatment it gets.
 
-  The `data-intake-*` attributes are what `public/js/intake.js` (ported verbatim from
-  storefront-lamp's own `theme/js/intake.js`) reads to move between pages, evaluate conditions, and
+  The `data-intake-*` attributes are what `public/js/intake.js` reads to move between pages, evaluate conditions, and
   compute the BMI composite — this wrapper and `pages/intake/form.ejs`/`partials/stepper.ejs`
   together are the entire contract that script depends on.
 */

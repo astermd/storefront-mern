@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 
 /**
- * Ported from storefront-lamp/core/Support/AssetManifest.php. Maps a logical asset name (e.g.
+ * Maps a logical asset name (e.g.
  * `script.js`) to its content-hashed build output (e.g. `script.8d796604.js`) via the build's
  * manifest.json, so templates never hardcode a hash that changes on every rebuild. Read once and
- * cached in-process for the life of the process (Node has no per-request process boundary the way
- * PHP-FPM does, so "once" here means "once per app instance," not "once per request").
+ * cached in-process for the life of the process ("once" means "once per app instance," not "once
+ * per request").
  *
  * If the manifest is missing or unreadable, or has no entry for the requested name, `resolve()`
  * falls back to the logical name itself rather than throwing — templates keep rendering (with an

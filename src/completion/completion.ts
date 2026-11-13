@@ -15,7 +15,7 @@ import { ReceiptViewModel } from './receipt-view-model';
 const RECEIPT_STEP = 'receipt';
 
 /**
- * Ported from storefront-lamp/core/Completion/Completion.php. What reaching the receipt does: the
+ * What reaching the receipt does: the
  * completion actions once, then teardown (`[17.1]`–`[17.7]`).
  *
  * **The order of the steps is the whole class.** `wipeForCompletion()` clears the attribution the

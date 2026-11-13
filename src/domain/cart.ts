@@ -2,7 +2,7 @@ import { CartData } from '../journey/journey-state';
 import { CartLine } from './cart-line';
 
 /**
- * Ported from storefront-lamp/core/Domain/Cart.php. The visitor's cart: an ordered set of lines,
+ * The visitor's cart: an ordered set of lines,
  * at most one per product, plus the shipping territory the geo gate is evaluated against once
  * checkout knows it (`[13.3]`).
  *

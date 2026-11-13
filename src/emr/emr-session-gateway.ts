@@ -5,7 +5,7 @@ import { EmrClientFactory } from './client-factory';
 import { SessionGateway, SessionViewResult } from './session-gateway';
 
 /**
- * Ported from storefront-lamp/core/Emr/EmrSessionGateway.php. {@link SessionGateway} over the
+ * {@link SessionGateway} over the
  * SDK's `sessions()` resource.
  *
  * Every call is wrapped: a transport error, a non-2xx envelope, or a missing identifier all

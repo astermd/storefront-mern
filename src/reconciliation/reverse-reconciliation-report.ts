@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/core/Reconciliation/ReverseReconciliationReport.php. What one reverse
+ * What one reverse
  * sweep saw at the provider, and how much of it this storefront has no record of.
  *
  * **`lostCharges` is `[20.12]`'s monitored count** — "orders placed at the provider but not

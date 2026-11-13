@@ -1,5 +1,5 @@
 /**
- * Ported from storefront-lamp/config/upsells.php. Client-owned, not `src/` — a real deployment may
+ * Client-owned, not `src/` — a real deployment may
  * edit this file directly.
  *
  * Post-purchase upsells — offers presented *after* a successful charge, each placing its own

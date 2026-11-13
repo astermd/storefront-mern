@@ -2,7 +2,7 @@ import { VerificationGateway } from '../emr/verification-gateway';
 import { BuyerDetails } from './buyer-details';
 
 /**
- * Ported from storefront-lamp/core/Checkout/BuyerValidator.php. The server's answer on whether a
+ * The server's answer on whether a
  * submitted checkout form can become an order (`[13.5]`).
  *
  * **The gateway is a parameter, not a constructor dependency.** The EMR-backed email check is a

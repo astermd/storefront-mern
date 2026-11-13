@@ -5,12 +5,12 @@ import { Url } from '../support/url';
 import { addTrace } from './trace';
 
 /**
- * Ported from storefront-lamp/core/Http/Middleware/CanonicalUrlMiddleware.php. One-hop 301 to the
+ * One-hop 301 to the
  * canonical URL form (spec §23): trailing slash, lowercase path, collapsed slashes. The query
  * string is preserved byte-for-byte — attribution and resume parameters ride there and must never
  * be re-encoded. Only safe methods redirect; redirecting a POST would drop its body.
  *
- * Pinned slot 1 of 9 — outermost. See MERN.md's "Why the positions are what they are".
+ * Pinned slot 1 of 9 — outermost. See docs/STACK.md's "Why the positions are what they are".
  */
 @Injectable()
 export class CanonicalUrlMiddleware implements NestMiddleware {

@@ -27,7 +27,7 @@ import { createTestApp } from '../support/test-app';
 const PRODUCT_SLUG = 'test-otc-item';
 let reference = 0;
 
-/** Always places, at a synthesised incrementing reference — this port has no real payment provider (see MERN.md), so this stub is what stands in for "the provider approved it" across Phase 7/8's tests. */
+/** Always places, at a synthesised incrementing reference — tests never reach a real payment provider, so this stub is what stands in for "the provider approved it" across Phase 7/8's tests. */
 class StubPlacingAdapter implements PaymentAdapter {
   capabilities(): AdapterCapabilities {
     return new AdapterCapabilities('test-stub', false, SCOPE_LINE_ITEM, STRATEGY_TOKENIZATION, SURFACE_THEME_FIELDS, [], [], 'Test stub adapter.', false, false, false, false, []);
@@ -78,7 +78,7 @@ describe('Checkout -> upsell -> receipt (Phase 7 + 8)', () => {
   let dbDir: string;
 
   beforeAll(async () => {
-    dbDir = mkdtempSync(join(tmpdir(), 'mern-test-checkout-db-'));
+    dbDir = mkdtempSync(join(tmpdir(), 'storefront-test-checkout-db-'));
     const url = `file:${join(dbDir, 'test.sqlite3')}`;
 
     execFileSync('npx', ['prisma', 'db', 'push', '--url', url, '--accept-data-loss'], { cwd: process.cwd(), stdio: 'ignore' });

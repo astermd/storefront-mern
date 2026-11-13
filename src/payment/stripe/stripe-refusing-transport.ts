@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 
 /**
- * Ported from storefront-lamp/core/Payment/Stripe/StripeRefusingTransport.php. Stripe's HTTP client
+ * Stripe's HTTP client
  * under the test environment: refuses to send.
  *
  * The third provider's half of the fence `RefusingTransport` (Vrio) and

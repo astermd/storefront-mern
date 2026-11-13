@@ -1,5 +1,5 @@
 /**
- * Reduced port of storefront-lamp/core/Attribution/Attribution.php for Phase 2. The attribution
+ * The attribution
  * captured for one journey: canonical parameters, the landing referrer, and (eventually) the
  * values derived from them.
  *
@@ -7,10 +7,10 @@
  * for the life of the journey (`[5.12]`); `firstTouch()` keys off the existence of an existing
  * instance, not its emptiness, so an empty landing referrer still counts as a capture (`[5.13]`).
  *
- * Deliberately reduced from the PHP original for this phase: the encrypted `_amd` payload
+ * Deliberately reduced for this phase: the encrypted `_amd` payload
  * (`AmdPayload::decode`, tracking-key rotation) and derived device/browser/OS/source-category
  * parsing (`AttributionNormalizer`, `DerivedAttribution`) are not built yet — `derived` fields are
- * always null until a later pass adds real user-agent parsing. What's ported now (capture from
+ * always null until a later pass adds real user-agent parsing. What's built now (capture from
  * plain query params + referrer, first-touch precedence, the EMR session payload shape) is
  * complete and correct as far as it goes.
  */
